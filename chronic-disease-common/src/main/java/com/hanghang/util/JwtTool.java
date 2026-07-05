@@ -1,17 +1,18 @@
 package com.hanghang.util;
 
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * JWT 工具类
  */
-public class JwtUtil {
+public class JwtTool {
 
     private static final SecretKey SECRET = Keys.hmacShaKeyFor(
             "chronic-disease-manage-2026-secret-key".getBytes()
@@ -32,37 +33,45 @@ public class JwtUtil {
                 .compact();
     }
 
-    /**
-     * 校验 token 签名和过期
-     */
-    public static boolean validate(String token) {
+    public static Map<String, Object> parseToken(String token) {
         try {
-            parseClaims(token);
-            return true;
+            Claims claims = Jwts.parser()
+                    .verifyWith(SECRET)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            Map<String, Object> result = new HashMap<>();
+            result.put("userId", claims.get("userId", Long.class));
+            result.put("role", claims.get("role", String.class));
+            return result;
         } catch (Exception e) {
-            return false;
+            return null;
         }
     }
 
     /**
-     * 从 token 提取用户 ID
+     * 获取用户id
+     * @param token
+     * @return
      */
     public static Long getUserId(String token) {
-        return parseClaims(token).get("userId", Long.class);
+        Map<String, Object> claims = parseToken(token);
+        if (claims == null) {
+            return null;
+        }
+        return (Long) claims.get("userId");
     }
 
     /**
-     * 从 token 提取用户角色
+     * 获取用户角色
+     * @param token
+     * @return
      */
     public static String getRole(String token) {
-        return parseClaims(token).get("role", String.class);
-    }
-
-    private static Claims parseClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(SECRET)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        Map<String, Object> claims = parseToken(token);
+        if (claims == null) {
+            return null;
+        }
+        return (String) claims.get("role");
     }
 }

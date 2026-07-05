@@ -3,16 +3,20 @@ package com.chronicdisease.user.service.Impl.Impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.crypto.digest.BCrypt;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.chronicdisease.user.domain.dto.LoginDTO;
 import com.chronicdisease.user.domain.dto.RegisterDTO;
 import com.chronicdisease.user.domain.entity.User;
+import com.chronicdisease.user.domain.query.UserQuery;
 import com.chronicdisease.user.domain.vo.LoginVO;
 import com.chronicdisease.user.domain.vo.UserInfoVO;
 import com.chronicdisease.common.exception.BusinessException;
 import com.chronicdisease.user.mapper.UserMapper;
 import com.chronicdisease.user.service.Impl.IUserService;
 import com.chronicdisease.common.util.JwtTool;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -89,5 +93,29 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                 .token(token)
                 .userInfo(userInfoVO)
                 .build();
+    }
+
+    @Override
+    public IPage<User> getUserPage(UserQuery query) {
+        Page<User> page = new Page<>(query.getPageNum(), query.getPageSize());
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        if (StringUtils.isNotBlank(query.getUsername())) {
+            wrapper.like(User::getUsername, query.getUsername());
+        }
+        if (StringUtils.isNotBlank(query.getNickname())) {
+            wrapper.like(User::getNickname, query.getNickname());
+        }
+        if (StringUtils.isNotBlank(query.getRoleType())) {
+            wrapper.eq(User::getRoleType, query.getRoleType());
+        }
+        if (query.getStatus() != null) {
+            wrapper.eq(User::getStatus, query.getStatus());
+        }
+        if (StringUtils.isNotBlank(query.getPhone())) {
+            wrapper.like(User::getPhone, query.getPhone());
+        }
+        // 不查密码字段
+        wrapper.orderByDesc(User::getCreateTime);
+        return userMapper.selectPage(page, wrapper);
     }
 }

@@ -1,6 +1,7 @@
 package com.chronicdisease.user.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -22,6 +23,7 @@ public class User implements Serializable {
     @Schema(description = "用户名")
     private String username;
 
+    @JsonIgnore
     @TableField("password")
     @Schema(description = "密码")
     private String password;

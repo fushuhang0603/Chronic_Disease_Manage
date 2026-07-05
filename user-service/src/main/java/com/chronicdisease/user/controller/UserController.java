@@ -1,8 +1,10 @@
 package com.chronicdisease.user.controller;
 
-import com.chronicdisease.common.util.UserInfoContext;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.chronicdisease.user.domain.dto.LoginDTO;
 import com.chronicdisease.user.domain.dto.RegisterDTO;
+import com.chronicdisease.user.domain.entity.User;
+import com.chronicdisease.user.domain.query.UserQuery;
 import com.chronicdisease.user.domain.vo.LoginVO;
 import com.chronicdisease.user.domain.vo.UserInfoVO;
 import com.chronicdisease.common.result.Result;
@@ -25,8 +27,6 @@ public class UserController {
     @PostMapping("/login")
     @Operation(summary = "用户登录")
     public Result<LoginVO> login(@Valid @RequestBody LoginDTO loginDTO){
-        Long userId = UserInfoContext.getUserId();
-        System.out.println("User ID: " + userId);
         log.info("用户请求登录,{}", loginDTO);
         LoginVO result = userService.login(loginDTO);
         return Result.success(result);
@@ -37,6 +37,14 @@ public class UserController {
     public Result<UserInfoVO> register(@Valid @RequestBody RegisterDTO registerDTO){
         log.info("用户注册，{}", registerDTO);
         UserInfoVO result = userService.register(registerDTO);
+        return Result.success(result);
+    }
+
+    @GetMapping("/page")
+    @Operation(summary = "用户分页查询")
+    public Result<IPage<User>> page(UserQuery query){
+        log.info("分页查询用户,{}", query);
+        IPage<User> result = userService.getUserPage(query);
         return Result.success(result);
     }
 }

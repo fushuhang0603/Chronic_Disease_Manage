@@ -1,6 +1,8 @@
 package com.hanghang.controller;
 
+import com.hanghang.domain.dto.LoginDTO;
 import com.hanghang.domain.dto.RegisterDTO;
+import com.hanghang.domain.vo.LoginVO;
 import com.hanghang.domain.vo.UserInfoVO;
 import com.hanghang.result.Result;
 import com.hanghang.service.Impl.Impl.UserServiceImpl;
@@ -19,17 +21,19 @@ public class UserController {
     @Autowired
     private UserServiceImpl userService;
 
-    @GetMapping("/login")
-    public Result login(){
-        log.info("用户请求登录");
-        return Result.success("登录成功");
+    @PostMapping("/login")
+    @Operation(summary = "用户登录")
+    public Result<LoginVO> login(@Valid @RequestBody LoginDTO loginDTO){
+        log.info("用户请求登录,{}", loginDTO);
+        LoginVO result = userService.login(loginDTO);
+        return Result.success(result);
     }
 
     @PostMapping("/register")
     @Operation(summary = "用户注册")
     public Result<UserInfoVO> register(@Valid @RequestBody RegisterDTO registerDTO){
         log.info("用户注册，{}", registerDTO);
-        UserInfoVO vo = userService.register(registerDTO);
-        return Result.success(vo);
+        UserInfoVO result = userService.register(registerDTO);
+        return Result.success(result);
     }
 }

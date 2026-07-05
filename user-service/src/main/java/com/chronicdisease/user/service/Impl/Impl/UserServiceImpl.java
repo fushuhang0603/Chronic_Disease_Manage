@@ -114,7 +114,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (StringUtils.isNotBlank(query.getPhone())) {
             wrapper.like(User::getPhone, query.getPhone());
         }
-        // 不查密码字段
         wrapper.orderByDesc(User::getCreateTime);
         return userMapper.selectPage(page, wrapper);
     }

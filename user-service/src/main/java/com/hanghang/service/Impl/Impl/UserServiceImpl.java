@@ -12,7 +12,7 @@ import com.hanghang.domain.vo.UserInfoVO;
 import com.hanghang.exception.BusinessException;
 import com.hanghang.mapper.UserMapper;
 import com.hanghang.service.Impl.IUserService;
-import com.hanghang.util.JwtUtil;
+import com.hanghang.util.JwtTool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -81,7 +81,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (!BCrypt.checkpw(loginDTO.getPassword(), user.getPassword())) {
             throw new BusinessException("用户名或密码错误");
         }
-        String token = JwtUtil.createToken(user.getId(), user.getRoleType());
+        String token = JwtTool.createToken(user.getId(), user.getRoleType());
         user.setLastLoginTime(LocalDateTime.now());
         userMapper.updateById(user);
         UserInfoVO userInfoVO = BeanUtil.copyProperties(user, UserInfoVO.class);

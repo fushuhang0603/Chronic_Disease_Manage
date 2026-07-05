@@ -37,7 +37,6 @@ public class JwtTool {
     }
 
     public static Map<String, Object> parseToken(String token) {
-        try {
             Claims claims = Jwts.parser()
                     .verifyWith(SECRET)
                     .build()
@@ -47,9 +46,6 @@ public class JwtTool {
             result.put("userId", claims.get("userId", Long.class));
             result.put("role", claims.get("role", String.class));
             return result;
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     /**

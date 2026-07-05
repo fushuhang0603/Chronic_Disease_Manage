@@ -6,6 +6,7 @@ import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
 @RestControllerAdvice
@@ -33,6 +34,11 @@ public class GlobalExceptionHandler {
                 : "参数绑定失败";
         log.error("参数绑定异常：{}", message);
         return Result.error(400, message);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public Result<Void> handleNoResourceFound(NoResourceFoundException e) {
+        return Result.error(404, "资源不存在");
     }
 
     @ExceptionHandler(Exception.class)

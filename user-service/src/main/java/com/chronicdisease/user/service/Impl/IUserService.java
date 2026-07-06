@@ -21,4 +21,10 @@ public interface IUserService extends IService<User> {
     void addUser(UserDTO userDTO);
 
     void editUser(UserDTO userDTO);
+
+    User queryById(Long id);
+
+    void deleteById(Long id);
+
+    void updateStatus(Long id, Integer status);
 }

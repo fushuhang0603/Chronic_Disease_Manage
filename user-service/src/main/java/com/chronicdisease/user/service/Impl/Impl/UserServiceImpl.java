@@ -39,11 +39,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Override
     public UserInfoVO register(RegisterDTO registerDTO) {
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getUsername, registerDTO.getUsername())
-                .or()
-                .eq(User::getPhone, registerDTO.getPhone())
-                .or()
-                .eq(User::getNickname, registerDTO.getNickname());
+        queryWrapper.and(w -> w.eq(User::getUsername, registerDTO.getUsername())
+                        .or()
+                        .eq(User::getPhone, registerDTO.getPhone())
+                        .or()
+                        .eq(User::getNickname, registerDTO.getNickname()))
+                .eq(User::getIsDeleted, 0);
         List<User> existList = userMapper.selectList(queryWrapper);
         if (!existList.isEmpty()) {
             existList.stream()
@@ -80,7 +81,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Override
     public LoginVO login(LoginDTO loginDTO) {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getUsername, loginDTO.getUsername());
+        wrapper.eq(User::getUsername, loginDTO.getUsername())
+                .eq(User::getIsDeleted, 0);
         User user = userMapper.selectOne(wrapper);
         if (user == null) {
             throw new BusinessException("用户不存在");
@@ -120,6 +122,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (StringUtils.isNotBlank(query.getPhone())) {
             wrapper.like(User::getPhone, query.getPhone());
         }
+        wrapper.eq(User::getIsDeleted, 0);
         // 角色排序：管理员 > 医生 > 患者，同角色按创建时间倒序
         wrapper.last("ORDER BY FIELD(role_type, 'admin', 'doctor', 'patient'), create_time DESC");
         return userMapper.selectPage(page, wrapper);
@@ -133,13 +136,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (!PhoneUtil.isMobile(userDTO.getPhone())) {
             throw new BusinessException("手机号格式不正确");
         }
-        // 唯一性校验
+        // 唯一性校验（仅校验未删除用户）
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getUsername, userDTO.getUsername())
-                .or()
-                .eq(User::getPhone, userDTO.getPhone())
-                .or()
-                .eq(User::getNickname, userDTO.getNickname());
+        queryWrapper.and(w -> w.eq(User::getUsername, userDTO.getUsername())
+                        .or()
+                        .eq(User::getPhone, userDTO.getPhone())
+                        .or()
+                        .eq(User::getNickname, userDTO.getNickname()))
+                .eq(User::getIsDeleted, 0);
         List<User> existList = userMapper.selectList(queryWrapper);
         if (!existList.isEmpty()) {
             existList.stream()
@@ -166,7 +170,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (userDTO.getId() == null) {
             throw new BusinessException("用户ID不能为空");
         }
-        User existUser = userMapper.selectById(userDTO.getId());
+        LambdaQueryWrapper<User> existWrapper = new LambdaQueryWrapper<>();
+        existWrapper.eq(User::getId, userDTO.getId()).eq(User::getIsDeleted, 0);
+        User existUser = userMapper.selectOne(existWrapper);
         if (existUser == null) {
             throw new BusinessException("用户不存在");
         }
@@ -190,6 +196,43 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (StringUtils.isNotBlank(userDTO.getPassword())) {
             wrapper.set(User::getPassword, BCrypt.hashpw(userDTO.getPassword(), BCrypt.gensalt()));
         }
+        userMapper.update(wrapper);
+    }
+
+    @Override
+    public User queryById(Long id) {
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getId, id).eq(User::getIsDeleted, 0);
+        User user = userMapper.selectOne(wrapper);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        return user;
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getId, id).eq(User::getIsDeleted, 0);
+        User user = userMapper.selectOne(queryWrapper);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(User::getId, id).set(User::getIsDeleted, 1);
+        userMapper.update(null, wrapper);
+    }
+
+    @Override
+    public void updateStatus(Long id, Integer status) {
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getId, id).eq(User::getIsDeleted, 0);
+        User user = userMapper.selectOne(queryWrapper);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+        LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(User::getId, id).set(User::getStatus, status);
         userMapper.update(wrapper);
     }
 }

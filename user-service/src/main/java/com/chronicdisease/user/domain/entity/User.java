@@ -3,6 +3,8 @@ package com.chronicdisease.user.domain.entity;
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -18,6 +20,7 @@ public class User implements Serializable {
 
     @TableId(value = "id", type = IdType.ASSIGN_ID)
     @Schema(description = "用户id")
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     @TableField("username")
@@ -64,7 +67,6 @@ public class User implements Serializable {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime updateTime;
 
-    @TableLogic
     @TableField("is_deleted")
     @Schema(description = "是否删除 1-删除,0-未删除")
     private Integer isDeleted;

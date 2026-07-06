@@ -64,4 +64,28 @@ public class UserController {
         userService.editUser(userDTO);
         return Result.success();
     }
+
+    @GetMapping("/queryById")
+    @Operation(summary = "根据ID查询用户")
+    public Result<User> queryById(@RequestParam("id") Long id){
+        log.info("根据ID查询用户, id={}", id);
+        User result = userService.queryById(id);
+        return Result.success(result);
+    }
+
+    @PostMapping("/delete")
+    @Operation(summary = "根据ID删除用户")
+    public Result<Void> delete(@RequestParam("id") Long id){
+        log.info("删除用户, id={}", id);
+        userService.deleteById(id);
+        return Result.success();
+    }
+
+    @PostMapping("/updateStatus")
+    @Operation(summary = "启用/禁用用户")
+    public Result<Void> updateStatus(@RequestParam("id") Long id, @RequestParam("status") Integer status){
+        log.info("更新用户状态, id={}, status={}", id, status);
+        userService.updateStatus(id, status);
+        return Result.success();
+    }
 }

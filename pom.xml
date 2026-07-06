@@ -13,6 +13,7 @@
         <module>chronic-disease-common</module>
         <module>user-service</module>
         <module>chronic-disease-gateway</module>
+        <module>health-record-service</module>
     </modules>
 
     <properties>

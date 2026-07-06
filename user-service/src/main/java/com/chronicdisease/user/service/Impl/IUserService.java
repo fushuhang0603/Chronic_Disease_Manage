@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.chronicdisease.user.domain.dto.LoginDTO;
 import com.chronicdisease.user.domain.dto.RegisterDTO;
+import com.chronicdisease.user.domain.dto.UserDTO;
 import com.chronicdisease.user.domain.entity.User;
 import com.chronicdisease.user.domain.query.UserQuery;
 import com.chronicdisease.user.domain.vo.LoginVO;
@@ -16,4 +17,8 @@ public interface IUserService extends IService<User> {
     LoginVO login(LoginDTO loginDTO);
 
     IPage<User> getUserPage(UserQuery query);
+
+    void addUser(UserDTO userDTO);
+
+    void editUser(UserDTO userDTO);
 }

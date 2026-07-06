@@ -1,13 +1,16 @@
 package com.chronicdisease.user.service.Impl.Impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.PhoneUtil;
 import cn.hutool.crypto.digest.BCrypt;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.chronicdisease.user.domain.dto.LoginDTO;
 import com.chronicdisease.user.domain.dto.RegisterDTO;
+import com.chronicdisease.user.domain.dto.UserDTO;
 import com.chronicdisease.user.domain.entity.User;
 import com.chronicdisease.user.domain.query.UserQuery;
 import com.chronicdisease.user.domain.vo.LoginVO;
@@ -57,6 +60,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                     .filter(u -> u.getNickname().equals(registerDTO.getNickname()))
                     .findAny()
                     .ifPresent(u -> { throw new BusinessException("已存在相同昵称用户"); });
+        }
+        if (!PhoneUtil.isMobile(registerDTO.getPhone())) {
+           throw new BusinessException("手机号格式不正确");
         }
         String password = BCrypt.hashpw(registerDTO.getPassword(), BCrypt.gensalt());
         User user = BeanUtil.copyProperties(registerDTO, User.class);
@@ -114,7 +120,76 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (StringUtils.isNotBlank(query.getPhone())) {
             wrapper.like(User::getPhone, query.getPhone());
         }
-        wrapper.orderByDesc(User::getCreateTime);
+        // 角色排序：管理员 > 医生 > 患者，同角色按创建时间倒序
+        wrapper.last("ORDER BY FIELD(role_type, 'admin', 'doctor', 'patient'), create_time DESC");
         return userMapper.selectPage(page, wrapper);
+    }
+
+    @Override
+    public void addUser(UserDTO userDTO) {
+        if (StringUtils.isBlank(userDTO.getPassword())) {
+            throw new BusinessException("密码不能为空");
+        }
+        if (!PhoneUtil.isMobile(userDTO.getPhone())) {
+            throw new BusinessException("手机号格式不正确");
+        }
+        // 唯一性校验
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getUsername, userDTO.getUsername())
+                .or()
+                .eq(User::getPhone, userDTO.getPhone())
+                .or()
+                .eq(User::getNickname, userDTO.getNickname());
+        List<User> existList = userMapper.selectList(queryWrapper);
+        if (!existList.isEmpty()) {
+            existList.stream()
+                    .filter(u -> u.getUsername().equals(userDTO.getUsername()))
+                    .findAny()
+                    .ifPresent(u -> { throw new BusinessException("用户名已存在"); });
+            existList.stream()
+                    .filter(u -> u.getPhone().equals(userDTO.getPhone()))
+                    .findAny()
+                    .ifPresent(u -> { throw new BusinessException("手机号已被注册"); });
+            existList.stream()
+                    .filter(u -> u.getNickname().equals(userDTO.getNickname()))
+                    .findAny()
+                    .ifPresent(u -> { throw new BusinessException("已存在相同昵称用户"); });
+        }
+        String password = BCrypt.hashpw(userDTO.getPassword(), BCrypt.gensalt());
+        User user = BeanUtil.copyProperties(userDTO, User.class);
+        user.setPassword(password);
+        userMapper.insert(user);
+    }
+
+    @Override
+    public void editUser(UserDTO userDTO) {
+        if (userDTO.getId() == null) {
+            throw new BusinessException("用户ID不能为空");
+        }
+        User existUser = userMapper.selectById(userDTO.getId());
+        if (existUser == null) {
+            throw new BusinessException("用户不存在");
+        }
+        LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(User::getId, userDTO.getId());
+        if (StringUtils.isNotBlank(userDTO.getNickname())) {
+            wrapper.set(User::getNickname, userDTO.getNickname());
+        }
+        if (StringUtils.isNotBlank(userDTO.getPhone())) {
+            if (!PhoneUtil.isMobile(userDTO.getPhone())) {
+                throw new BusinessException("手机号格式不正确");
+            }
+            wrapper.set(User::getPhone, userDTO.getPhone());
+        }
+        if (StringUtils.isNotBlank(userDTO.getRoleType())) {
+            wrapper.set(User::getRoleType, userDTO.getRoleType());
+        }
+        if (userDTO.getStatus() != null) {
+            wrapper.set(User::getStatus, userDTO.getStatus());
+        }
+        if (StringUtils.isNotBlank(userDTO.getPassword())) {
+            wrapper.set(User::getPassword, BCrypt.hashpw(userDTO.getPassword(), BCrypt.gensalt()));
+        }
+        userMapper.update(wrapper);
     }
 }

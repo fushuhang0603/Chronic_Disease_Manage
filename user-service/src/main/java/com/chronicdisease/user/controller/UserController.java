@@ -3,6 +3,7 @@ package com.chronicdisease.user.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.chronicdisease.user.domain.dto.LoginDTO;
 import com.chronicdisease.user.domain.dto.RegisterDTO;
+import com.chronicdisease.user.domain.dto.UserDTO;
 import com.chronicdisease.user.domain.entity.User;
 import com.chronicdisease.user.domain.query.UserQuery;
 import com.chronicdisease.user.domain.vo.LoginVO;
@@ -46,5 +47,21 @@ public class UserController {
         log.info("分页查询用户,{}", query);
         IPage<User> result = userService.getUserPage(query);
         return Result.success(result);
+    }
+
+    @PostMapping("/add")
+    @Operation(summary = "管理员新增用户")
+    public Result<Void> add(@Valid @RequestBody UserDTO userDTO){
+        log.info("管理员新增用户,{}", userDTO);
+        userService.addUser(userDTO);
+        return Result.success();
+    }
+
+    @PostMapping("/edit")
+    @Operation(summary = "管理员编辑用户")
+    public Result<Void> edit(@Valid @RequestBody UserDTO userDTO){
+        log.info("管理员编辑用户,{}", userDTO);
+        userService.editUser(userDTO);
+        return Result.success();
     }
 }

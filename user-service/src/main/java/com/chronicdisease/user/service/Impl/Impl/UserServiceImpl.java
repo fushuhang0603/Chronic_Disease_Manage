@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.chronicdisease.common.constant.BusinessConstant;
 import com.chronicdisease.user.domain.dto.LoginDTO;
 import com.chronicdisease.user.domain.dto.RegisterDTO;
 import com.chronicdisease.user.domain.dto.UserDTO;
@@ -44,7 +45,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                         .eq(User::getPhone, registerDTO.getPhone())
                         .or()
                         .eq(User::getNickname, registerDTO.getNickname()))
-                .eq(User::getIsDeleted, 0);
+                .eq(User::getIsDeleted, BusinessConstant.isNotDelete);
         List<User> existList = userMapper.selectList(queryWrapper);
         if (!existList.isEmpty()) {
             existList.stream()
@@ -82,7 +83,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     public LoginVO login(LoginDTO loginDTO) {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(User::getUsername, loginDTO.getUsername())
-                .eq(User::getIsDeleted, 0);
+                .eq(User::getIsDeleted, BusinessConstant.isNotDelete);
         User user = userMapper.selectOne(wrapper);
         if (user == null) {
             throw new BusinessException("用户不存在");
@@ -122,7 +123,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (StringUtils.isNotBlank(query.getPhone())) {
             wrapper.like(User::getPhone, query.getPhone());
         }
-        wrapper.eq(User::getIsDeleted, 0);
+        wrapper.eq(User::getIsDeleted, BusinessConstant.isNotDelete);
         // 角色排序：管理员 > 医生 > 患者，同角色按创建时间倒序
         wrapper.last("ORDER BY FIELD(role_type, 'admin', 'doctor', 'patient'), create_time DESC");
         return userMapper.selectPage(page, wrapper);
@@ -143,7 +144,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                         .eq(User::getPhone, userDTO.getPhone())
                         .or()
                         .eq(User::getNickname, userDTO.getNickname()))
-                .eq(User::getIsDeleted, 0);
+                .eq(User::getIsDeleted, BusinessConstant.isNotDelete);
         List<User> existList = userMapper.selectList(queryWrapper);
         if (!existList.isEmpty()) {
             existList.stream()
@@ -171,7 +172,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             throw new BusinessException("用户ID不能为空");
         }
         LambdaQueryWrapper<User> existWrapper = new LambdaQueryWrapper<>();
-        existWrapper.eq(User::getId, userDTO.getId()).eq(User::getIsDeleted, 0);
+        existWrapper.eq(User::getId, userDTO.getId()).eq(User::getIsDeleted, BusinessConstant.isNotDelete);
         User existUser = userMapper.selectOne(existWrapper);
         if (existUser == null) {
             throw new BusinessException("用户不存在");
@@ -202,7 +203,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Override
     public User queryById(Long id) {
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(User::getId, id).eq(User::getIsDeleted, 0);
+        wrapper.eq(User::getId, id).eq(User::getIsDeleted, BusinessConstant.isNotDelete);
         User user = userMapper.selectOne(wrapper);
         if (user == null) {
             throw new BusinessException("用户不存在");
@@ -213,20 +214,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Override
     public void deleteById(Long id) {
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getId, id).eq(User::getIsDeleted, 0);
+        queryWrapper.eq(User::getId, id).eq(User::getIsDeleted, BusinessConstant.isNotDelete);
         User user = userMapper.selectOne(queryWrapper);
         if (user == null) {
             throw new BusinessException("用户不存在");
         }
         LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
-        wrapper.eq(User::getId, id).set(User::getIsDeleted, 1);
-        userMapper.update(null, wrapper);
+        wrapper.eq(User::getId, id).set(User::getIsDeleted, BusinessConstant.isDelete);
+        userMapper.update(wrapper);
     }
 
     @Override
     public void updateStatus(Long id, Integer status) {
         LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(User::getId, id).eq(User::getIsDeleted, 0);
+        queryWrapper.eq(User::getId, id).eq(User::getIsDeleted, BusinessConstant.isNotDelete);
         User user = userMapper.selectOne(queryWrapper);
         if (user == null) {
             throw new BusinessException("用户不存在");

@@ -219,7 +219,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             throw new BusinessException("用户不存在");
         }
         LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
-        wrapper.eq(User::getId, id).set(User::getIsDeleted, id);
+        wrapper.eq(User::getId, id).set(User::getIsDeleted, 1);
         userMapper.update(null, wrapper);
     }
 

@@ -68,6 +68,7 @@ public class User implements Serializable {
     private LocalDateTime updateTime;
 
     @TableField("is_deleted")
+    @TableLogic
     @Schema(description = "是否删除 1-删除,0-未删除")
     private Integer isDeleted;
 

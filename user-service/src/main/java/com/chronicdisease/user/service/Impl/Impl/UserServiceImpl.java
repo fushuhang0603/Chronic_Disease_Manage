@@ -124,8 +124,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             wrapper.like(User::getPhone, query.getPhone());
         }
         wrapper.eq(User::getIsDeleted, BusinessConstant.isNotDelete);
-        // 角色排序：管理员 > 医生 > 患者，同角色按创建时间倒序
-        wrapper.last("ORDER BY FIELD(role_type, 'admin', 'doctor', 'patient'), create_time DESC");
         return userMapper.selectPage(page, wrapper);
     }
 

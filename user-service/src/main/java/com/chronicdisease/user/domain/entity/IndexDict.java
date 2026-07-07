@@ -1,42 +1,34 @@
 package com.chronicdisease.user.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("index_dict")
-@Schema(description = "指标字典表实体类")
+@TableName("term_dict")
+@Schema(description = "术语字典表实体类")
 public class IndexDict implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     @TableId(value = "id", type = IdType.AUTO)
-    @Schema(description = "指标字典id")
+    @Schema(description = "术语ID")
     private Long id;
 
-    @TableField("index_code")
-    @Schema(description = "指标代码")
+    @TableField("term_code")
+    @Schema(description = "术语编码")
     private String indexCode;
 
-    @TableField("index_name")
-    @Schema(description = "指标名称")
+    @TableField("term_name")
+    @Schema(description = "术语名称")
     private String indexName;
 
-    @TableField("unit")
-    @Schema(description = "单位")
-    private String unit;
-
-    @TableField("normal_min")
-    @Schema(description = "正常范围最小值")
-    private BigDecimal normalMin;
-
-    @TableField("normal_max")
-    @Schema(description = "正常范围最大值")
-    private BigDecimal normalMax;
+    @TableField("term_type")
+    @Schema(description = "术语类型: indicator/disease/medicine")
+    private String termType;
 
     @TableField("sort")
     @Schema(description = "排序")
@@ -48,13 +40,14 @@ public class IndexDict implements Serializable {
 
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     @Schema(description = "创建时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime createTime;
 
     @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
     @Schema(description = "更新时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime updateTime;
 
-    @TableLogic
     @TableField("is_deleted")
     @Schema(description = "是否删除 1-删除,0-未删除")
     private Integer isDeleted;

@@ -1,0 +1,127 @@
+package com.chronicdisease.user.service.Impl.Impl;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.chronicdisease.common.constant.BusinessConstant;
+import com.chronicdisease.common.exception.BusinessException;
+import com.chronicdisease.user.domain.dto.IndexDictDTO;
+import com.chronicdisease.user.domain.entity.IndexDict;
+import com.chronicdisease.user.domain.query.IndexDictQuery;
+import com.chronicdisease.user.mapper.IndexDictMapper;
+import com.chronicdisease.user.service.Impl.IIndexDictService;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+
+@Service
+public class IndexDictServiceImpl extends ServiceImpl<IndexDictMapper, IndexDict> implements IIndexDictService {
+
+    @Override
+    public IPage<IndexDict> getPage(IndexDictQuery query) {
+        Page<IndexDict> page = new Page<>(query.getPageNum(), query.getPageSize());
+        LambdaQueryWrapper<IndexDict> wrapper = new LambdaQueryWrapper<>();
+
+        if (StringUtils.isNotBlank(query.getIndexCode())) {
+            wrapper.like(IndexDict::getIndexCode, query.getIndexCode());
+        }
+        if (StringUtils.isNotBlank(query.getIndexName())) {
+            wrapper.like(IndexDict::getIndexName, query.getIndexName());
+        }
+        if (StringUtils.isNotBlank(query.getTermType())) {
+            wrapper.eq(IndexDict::getTermType, query.getTermType());
+        }
+        if (query.getStatus() != null) {
+            wrapper.eq(IndexDict::getStatus, query.getStatus());
+        }
+        wrapper.eq(IndexDict::getIsDeleted, BusinessConstant.isNotDelete);
+        wrapper.orderByAsc(IndexDict::getTermType)
+                .orderByAsc(IndexDict::getSort);
+        return baseMapper.selectPage(page, wrapper);
+    }
+
+    @Override
+    public void addDict(IndexDictDTO dto) {
+        // 唯一性校验（仅校验未删除数据）
+        LambdaQueryWrapper<IndexDict> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(IndexDict::getIndexCode, dto.getIndexCode())
+                .eq(IndexDict::getIsDeleted, BusinessConstant.isNotDelete);
+        if (baseMapper.selectOne(queryWrapper) != null) {
+            throw new BusinessException("术语编码已存在");
+        }
+        IndexDict entity = new IndexDict();
+        copyDtoToEntity(dto, entity);
+        baseMapper.insert(entity);
+    }
+
+    @Override
+    public void editDict(IndexDictDTO dto) {
+        if (dto.getId() == null) {
+            throw new BusinessException("ID不能为空");
+        }
+        // 编码唯一性校验（排除自身）
+        LambdaQueryWrapper<IndexDict> existWrapper = new LambdaQueryWrapper<>();
+        existWrapper.eq(IndexDict::getIndexCode, dto.getIndexCode())
+                .eq(IndexDict::getIsDeleted, BusinessConstant.isNotDelete)
+                .ne(IndexDict::getId, dto.getId());
+        if (baseMapper.selectOne(existWrapper) != null) {
+            throw new BusinessException("术语编码已存在");
+        }
+        LambdaQueryWrapper<IndexDict> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(IndexDict::getId, dto.getId()).eq(IndexDict::getIsDeleted, BusinessConstant.isNotDelete);
+        IndexDict entity = baseMapper.selectOne(queryWrapper);
+        if (entity == null) {
+            throw new BusinessException("术语不存在");
+        }
+        copyDtoToEntity(dto, entity);
+        baseMapper.updateById(entity);
+    }
+
+    @Override
+    public IndexDict queryById(Long id) {
+        LambdaQueryWrapper<IndexDict> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(IndexDict::getId, id).eq(IndexDict::getIsDeleted, BusinessConstant.isNotDelete);
+        IndexDict entity = baseMapper.selectOne(wrapper);
+        if (entity == null) {
+            throw new BusinessException("术语不存在");
+        }
+        return entity;
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        LambdaQueryWrapper<IndexDict> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(IndexDict::getId, id).eq(IndexDict::getIsDeleted, BusinessConstant.isNotDelete);
+        IndexDict entity = baseMapper.selectOne(queryWrapper);
+        if (entity == null) {
+            throw new BusinessException("术语不存在");
+        }
+        LambdaUpdateWrapper<IndexDict> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(IndexDict::getId, id).set(IndexDict::getIsDeleted, BusinessConstant.isDelete);
+        baseMapper.update(wrapper);
+    }
+
+    @Override
+    public void updateStatus(Long id, Integer status) {
+        LambdaQueryWrapper<IndexDict> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(IndexDict::getId, id).eq(IndexDict::getIsDeleted, BusinessConstant.isNotDelete);
+        IndexDict entity = baseMapper.selectOne(queryWrapper);
+        if (entity == null) {
+            throw new BusinessException("术语不存在");
+        }
+        LambdaUpdateWrapper<IndexDict> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(IndexDict::getId, id).set(IndexDict::getStatus, status);
+        baseMapper.update(wrapper);
+    }
+
+    private void copyDtoToEntity(IndexDictDTO dto, IndexDict entity) {
+        entity.setIndexCode(dto.getIndexCode());
+        entity.setIndexName(dto.getIndexName());
+        entity.setTermType(dto.getTermType());
+        entity.setSort(dto.getSort());
+        if (dto.getStatus() != null) {
+            entity.setStatus(dto.getStatus());
+        }
+    }
+}

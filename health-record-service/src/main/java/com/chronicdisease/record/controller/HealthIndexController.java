@@ -1,7 +1,6 @@
 package com.chronicdisease.record.controller;
 
 import com.chronicdisease.common.result.Result;
-import com.chronicdisease.common.util.UserInfoContext;
 import com.chronicdisease.record.domain.dto.HealthIndexDTO;
 import com.chronicdisease.record.domain.dto.HealthIndexPageDTO;
 import com.chronicdisease.common.result.PageResult;
@@ -37,16 +36,14 @@ public class HealthIndexController {
     @PostMapping("/page")
     @Operation(summary = "分页查询健康指标记录")
     public Result<PageResult<HealthIndexRecord>> page(@RequestBody HealthIndexPageDTO dto) {
-        Long userId = UserInfoContext.getUserId();
-        log.info("分页查询健康指标, userId={}, indexCode={}, pageNum={}, pageSize={}",
-                userId, dto.getIndexCode(), dto.getPageNum(), dto.getPageSize());
+        log.info("分页查询健康指标, indexCode={}, pageNum={}, pageSize={}",
+                dto.getIndexCode(), dto.getPageNum(), dto.getPageSize());
         return Result.success(healthIndexService.pageRecords(dto));
     }
 
     @GetMapping("/chart")
     @Operation(summary = "获取健康指标图表数据")
     public Result<Map<String, List<HealthIndexRecord>>> getChart(@RequestParam(value = "Days", defaultValue = "7") Integer Days) {
-        Long userId = UserInfoContext.getUserId();
         log.info("获取健康指标图表数据");
         Map<String, List<HealthIndexRecord>> map = healthIndexService.getChart(Days);
         return Result.success(map);

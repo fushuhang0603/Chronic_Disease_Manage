@@ -3,6 +3,7 @@ package com.chronicdisease.user.service.Impl.Impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.chronicdisease.common.exception.BusinessException;
+import com.chronicdisease.common.util.UserInfoContext;
 import com.chronicdisease.user.domain.dto.HealthArchiveDTO;
 import com.chronicdisease.user.domain.entity.HealthArchive;
 import com.chronicdisease.user.domain.entity.User;
@@ -19,7 +20,8 @@ public class HealthArchiveServiceImpl extends ServiceImpl<HealthArchiveMapper, H
     private UserMapper userMapper;
 
     @Override
-    public HealthArchive getMyArchive(Long userId) {
+    public HealthArchive getMyArchive() {
+        Long userId = UserInfoContext.getUserId();
         User user = userMapper.selectById(userId);
         if (user == null) {
             throw new BusinessException("用户不存在");
@@ -30,7 +32,8 @@ public class HealthArchiveServiceImpl extends ServiceImpl<HealthArchiveMapper, H
     }
 
     @Override
-    public void addArchive(Long userId, HealthArchiveDTO dto) {
+    public void addArchive(HealthArchiveDTO dto) {
+        Long userId = UserInfoContext.getUserId();
         User user = userMapper.selectById(userId);
         if (user == null) {
             throw new BusinessException("用户不存在");
@@ -48,10 +51,11 @@ public class HealthArchiveServiceImpl extends ServiceImpl<HealthArchiveMapper, H
     }
 
     @Override
-    public void editArchive(Long userId, HealthArchiveDTO dto) {
+    public void editArchive(HealthArchiveDTO dto) {
         if (dto.getId() == null) {
             throw new BusinessException("档案ID不能为空");
         }
+        Long userId = UserInfoContext.getUserId();
         User user = userMapper.selectById(userId);
         if (user == null) {
             throw new BusinessException("用户不存在");

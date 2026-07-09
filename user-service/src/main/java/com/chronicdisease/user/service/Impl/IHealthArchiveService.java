@@ -6,9 +6,9 @@ import com.chronicdisease.user.domain.entity.HealthArchive;
 
 public interface IHealthArchiveService extends IService<HealthArchive> {
 
-    HealthArchive getMyArchive(Long userId);
+    HealthArchive getMyArchive();
 
-    void addArchive(Long userId, HealthArchiveDTO dto);
+    void addArchive(HealthArchiveDTO dto);
 
-    void editArchive(Long userId, HealthArchiveDTO dto);
+    void editArchive(HealthArchiveDTO dto);
 }

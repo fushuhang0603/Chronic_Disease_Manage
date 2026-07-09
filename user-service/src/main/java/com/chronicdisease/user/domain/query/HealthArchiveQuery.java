@@ -5,10 +5,9 @@ import lombok.Data;
 @Data
 public class HealthArchiveQuery {
 
-    private Long userId;
-    private String chronicType;
-    private Integer gender;
+    private String patientName;
+    private String idCard;
     private Integer pageNum = 1;
-    private Integer pageSize = 10;
+    private Integer pageSize = 20;
 
 }

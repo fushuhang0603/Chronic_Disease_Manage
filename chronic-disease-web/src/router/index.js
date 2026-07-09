@@ -1,0 +1,48 @@
+import { createRouter, createWebHistory } from 'vue-router'
+import Login from '../views/Login.vue'
+import Register from '../views/Register.vue'
+import Home from '../views/Home.vue'
+import Layout from '../views/Layout.vue'
+import LayoutPatient from '../views/LayoutPatient.vue'
+import UserManage from '../views/UserManage.vue'
+import IndexDictManage from '../views/IndexDictManage.vue'
+import PatientHome from '../views/PatientHome.vue'
+import ArchivePatient from '../views/ArchivePatient.vue'
+import PatientData from '../views/PatientData.vue'
+import PatientRemind from '../views/PatientRemind.vue'
+import PatientArticle from '../views/PatientArticle.vue'
+
+const routes = [
+  { path: '/', redirect: '/login' },
+  { path: '/login', name: 'Login', component: Login },
+  { path: '/register', name: 'Register', component: Register },
+  { path: '/home', name: 'Home', component: Home },
+  {
+    path: '/admin',
+    component: Layout,
+    redirect: '/admin/users',
+    children: [
+      { path: 'users', name: 'UserManage', component: UserManage },
+      { path: 'dicts', name: 'IndexDictManage', component: IndexDictManage },
+    ],
+  },
+  {
+    path: '/patient',
+    component: LayoutPatient,
+    redirect: '/patient/home',
+    children: [
+      { path: 'home', name: 'PatientHome', component: PatientHome },
+      { path: 'archive', name: 'ArchivePatient', component: ArchivePatient },
+      { path: 'data', name: 'PatientData', component: PatientData },
+      { path: 'remind', name: 'PatientRemind', component: PatientRemind },
+      { path: 'article', name: 'PatientArticle', component: PatientArticle },
+    ],
+  },
+]
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes,
+})
+
+export default router

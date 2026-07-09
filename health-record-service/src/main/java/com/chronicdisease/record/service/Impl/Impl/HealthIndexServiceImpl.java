@@ -52,6 +52,7 @@ public class HealthIndexServiceImpl extends ServiceImpl<HealthIndexMapper, Healt
         Long userId = UserInfoContext.getUserId();
         LambdaQueryWrapper<HealthIndexRecord> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(HealthIndexRecord::getUserId, userId);
+        wrapper.eq(HealthIndexRecord::getIsDeleted, BusinessConstant.isNotDelete);
         if (dto.getIndexCode() != null && !dto.getIndexCode().isEmpty()) {
             wrapper.eq(HealthIndexRecord::getIndexCode, dto.getIndexCode());
         }
@@ -74,6 +75,7 @@ public class HealthIndexServiceImpl extends ServiceImpl<HealthIndexMapper, Healt
         LocalDateTime pastTime = now.minusDays(days);
         LambdaQueryWrapper<HealthIndexRecord> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(HealthIndexRecord::getUserId, userId)
+                .eq(HealthIndexRecord::getIsDeleted, BusinessConstant.isNotDelete)
                 .between(HealthIndexRecord::getRecordTime, pastTime, now)
                 .orderByAsc(HealthIndexRecord::getRecordTime);
         List<HealthIndexRecord> records = healthIndexMapper.selectList(wrapper);

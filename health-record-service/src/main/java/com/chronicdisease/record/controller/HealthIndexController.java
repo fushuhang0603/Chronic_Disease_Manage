@@ -51,4 +51,12 @@ public class HealthIndexController {
         Map<String, List<HealthIndexRecord>> map = healthIndexService.getChart(Days);
         return Result.success(map);
     }
+
+    @PostMapping("/delete")
+    @Operation(summary = "删除健康指标记录")
+    public Result<Void> delete(@RequestParam("id") Long id) {
+        log.info("删除健康指标记录, id={}", id);
+        healthIndexService.deleteRecord(id);
+        return Result.success();
+    }
 }

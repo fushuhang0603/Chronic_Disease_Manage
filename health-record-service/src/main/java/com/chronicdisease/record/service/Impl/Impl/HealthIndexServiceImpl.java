@@ -1,8 +1,10 @@
 package com.chronicdisease.record.service.Impl.Impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.chronicdisease.common.constant.BusinessConstant;
 import com.chronicdisease.common.constant.UnitEnum;
 import com.chronicdisease.common.exception.BusinessException;
 import com.chronicdisease.common.result.PageResult;
@@ -43,7 +45,6 @@ public class HealthIndexServiceImpl extends ServiceImpl<HealthIndexMapper, Healt
         record.setRecordTime(recordTime);
         record.setRemark(dto.getRemark());
         healthIndexMapper.insert(record);
-        log.info("健康指标录入成功, userId={}, indexCode={}", userId, dto.getIndexCode());
     }
 
     @Override
@@ -77,5 +78,16 @@ public class HealthIndexServiceImpl extends ServiceImpl<HealthIndexMapper, Healt
                 .orderByAsc(HealthIndexRecord::getRecordTime);
         List<HealthIndexRecord> records = healthIndexMapper.selectList(wrapper);
         return records.stream().collect(Collectors.groupingBy(HealthIndexRecord::getIndexCode));
+    }
+
+    @Override
+    public void deleteRecord(Long id) {
+        Long userId = UserInfoContext.getUserId();
+        LambdaUpdateWrapper<HealthIndexRecord> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(HealthIndexRecord::getId, id)
+                .eq(HealthIndexRecord::getUserId, userId)
+                .set(HealthIndexRecord::getIsDeleted, BusinessConstant.isDelete);
+        healthIndexMapper.update(updateWrapper);
+        log.info("健康指标记录删除成功, id={}, userId={}", id, userId);
     }
 }

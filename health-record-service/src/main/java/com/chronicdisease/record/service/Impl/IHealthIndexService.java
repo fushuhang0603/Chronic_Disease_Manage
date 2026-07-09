@@ -16,4 +16,6 @@ public interface IHealthIndexService extends IService<HealthIndexRecord> {
     PageResult<HealthIndexRecord> pageRecords(HealthIndexPageDTO dto);
 
     Map<String, List<HealthIndexRecord>> getChart(Integer days);
+
+    void deleteRecord(Long id);
 }

@@ -49,6 +49,14 @@ export function editArchive(data) {
   return request.post('/archive/edit', data)
 }
 
+export function getArchivePage(params) {
+  return request.post('/archive/page', params)
+}
+
+export function deleteArchive(id) {
+  return request.post('/archive/delete', null, { params: { id } })
+}
+
 // ====== 指标字典 ======
 export function getDictPage(params) {
   return request.post('/dict/page', params)

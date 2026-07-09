@@ -8,6 +8,7 @@ import UserManage from '../views/UserManage.vue'
 import IndexDictManage from '../views/IndexDictManage.vue'
 import PatientHome from '../views/PatientHome.vue'
 import ArchivePatient from '../views/ArchivePatient.vue'
+import ArchiveManage from '../views/ArchiveManage.vue'
 import PatientData from '../views/PatientData.vue'
 import PatientRemind from '../views/PatientRemind.vue'
 import PatientArticle from '../views/PatientArticle.vue'
@@ -24,6 +25,7 @@ const routes = [
     children: [
       { path: 'users', name: 'UserManage', component: UserManage },
       { path: 'dicts', name: 'IndexDictManage', component: IndexDictManage },
+      { path: 'archives', name: 'ArchiveManage', component: ArchiveManage },
     ],
   },
   {

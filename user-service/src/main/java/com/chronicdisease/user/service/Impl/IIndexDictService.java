@@ -13,14 +13,4 @@ public interface IIndexDictService extends IService<IndexDict> {
     IndexDict queryById(Long id);
     void deleteById(Long id);
     void updateStatus(Long id, Integer status);
-
-    /**
-     * 校验术语编码是否存在且启用（供内部Feign调用）
-     */
-    boolean validateCode(String termCode);
-
-    /**
-     * 根据编码解析术语名称（供内部Feign调用）
-     */
-    String resolveName(String termCode);
 }

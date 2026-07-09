@@ -47,10 +47,10 @@ public class HealthIndexController {
 
     @GetMapping("/chart")
     @Operation(summary = "获取健康指标图表数据")
-    public Result<Map<String, List<HealthIndexRecord>>> getChart( @RequestParam("Days") Integer Days){
+    public Result<Map<String, List<HealthIndexRecord>>> getChart( @RequestParam(value = "Days",defaultValue = "7") Integer Days){
         Long userId = UserInfoContext.getUserId();
         log.info("获取健康指标图表数据");
-        Map<String, List<HealthIndexRecord>> chartData = healthIndexService.getChart(userId, Days);
-        return null;
+        Map<String, List<HealthIndexRecord>> map = healthIndexService.getChart(userId, Days);
+        return Result.success(map);
     }
 }

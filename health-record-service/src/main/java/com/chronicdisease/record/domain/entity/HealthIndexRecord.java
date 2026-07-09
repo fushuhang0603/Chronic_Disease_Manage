@@ -36,7 +36,7 @@ public class HealthIndexRecord implements Serializable {
     private BigDecimal indexValue;
 
     @TableField("record_time")
-    @Schema(description = "测量时间")
+    @Schema(description = "测量时间，用户可指定历史日期")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime recordTime;
 

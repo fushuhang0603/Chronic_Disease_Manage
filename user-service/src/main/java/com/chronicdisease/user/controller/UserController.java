@@ -1,6 +1,6 @@
 package com.chronicdisease.user.controller;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.user.domain.dto.LoginDTO;
 import com.chronicdisease.user.domain.dto.RegisterDTO;
 import com.chronicdisease.user.domain.dto.UserDTO;
@@ -9,6 +9,7 @@ import com.chronicdisease.user.domain.query.UserQuery;
 import com.chronicdisease.user.domain.vo.LoginVO;
 import com.chronicdisease.user.domain.vo.UserInfoVO;
 import com.chronicdisease.common.result.Result;
+import com.chronicdisease.user.service.Impl.IUserService;
 import com.chronicdisease.user.service.Impl.Impl.UserServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "用户管理", description = "用户管理相关接口")
 public class UserController {
     @Autowired
-    private UserServiceImpl userService;
+    private IUserService userService;
 
     @PostMapping("/login")
     @Operation(summary = "用户登录")
@@ -41,11 +42,11 @@ public class UserController {
         return Result.success(result);
     }
 
-    @GetMapping("/page")
+    @PostMapping("/page")
     @Operation(summary = "用户分页查询")
-    public Result<IPage<User>> page(UserQuery query){
+    public Result<PageResult<User>> page(@RequestBody UserQuery query){
         log.info("分页查询用户,{}", query);
-        IPage<User> result = userService.getUserPage(query);
+        PageResult<User> result = userService.getUserPage(query);
         return Result.success(result);
     }
 

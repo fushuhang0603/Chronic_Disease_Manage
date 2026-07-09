@@ -2,11 +2,11 @@ package com.chronicdisease.user.service.Impl.Impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.chronicdisease.common.constant.BusinessConstant;
 import com.chronicdisease.common.exception.BusinessException;
+import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.user.domain.dto.IndexDictDTO;
 import com.chronicdisease.user.domain.entity.IndexDict;
 import com.chronicdisease.user.domain.query.IndexDictQuery;
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
 public class IndexDictServiceImpl extends ServiceImpl<IndexDictMapper, IndexDict> implements IIndexDictService {
 
     @Override
-    public IPage<IndexDict> getPage(IndexDictQuery query) {
+    public PageResult<IndexDict> getPage(IndexDictQuery query) {
         Page<IndexDict> page = new Page<>(query.getPageNum(), query.getPageSize());
         LambdaQueryWrapper<IndexDict> wrapper = new LambdaQueryWrapper<>();
 
@@ -38,7 +38,8 @@ public class IndexDictServiceImpl extends ServiceImpl<IndexDictMapper, IndexDict
         wrapper.eq(IndexDict::getIsDeleted, BusinessConstant.isNotDelete);
         wrapper.orderByAsc(IndexDict::getTermType)
                 .orderByAsc(IndexDict::getSort);
-        return baseMapper.selectPage(page, wrapper);
+        Page<IndexDict> result = baseMapper.selectPage(page, wrapper);
+        return new PageResult<>(result.getRecords(), result.getTotal());
     }
 
     @Override

@@ -1,11 +1,11 @@
 package com.chronicdisease.user.controller;
 
-import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.common.result.Result;
 import com.chronicdisease.user.domain.dto.IndexDictDTO;
 import com.chronicdisease.user.domain.entity.IndexDict;
 import com.chronicdisease.user.domain.query.IndexDictQuery;
-import com.chronicdisease.user.service.Impl.Impl.IndexDictServiceImpl;
+import com.chronicdisease.user.service.Impl.IIndexDictService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -20,13 +20,13 @@ import org.springframework.web.bind.annotation.*;
 public class IndexDictController {
 
     @Autowired
-    private IndexDictServiceImpl indexDictService;
+    private IIndexDictService indexDictService;
 
-    @GetMapping("/page")
+    @PostMapping("/page")
     @Operation(summary = "分页查询指标字典")
-    public Result<IPage<IndexDict>> page(IndexDictQuery query) {
+    public Result<PageResult<IndexDict>> page(@RequestBody IndexDictQuery query) {
         log.info("分页查询指标字典,{}", query);
-        IPage<IndexDict> result = indexDictService.getPage(query);
+        PageResult<IndexDict> result = indexDictService.getPage(query);
         log.info("分页查询指标字典结果,{}", result);
         return Result.success(result);
     }

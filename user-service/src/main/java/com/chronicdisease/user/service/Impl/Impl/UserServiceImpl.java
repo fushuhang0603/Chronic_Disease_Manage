@@ -5,10 +5,10 @@ import cn.hutool.core.util.PhoneUtil;
 import cn.hutool.crypto.digest.BCrypt;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.chronicdisease.common.constant.BusinessConstant;
+import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.user.domain.dto.LoginDTO;
 import com.chronicdisease.user.domain.dto.RegisterDTO;
 import com.chronicdisease.user.domain.dto.UserDTO;
@@ -105,7 +105,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
-    public IPage<User> getUserPage(UserQuery query) {
+    public PageResult<User> getUserPage(UserQuery query) {
         Page<User> page = new Page<>(query.getPageNum(), query.getPageSize());
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
         if (StringUtils.isNotBlank(query.getUsername())) {
@@ -124,7 +124,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             wrapper.like(User::getPhone, query.getPhone());
         }
         wrapper.eq(User::getIsDeleted, BusinessConstant.isNotDelete);
-        return userMapper.selectPage(page, wrapper);
+        Page<User> result = userMapper.selectPage(page, wrapper);
+        return new PageResult<>(result.getRecords(), result.getTotal());
     }
 
     @Override

@@ -11,7 +11,7 @@
 
     <modules>
         <module>chronic-disease-common</module>
-        <module>user-service</module>
+        <module>health-user-service</module>
         <module>chronic-disease-gateway</module>
         <module>health-record-service</module>
         <module>chronic-disease-agent</module>

@@ -124,3 +124,28 @@ export function getRecheckPage(data) {
 export function deleteRecheck(id) {
   return request.post('/recheck/delete', null, { params: { id } })
 }
+
+// ====== 健康提醒 ======
+export function addRemind(data) {
+  return request.post('/remind/add', data)
+}
+
+export function getRemindPage(params) {
+  return request.post('/remind/page', params)
+}
+
+export function readRemind(id) {
+  return request.post('/remind/read', null, { params: { id } })
+}
+
+export function completeRemind(id) {
+  return request.post('/remind/complete', null, { params: { id } })
+}
+
+export function deleteRemind(id) {
+  return request.post('/remind/delete', null, { params: { id } })
+}
+
+export function getUpcomingRemind() {
+  return request.get('/remind/upcoming')
+}

@@ -15,6 +15,7 @@
         <module>chronic-disease-gateway</module>
         <module>health-record-service</module>
         <module>chronic-disease-agent</module>
+        <module>health-remind-service</module>
     </modules>
 
     <properties>

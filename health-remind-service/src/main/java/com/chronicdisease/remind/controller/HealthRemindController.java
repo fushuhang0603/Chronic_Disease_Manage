@@ -38,17 +38,10 @@ public class HealthRemindController {
         return Result.success(result);
     }
 
-    @PostMapping("/read")
-    @Operation(summary = "标记已读")
-    public Result<Void> read(@RequestParam("id") Long id) {
-        healthRemindService.readRemind(id);
-        return Result.success();
-    }
-
-    @PostMapping("/complete")
-    @Operation(summary = "标记已完成")
-    public Result<Void> complete(@RequestParam("id") Long id) {
-        healthRemindService.completeRemind(id);
+    @PostMapping("/updateStatus")
+    @Operation(summary = "更新提醒状态")
+    public Result<Void> updateStatus(@RequestParam("id") Long id, @RequestParam("status") Integer status) {
+        healthRemindService.updateStatus(id, status);
         return Result.success();
     }
 

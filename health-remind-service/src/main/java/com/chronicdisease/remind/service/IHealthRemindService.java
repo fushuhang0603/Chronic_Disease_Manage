@@ -14,9 +14,7 @@ public interface IHealthRemindService extends IService<HealthRemind> {
 
     PageResult<HealthRemind> pageRemind(HealthRemindPageDTO dto);
 
-    void readRemind(Long id);
-
-    void completeRemind(Long id);
+    void updateStatus(Long id, Integer status);
 
     void deleteRemind(Long id);
 

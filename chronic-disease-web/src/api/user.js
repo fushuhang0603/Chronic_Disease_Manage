@@ -134,12 +134,8 @@ export function getRemindPage(params) {
   return request.post('/remind/page', params)
 }
 
-export function readRemind(id) {
-  return request.post('/remind/read', null, { params: { id } })
-}
-
-export function completeRemind(id) {
-  return request.post('/remind/complete', null, { params: { id } })
+export function updateRemindStatus(id, status) {
+  return request.post('/remind/updateStatus', null, { params: { id, status } })
 }
 
 export function deleteRemind(id) {

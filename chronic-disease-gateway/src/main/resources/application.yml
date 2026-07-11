@@ -22,3 +22,7 @@ spring:
           uri: lb://health-record-service
           predicates:
             - Path=/index/**,/medicine/**,/recheck/**
+        - id: health-remind-service
+          uri: lb://health-remind-service
+          predicates:
+            - Path=/remind/**

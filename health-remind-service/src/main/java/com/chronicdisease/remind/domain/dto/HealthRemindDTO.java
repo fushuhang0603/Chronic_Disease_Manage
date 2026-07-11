@@ -1,9 +1,11 @@
 package com.chronicdisease.remind.domain.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 
@@ -20,6 +22,7 @@ public class HealthRemindDTO {
     private String content;
 
     @Schema(description = "提醒时间")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime remindTime;
 
     @Schema(description = "重复时间规则每天/每周/每月")

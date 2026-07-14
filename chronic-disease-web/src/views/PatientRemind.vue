@@ -41,6 +41,7 @@ const statusTabs = [
   { status: 0, label: '待提醒' },
   { status: 2, label: '已读' },
   { status: 3, label: '已完成' },
+  { status: 5, label: '已过期' },
   { status: 4, label: '已关闭' },
 ]
 
@@ -239,7 +240,7 @@ onMounted(() => fetchRecords())
           v-for="item in records"
           :key="item.id"
           class="remind-row"
-          :class="{ closed: item.remindStatus === 4 }"
+          :class="{ closed: item.remindStatus === 4, expired: item.remindStatus === 5 }"
         >
           <div class="row-left">
             <div class="row-type-dot" :style="{ background: typeMap[item.remindType]?.color || '#475569' }"></div>
@@ -258,7 +259,15 @@ onMounted(() => fetchRecords())
             </div>
           </div>
           <div class="row-actions">
-            <template v-if="item.remindStatus !== 4">
+            <template v-if="item.remindStatus === 4">
+              <button class="row-action-btn row-btn-blue" @click="handleReopen(item)">重新启用</button>
+              <button class="row-action-btn row-btn-red" @click="handleDelete(item)">删除</button>
+            </template>
+            <template v-else-if="item.remindStatus === 5">
+              <button class="row-action-btn row-btn-blue" @click="handleReopen(item)">重新启用</button>
+              <button class="row-action-btn row-btn-gray" @click="handleClose(item)">关闭</button>
+            </template>
+            <template v-else>
               <button
                 v-if="item.remindStatus === 0 || item.remindStatus === 1"
                 class="row-action-btn row-btn-blue"
@@ -273,16 +282,6 @@ onMounted(() => fetchRecords())
                 class="row-action-btn row-btn-gray"
                 @click="handleClose(item)"
               >关闭</button>
-            </template>
-            <template v-else>
-              <button
-                class="row-action-btn row-btn-blue"
-                @click="handleReopen(item)"
-              >重新启用</button>
-              <button
-                class="row-action-btn row-btn-red"
-                @click="handleDelete(item)"
-              >删除</button>
             </template>
           </div>
         </div>
@@ -492,6 +491,23 @@ onMounted(() => fetchRecords())
 }
 .remind-row.closed .row-meta {
   color: #cbd5e1;
+}
+
+/* ===== 已过期状态 ===== */
+.remind-row.expired {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+.remind-row.expired:hover {
+  background: #fff;
+  border-color: #dc2626;
+  box-shadow: 0 2px 12px rgba(220,38,38,0.1);
+}
+.remind-row.expired .row-type-dot {
+  background: #dc2626 !important;
+}
+.remind-row.expired .row-title {
+  color: #991b1b;
 }
 
 /* ===== 空状态 ===== */

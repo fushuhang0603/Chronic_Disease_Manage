@@ -26,6 +26,8 @@ public class BusinessConstant {
     public static final Integer Remind_Status4 = 3;
     /** 已关闭 **/
     public static final Integer Remind_Status5 = 4;
+    /** 已过期 **/
+    public static final Integer Remind_Status6 = 5;
 
 
 }

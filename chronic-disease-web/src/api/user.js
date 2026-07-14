@@ -141,7 +141,3 @@ export function updateRemindStatus(id, status) {
 export function deleteRemind(id) {
   return request.post('/remind/delete', null, { params: { id } })
 }
-
-export function getUpcomingRemind() {
-  return request.get('/remind/upcoming')
-}

@@ -6,8 +6,6 @@ import com.chronicdisease.remind.domain.dto.HealthRemindDTO;
 import com.chronicdisease.remind.domain.dto.HealthRemindPageDTO;
 import com.chronicdisease.remind.domain.entity.HealthRemind;
 
-import java.util.List;
-
 public interface IHealthRemindService extends IService<HealthRemind> {
 
     void addRemind(HealthRemindDTO dto);
@@ -17,7 +15,5 @@ public interface IHealthRemindService extends IService<HealthRemind> {
     void updateStatus(Long id, Integer status);
 
     void deleteRemind(Long id);
-
-    List<HealthRemind> upcomingRemind();
 
 }

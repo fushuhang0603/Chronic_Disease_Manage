@@ -41,6 +41,7 @@ const statusTabs = [
   { status: 0, label: '待提醒' },
   { status: 2, label: '已读' },
   { status: 3, label: '已完成' },
+  { status: 4, label: '已关闭' },
 ]
 
 // ====== 方法 ======
@@ -120,6 +121,26 @@ async function handleDelete(row) {
     fetchRecords()
   } catch (e) {
     if (e !== 'cancel') ElMessage.error(e.message || '删除失败')
+  }
+}
+
+async function handleClose(row) {
+  try {
+    await updateRemindStatus(row.id, 4)
+    ElMessage.success('提醒已关闭')
+    fetchRecords()
+  } catch (e) {
+    ElMessage.error(e.message || '操作失败')
+  }
+}
+
+async function handleReopen(row) {
+  try {
+    await updateRemindStatus(row.id, 0)
+    ElMessage.success('提醒已重新启用')
+    fetchRecords()
+  } catch (e) {
+    ElMessage.error(e.message || '操作失败')
   }
 }
 
@@ -217,58 +238,52 @@ onMounted(() => fetchRecords())
         <div
           v-for="item in records"
           :key="item.id"
-          class="remind-item"
-          :style="{ borderLeftColor: (typeMap[item.remindType] || typeMap.custom).color }"
+          class="remind-row"
+          :class="{ closed: item.remindStatus === 4 }"
         >
-          <div class="remind-main">
-            <div class="remind-top">
-              <span class="remind-title">{{ item.title }}</span>
-              <span
-                class="type-tag"
-                :style="{ color: (typeMap[item.remindType] || typeMap.custom).color, background: (typeMap[item.remindType] || typeMap.custom).bg }"
-              >
-                {{ (typeMap[item.remindType] || typeMap.custom).label }}
-              </span>
-              <span
-                v-if="item.repeatType !== 'none'"
-                class="repeat-tag"
-              >
-                {{ repeatMap[item.repeatType] || item.repeatType }}
-              </span>
-              <span
-                v-if="item.remindStatus === 0 && isPast(item.remindTime)"
-                class="overdue-tag"
-              >
-                已过期
-              </span>
+          <div class="row-left">
+            <div class="row-type-dot" :style="{ background: typeMap[item.remindType]?.color || '#475569' }"></div>
+            <div class="row-info">
+              <div class="row-title-row">
+                <span class="row-title">{{ item.title }}</span>
+                <span class="row-type-label">{{ (typeMap[item.remindType] || typeMap.custom).label }}</span>
+                <span v-if="item.repeatType !== 'none'" class="row-repeat-label">{{ repeatMap[item.repeatType] }}</span>
+                <span v-if="item.remindStatus === 0 && isPast(item.remindTime)" class="row-overdue-label">已过期</span>
+              </div>
+              <div class="row-meta">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" class="row-meta-icon"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>{{ fmtTime(item.remindTime) }}</span>
+                <span v-if="item.content" class="row-desc">— {{ item.content }}</span>
+              </div>
             </div>
-            <div class="remind-meta">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" class="meta-icon"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span class="meta-text">{{ fmtTime(item.remindTime) }}</span>
-            </div>
-            <div v-if="item.content" class="remind-content">{{ item.content }}</div>
           </div>
-          <div class="remind-actions">
-            <el-button
-              v-if="item.remindStatus === 0 || item.remindStatus === 1"
-              type="primary"
-              link
-              size="small"
-              @click="handleRead(item)"
-            >标记已读</el-button>
-            <el-button
-              v-if="item.remindStatus === 2"
-              type="success"
-              link
-              size="small"
-              @click="handleComplete(item)"
-            >完成</el-button>
-            <el-button
-              type="danger"
-              link
-              size="small"
-              @click="handleDelete(item)"
-            >删除</el-button>
+          <div class="row-actions">
+            <template v-if="item.remindStatus !== 4">
+              <button
+                v-if="item.remindStatus === 0 || item.remindStatus === 1"
+                class="row-action-btn row-btn-blue"
+                @click="handleRead(item)"
+              >标记已读</button>
+              <button
+                v-if="item.remindStatus === 2"
+                class="row-action-btn row-btn-green"
+                @click="handleComplete(item)"
+              >完成</button>
+              <button
+                class="row-action-btn row-btn-gray"
+                @click="handleClose(item)"
+              >关闭</button>
+            </template>
+            <template v-else>
+              <button
+                class="row-action-btn row-btn-blue"
+                @click="handleReopen(item)"
+              >重新启用</button>
+              <button
+                class="row-action-btn row-btn-red"
+                @click="handleDelete(item)"
+              >删除</button>
+            </template>
           </div>
         </div>
 
@@ -365,51 +380,119 @@ onMounted(() => fetchRecords())
 .status-tab:hover:not(.active) { color: #334155; }
 .status-tab.active { background: #fff; color: #1e293b; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 
-/* ===== 提醒列表 ===== */
-.remind-list { min-height: 120px; display: flex; flex-direction: column; gap: 10px; }
-
-.remind-item {
-  display: flex; align-items: flex-start; gap: 16px;
-  padding: 16px 20px; border-radius: 12px;
-  background: #fafbfc; border: 1px solid #e2e8f0;
-  border-left: 4px solid #cbd5e1;
-  transition: all 0.2s;
-}
-.remind-item:hover { background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-
-.remind-main { flex: 1; min-width: 0; }
-.remind-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
-.remind-title { font-size: 15px; font-weight: 600; color: #1e293b; }
-
-.type-tag {
-  display: inline-block; padding: 1px 10px; border-radius: 6px;
-  font-size: 12px; font-weight: 600;
-}
-.repeat-tag {
-  display: inline-block; padding: 1px 8px; border-radius: 6px;
-  font-size: 11px; color: #64748b; background: #f1f5f9; font-weight: 500;
-}
-.overdue-tag {
-  display: inline-block; padding: 1px 8px; border-radius: 6px;
-  font-size: 11px; color: #ef4444; background: #fef2f2; font-weight: 600;
+/* ===== 提醒列表（长条状） ===== */
+.remind-list {
+  min-height: 120px;
+  display: flex; flex-direction: column; gap: 8px;
 }
 
-.remind-meta {
-  display: flex; align-items: center; gap: 5px; margin-bottom: 4px;
+.remind-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 14px 20px;
+  background: #eff6ff; border-radius: 10px;
+  border: 2px solid #93c5fd;
+  transition: all 0.15s;
 }
-.meta-icon { color: #94a3b8; flex-shrink: 0; }
-.meta-text { font-size: 13px; color: #64748b; }
+.remind-row:hover {
+  background: #fff;
+  border-color: #1e40af;
+  box-shadow: 0 2px 12px rgba(30,64,175,0.15);
+}
 
-.remind-content {
-  font-size: 13px; color: #94a3b8; line-height: 1.5;
-  margin-top: 4px; word-break: break-all;
+.row-left {
+  display: flex; align-items: center; gap: 14px;
+  flex: 1; min-width: 0;
 }
 
-.remind-actions {
-  display: flex; flex-direction: column; gap: 2px;
-  flex-shrink: 0; padding-top: 2px;
+.row-type-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  flex-shrink: 0;
 }
-.remind-actions .el-button { font-size: 12px; padding: 2px 8px; }
+
+.row-info {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: 4px;
+}
+
+.row-title-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.row-title {
+  font-size: 14px; font-weight: 600; color: #1e293b;
+}
+
+.row-type-label {
+  display: inline-block; padding: 0 8px; border-radius: 5px;
+  font-size: 11px; font-weight: 600; color: #64748b; background: #f1f5f9;
+  line-height: 1.6;
+}
+.row-repeat-label {
+  display: inline-block; padding: 0 6px; border-radius: 4px;
+  font-size: 11px; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0;
+  font-weight: 500;
+}
+.row-overdue-label {
+  display: inline-block; padding: 0 6px; border-radius: 4px;
+  font-size: 11px; color: #dc2626; background: #fef2f2; font-weight: 600;
+}
+
+.row-meta {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 12px; color: #94a3b8;
+}
+.row-meta-icon { color: #94a3b8; flex-shrink: 0; }
+.row-desc {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 260px;
+}
+
+.row-actions {
+  display: flex; gap: 8px; flex-shrink: 0;
+}
+.row-action-btn {
+  padding: 5px 14px; border-radius: 7px;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all 0.15s; border: 1.5px solid transparent;
+}
+.row-btn-blue {
+  color: #1e40af; background: #eff6ff; border-color: #bfdbfe;
+}
+.row-btn-blue:hover { background: #dbeafe; }
+.row-btn-green {
+  color: #05854b; background: #ecfdf5; border-color: #a7f3d0;
+}
+.row-btn-green:hover { background: #d1fae5; }
+.row-btn-red {
+  color: #dc2626; background: #fef2f2; border-color: #fecaca;
+}
+.row-btn-red:hover { background: #fee2e2; }
+.row-btn-gray {
+  color: #64748b; background: #f8fafc; border-color: #e2e8f0;
+}
+.row-btn-gray:hover { background: #f1f5f9; }
+
+/* ===== 已关闭状态 ===== */
+.remind-row.closed {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  opacity: 0.7;
+}
+.remind-row.closed:hover {
+  background: #fff;
+  border-color: #94a3b8;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  opacity: 1;
+}
+.remind-row.closed .row-type-dot {
+  background: #94a3b8 !important;
+}
+.remind-row.closed .row-title {
+  color: #94a3b8;
+  text-decoration: line-through;
+}
+.remind-row.closed .row-meta {
+  color: #cbd5e1;
+}
 
 /* ===== 空状态 ===== */
 .empty-box {

@@ -1,5 +1,8 @@
 package com.chronicdisease.remind.service.Impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.chronicdisease.common.constant.BusinessConstant;
 import com.chronicdisease.common.exception.BusinessException;
@@ -15,8 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class HealthRemindServiceImpl extends ServiceImpl<HealthRemindMapper, HealthRemind> implements IHealthRemindService {
@@ -50,21 +51,40 @@ public class HealthRemindServiceImpl extends ServiceImpl<HealthRemindMapper, Hea
 
     @Override
     public PageResult<HealthRemind> pageRemind(HealthRemindPageDTO dto) {
-        return null;
+        LambdaQueryWrapper<HealthRemind> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(HealthRemind::getUserId, UserInfoContext.getUserId());
+        wrapper.eq(HealthRemind::getIsDeleted, BusinessConstant.isNotDelete);
+        if(StringUtils.isNotBlank(dto.getRemindType())){
+            wrapper.eq(HealthRemind::getRemindType,dto.getRemindType());
+        }
+        if (dto.getRemindStatus()!= null){
+            wrapper.eq(HealthRemind::getRemindStatus,dto.getRemindStatus());
+        }
+        wrapper.orderByDesc(HealthRemind::getCreateTime);
+        Page<HealthRemind> page = new Page<>(dto.getPageNum(), dto.getPageSize());
+        Page<HealthRemind> results = healthRemindMapper.selectPage(page, wrapper);
+        return new PageResult<>(results.getRecords(), results.getTotal());
     }
 
     @Override
     public void updateStatus(Long id, Integer status) {
-
+        Long userId = UserInfoContext.getUserId();
+        LambdaUpdateWrapper<HealthRemind> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(HealthRemind::getId, id)
+                .eq(HealthRemind::getUserId, userId)
+                .eq(HealthRemind::getIsDeleted, BusinessConstant.isNotDelete)
+                .set(HealthRemind::getRemindStatus, status);
+        healthRemindMapper.update(wrapper);
     }
 
     @Override
     public void deleteRemind(Long id) {
-
-    }
-
-    @Override
-    public List<HealthRemind> upcomingRemind() {
-        return List.of();
+        Long userId = UserInfoContext.getUserId();
+        LambdaUpdateWrapper<HealthRemind> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(HealthRemind::getId, id)
+                .eq(HealthRemind::getUserId, userId)
+                .eq(HealthRemind::getIsDeleted, BusinessConstant.isNotDelete)
+                .set(HealthRemind::getIsDeleted, BusinessConstant.isDelete);
+        healthRemindMapper.update(wrapper);
     }
 }

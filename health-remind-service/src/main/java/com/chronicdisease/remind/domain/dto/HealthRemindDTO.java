@@ -10,6 +10,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDateTime;
 
 @Data
+@Schema(description = "新增健康提醒入参")
 public class HealthRemindDTO {
 
     @Schema(description = "提醒类型")

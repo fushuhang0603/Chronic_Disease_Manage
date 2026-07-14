@@ -52,11 +52,4 @@ public class HealthRemindController {
         return Result.success();
     }
 
-    @GetMapping("/upcoming")
-    @Operation(summary = "获取最近的待提醒列表")
-    public Result<List<HealthRemind>> upcoming() {
-        List<HealthRemind> result = healthRemindService.upcomingRemind();
-        return Result.success(result);
-    }
-
 }

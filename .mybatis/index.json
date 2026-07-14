@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "timestamp": 1783765454658,
+  "timestamp": 1784023857659,
   "projectRoot": "d:\\Code\\Chronic_Disease_Manage",
   "entries": [
     {
@@ -80,7 +80,7 @@
     },
     {
       "path": "health-remind-service\\target\\classes\\com\\chronicdisease\\remind\\HealthRemindServiceApplication.class",
-      "mtime": 1783765453653.146,
+      "mtime": 1784023855932.7913,
       "size": 997
     }
   ]

@@ -17,6 +17,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class HealthArchiveServiceImpl extends ServiceImpl<HealthArchiveMapper, HealthArchive> implements IHealthArchiveService {
 
@@ -86,6 +90,19 @@ public class HealthArchiveServiceImpl extends ServiceImpl<HealthArchiveMapper, H
         wrapper.eq(HealthArchive::getId, id)
                 .set(HealthArchive::getIsDeleted, BusinessConstant.isDelete);
         baseMapper.update(wrapper);
+    }
+
+    @Override
+    public List<Long> searchUserIds(String patientName) {
+        if(StringUtils.isBlank(patientName)){
+            return Collections.emptyList();
+        }
+        LambdaUpdateWrapper<HealthArchive> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.like(HealthArchive::getPatientName,patientName);
+        wrapper.eq(HealthArchive::getIsDeleted, BusinessConstant.isNotDelete);
+
+        List<HealthArchive> list = baseMapper.selectList(wrapper);
+        return list.stream().map(HealthArchive::getUserId).distinct().collect(Collectors.toList());
     }
 
     private void copyDtoToEntity(HealthArchiveDTO dto, HealthArchive archive) {

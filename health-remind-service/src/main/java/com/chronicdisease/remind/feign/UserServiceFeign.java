@@ -1,8 +1,26 @@
 package com.chronicdisease.remind.feign;
 
+import com.chronicdisease.common.result.Result;
+import com.chronicdisease.remind.domain.vo.PatientBriefVO;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "health-user-service")
-public class UserServiceFeign {
+import java.util.List;
+
+@FeignClient(name = "health-user-service", path = "/archive")
+@Component
+public interface UserServiceFeign {
+
+    @PostMapping("/searchIds")
+    @Operation(summary = "根据姓名查询用户ID")
+    Result<List<Long>> searchUserIds(@RequestParam("patientName") String patientName);
+
+    @GetMapping("/allPatientBriefs")
+    @Operation(summary = "获取全部患者 userId → 姓名映射")
+    Result<List<PatientBriefVO>> getAllPatientBriefs();
 
 }

@@ -66,4 +66,8 @@ public class HealthRemind implements Serializable {
     @Schema(description = "是否删除: 0未删除 1已删除")
     private Integer isDeleted;
 
+    @Schema(description = "患者姓名")
+    @TableField(exist = false)
+    private String patientName;
+
 }

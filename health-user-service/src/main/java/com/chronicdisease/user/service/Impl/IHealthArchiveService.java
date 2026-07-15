@@ -5,6 +5,7 @@ import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.user.domain.dto.HealthArchiveDTO;
 import com.chronicdisease.user.domain.entity.HealthArchive;
 import com.chronicdisease.user.domain.query.HealthArchiveQuery;
+import com.chronicdisease.user.domain.vo.PatientBriefVO;
 
 import java.util.List;
 
@@ -16,4 +17,7 @@ public interface IHealthArchiveService extends IService<HealthArchive> {
     void deleteArchive(Long id);
 
     List<Long> searchUserIds(String patientName);
+
+    /** 获取全部患者 userId → 姓名映射 */
+    List<PatientBriefVO> getAllPatientBriefs();
 }

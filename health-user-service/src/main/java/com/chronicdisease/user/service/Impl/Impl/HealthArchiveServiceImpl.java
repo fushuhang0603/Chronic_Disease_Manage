@@ -11,6 +11,7 @@ import com.chronicdisease.common.util.UserInfoContext;
 import com.chronicdisease.user.domain.dto.HealthArchiveDTO;
 import com.chronicdisease.user.domain.entity.HealthArchive;
 import com.chronicdisease.user.domain.query.HealthArchiveQuery;
+import com.chronicdisease.user.domain.vo.PatientBriefVO;
 import com.chronicdisease.user.mapper.HealthArchiveMapper;
 import com.chronicdisease.user.service.Impl.IHealthArchiveService;
 import org.apache.commons.lang3.StringUtils;
@@ -103,6 +104,16 @@ public class HealthArchiveServiceImpl extends ServiceImpl<HealthArchiveMapper, H
 
         List<HealthArchive> list = baseMapper.selectList(wrapper);
         return list.stream().map(HealthArchive::getUserId).distinct().collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PatientBriefVO> getAllPatientBriefs() {
+        LambdaUpdateWrapper<HealthArchive> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(HealthArchive::getIsDeleted, BusinessConstant.isNotDelete);
+        List<HealthArchive> list = baseMapper.selectList(wrapper);
+        return list.stream()
+                .map(a -> new PatientBriefVO(a.getUserId(), a.getPatientName()))
+                .collect(Collectors.toList());
     }
 
     private void copyDtoToEntity(HealthArchiveDTO dto, HealthArchive archive) {

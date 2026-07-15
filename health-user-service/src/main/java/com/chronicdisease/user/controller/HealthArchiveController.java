@@ -6,6 +6,7 @@ import com.chronicdisease.common.result.Result;
 import com.chronicdisease.user.domain.dto.HealthArchiveDTO;
 import com.chronicdisease.user.domain.entity.HealthArchive;
 import com.chronicdisease.user.domain.query.HealthArchiveQuery;
+import com.chronicdisease.user.domain.vo.PatientBriefVO;
 import com.chronicdisease.user.service.Impl.IHealthArchiveService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -71,4 +72,13 @@ public class HealthArchiveController {
         List<Long> Ids = healthArchiveService.searchUserIds(patientName);
         return Result.success(Ids);
     }
+
+
+    @GetMapping("/allPatientBriefs")
+    @Operation(summary = "获取全部患者 userId做patientName映射")
+    public Result<List<PatientBriefVO>> getAllPatientBriefs() {
+        return Result.success(healthArchiveService.getAllPatientBriefs());
+    }
+    
+
 }

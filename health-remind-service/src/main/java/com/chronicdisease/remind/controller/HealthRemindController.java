@@ -3,6 +3,7 @@ package com.chronicdisease.remind.controller;
 import com.chronicdisease.common.annotation.OperationLog;
 import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.common.result.Result;
+import com.chronicdisease.remind.domain.dto.HealthRemindAdminPageDTO;
 import com.chronicdisease.remind.domain.dto.HealthRemindDTO;
 import com.chronicdisease.remind.domain.dto.HealthRemindPageDTO;
 import com.chronicdisease.remind.domain.entity.HealthRemind;
@@ -51,10 +52,17 @@ public class HealthRemindController {
 
     @OperationLog(module = "提醒管理", description = "删除提醒")
     @PostMapping("/delete")
-    @Operation(summary = "删除提醒")
     public Result<Void> delete(@RequestParam("id") Long id) {
         healthRemindService.deleteRemind(id);
         return Result.success();
     }
 
+    @OperationLog(module = "提醒管理", description = "管理端分页查全部提醒")
+    @PostMapping("/pageAll")
+    @Operation(summary = "管理端分页查询全部患者提醒")
+    public Result<PageResult<HealthRemind>> pageAll(@RequestBody HealthRemindAdminPageDTO dto) {
+        return Result.success(healthRemindService.pageAllRemind(dto));
+    }
+
 }
+

@@ -1,5 +1,6 @@
 package com.chronicdisease.user.controller;
 
+import com.chronicdisease.common.annotation.OperationLog;
 import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.user.domain.dto.LoginDTO;
 import com.chronicdisease.user.domain.dto.RegisterDTO;
@@ -29,63 +30,62 @@ public class UserController {
     @PostMapping("/login")
     @Operation(summary = "用户登录")
     public Result<LoginVO> login(@Valid @RequestBody LoginDTO loginDTO){
-        log.info("用户请求登录,{}", loginDTO);
         LoginVO result = userService.login(loginDTO);
         return Result.success(result);
     }
 
+    @OperationLog(module = "用户管理", description = "用户注册")
     @PostMapping("/register")
     @Operation(summary = "用户注册")
     public Result<UserInfoVO> register(@Valid @RequestBody RegisterDTO registerDTO){
-        log.info("用户注册，{}", registerDTO);
         UserInfoVO result = userService.register(registerDTO);
         return Result.success(result);
     }
 
+    @OperationLog(module = "用户管理", description = "分页查询用户")
     @PostMapping("/page")
     @Operation(summary = "用户分页查询")
     public Result<PageResult<User>> page(@RequestBody UserQuery query){
-        log.info("分页查询用户,{}", query);
         PageResult<User> result = userService.getUserPage(query);
         return Result.success(result);
     }
 
+    @OperationLog(module = "用户管理", description = "新增用户")
     @PostMapping("/add")
     @Operation(summary = "管理员新增用户")
     public Result<Void> add(@Valid @RequestBody UserDTO userDTO){
-        log.info("管理员新增用户,{}", userDTO);
         userService.addUser(userDTO);
         return Result.success();
     }
 
+    @OperationLog(module = "用户管理", description = "编辑用户")
     @PostMapping("/edit")
     @Operation(summary = "管理员编辑用户")
     public Result<Void> edit(@Valid @RequestBody UserDTO userDTO){
-        log.info("管理员编辑用户,{}", userDTO);
         userService.editUser(userDTO);
         return Result.success();
     }
 
+    @OperationLog(module = "用户管理", description = "根据ID查询用户")
     @GetMapping("/queryById")
     @Operation(summary = "根据ID查询用户")
     public Result<User> queryById(@RequestParam("id") Long id){
-        log.info("根据ID查询用户, id={}", id);
         User result = userService.queryById(id);
         return Result.success(result);
     }
 
+    @OperationLog(module = "用户管理", description = "删除用户")
     @PostMapping("/delete")
     @Operation(summary = "根据ID删除用户")
     public Result<Void> delete(@RequestParam("id") Long id){
-        log.info("删除用户, id={}", id);
         userService.deleteById(id);
         return Result.success();
     }
 
+    @OperationLog(module = "用户管理", description = "更新用户状态")
     @PostMapping("/updateStatus")
     @Operation(summary = "启用/禁用用户")
     public Result<Void> updateStatus(@RequestParam("id") Long id, @RequestParam("status") Integer status){
-        log.info("更新用户状态, id={}, status={}", id, status);
         userService.updateStatus(id, status);
         return Result.success();
     }

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import com.chronicdisease.common.aop.LogAspect;
 import com.chronicdisease.common.handler.GlobalExceptionHandler;
 import com.chronicdisease.common.handler.MyMetaObjectHandler;
 import com.chronicdisease.common.handler.UserInfoInterceptor;
@@ -38,5 +39,10 @@ public class MvcConfig implements WebMvcConfigurer {
     @Bean
     public GlobalExceptionHandler globalExceptionHandler() {
         return new GlobalExceptionHandler();
+    }
+
+    @Bean
+    public LogAspect logAspect() {
+        return new LogAspect();
     }
 }

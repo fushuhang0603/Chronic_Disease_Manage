@@ -1,5 +1,6 @@
 package com.chronicdisease.remind.controller;
 
+import com.chronicdisease.common.annotation.OperationLog;
 import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.common.result.Result;
 import com.chronicdisease.remind.domain.dto.HealthRemindDTO;
@@ -24,6 +25,7 @@ public class HealthRemindController {
     @Autowired
     private IHealthRemindService healthRemindService;
 
+    @OperationLog(module = "提醒管理", description = "新增提醒")
     @PostMapping("/add")
     @Operation(summary = "新增提醒")
     public Result<Void> add(@Valid @RequestBody HealthRemindDTO dto) {
@@ -31,6 +33,7 @@ public class HealthRemindController {
         return Result.success();
     }
 
+    @OperationLog(module = "提醒管理", description = "分页查询提醒")
     @PostMapping("/page")
     @Operation(summary = "分页查询提醒")
     public Result<PageResult<HealthRemind>> page(@RequestBody HealthRemindPageDTO dto) {
@@ -38,6 +41,7 @@ public class HealthRemindController {
         return Result.success(result);
     }
 
+    @OperationLog(module = "提醒管理", description = "更新提醒状态")
     @PostMapping("/updateStatus")
     @Operation(summary = "更新提醒状态")
     public Result<Void> updateStatus(@RequestParam("id") Long id, @RequestParam("status") Integer status) {
@@ -45,6 +49,7 @@ public class HealthRemindController {
         return Result.success();
     }
 
+    @OperationLog(module = "提醒管理", description = "删除提醒")
     @PostMapping("/delete")
     @Operation(summary = "删除提醒")
     public Result<Void> delete(@RequestParam("id") Long id) {

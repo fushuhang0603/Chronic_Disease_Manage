@@ -1,5 +1,6 @@
 package com.chronicdisease.record.controller;
 
+import com.chronicdisease.common.annotation.OperationLog;
 import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.common.result.Result;
 import com.chronicdisease.record.domain.dto.RecheckRecordDTO;
@@ -22,26 +23,25 @@ public class RecheckRecordController {
     @Autowired
     private IRecheckRecordService recheckRecordService;
 
+    @OperationLog(module = "复查记录", description = "录入复查记录")
     @PostMapping("/add")
     @Operation(summary = "录入复查记录")
     public Result<Void> add(@Valid @RequestBody RecheckRecordDTO dto) {
-        log.info("录入复查记录, recheckItemCode={}", dto.getRecheckItemCode());
         recheckRecordService.addRecord(dto);
         return Result.success();
     }
 
+    @OperationLog(module = "复查记录", description = "分页查询复查记录")
     @PostMapping("/page")
     @Operation(summary = "分页查询复查记录")
     public Result<PageResult<RecheckRecord>> page(@RequestBody RecheckRecordPageDTO dto) {
-        log.info("分页查询复查记录, recheckItemCode={}, pageNum={}, pageSize={}",
-                dto.getRecheckItemCode(), dto.getPageNum(), dto.getPageSize());
         return Result.success(recheckRecordService.pageRecords(dto));
     }
 
+    @OperationLog(module = "复查记录", description = "删除复查记录")
     @PostMapping("/delete")
     @Operation(summary = "删除复查记录")
     public Result<Void> delete(@RequestParam("id") Long id) {
-        log.info("删除复查记录, id={}", id);
         recheckRecordService.deleteRecord(id);
         return Result.success();
     }

@@ -150,10 +150,6 @@ function fmtTime(val) {
   return val.replace('T', ' ').substring(0, 16)
 }
 
-function isPast(val) {
-  return val && new Date(val) < new Date()
-}
-
 onMounted(() => fetchRecords())
 </script>
 
@@ -249,7 +245,6 @@ onMounted(() => fetchRecords())
                 <span class="row-title">{{ item.title }}</span>
                 <span class="row-type-label">{{ (typeMap[item.remindType] || typeMap.custom).label }}</span>
                 <span v-if="item.repeatType !== 'none'" class="row-repeat-label">{{ repeatMap[item.repeatType] }}</span>
-                <span v-if="item.remindStatus === 0 && isPast(item.remindTime)" class="row-overdue-label">已过期</span>
               </div>
               <div class="row-meta">
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" class="row-meta-icon"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -430,11 +425,6 @@ onMounted(() => fetchRecords())
   font-size: 11px; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0;
   font-weight: 500;
 }
-.row-overdue-label {
-  display: inline-block; padding: 0 6px; border-radius: 4px;
-  font-size: 11px; color: #dc2626; background: #fef2f2; font-weight: 600;
-}
-
 .row-meta {
   display: flex; align-items: center; gap: 5px;
   font-size: 12px; color: #94a3b8;

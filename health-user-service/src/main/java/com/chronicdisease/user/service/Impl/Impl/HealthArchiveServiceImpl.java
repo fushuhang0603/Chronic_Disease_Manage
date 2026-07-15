@@ -10,10 +10,8 @@ import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.common.util.UserInfoContext;
 import com.chronicdisease.user.domain.dto.HealthArchiveDTO;
 import com.chronicdisease.user.domain.entity.HealthArchive;
-import com.chronicdisease.user.domain.entity.User;
 import com.chronicdisease.user.domain.query.HealthArchiveQuery;
 import com.chronicdisease.user.mapper.HealthArchiveMapper;
-import com.chronicdisease.user.mapper.UserMapper;
 import com.chronicdisease.user.service.Impl.IHealthArchiveService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,37 +20,26 @@ import org.springframework.stereotype.Service;
 @Service
 public class HealthArchiveServiceImpl extends ServiceImpl<HealthArchiveMapper, HealthArchive> implements IHealthArchiveService {
 
-    @Autowired
-    private UserMapper userMapper;
-
     @Override
     public HealthArchive getMyArchive() {
         Long userId = UserInfoContext.getUserId();
-        User user = userMapper.selectById(userId);
-        if (user == null) {
-            throw new BusinessException("用户不存在");
-        }
         LambdaQueryWrapper<HealthArchive> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(HealthArchive::getPhone, user.getPhone()).eq(HealthArchive::getIsDeleted, 0);
+        wrapper.eq(HealthArchive::getUserId, userId).eq(HealthArchive::getIsDeleted, 0);
         return baseMapper.selectOne(wrapper);
     }
 
     @Override
     public void addArchive(HealthArchiveDTO dto) {
         Long userId = UserInfoContext.getUserId();
-        User user = userMapper.selectById(userId);
-        if (user == null) {
-            throw new BusinessException("用户不存在");
-        }
         // 检查是否已有档案
         LambdaQueryWrapper<HealthArchive> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(HealthArchive::getPhone, user.getPhone()).eq(HealthArchive::getIsDeleted, 0);
+        wrapper.eq(HealthArchive::getUserId, userId).eq(HealthArchive::getIsDeleted, 0);
         if (baseMapper.selectOne(wrapper) != null) {
             throw new BusinessException("已有健康档案，请刷新页面后编辑");
         }
         HealthArchive archive = new HealthArchive();
         copyDtoToEntity(dto, archive);
-        archive.setPhone(user.getPhone());
+        archive.setUserId(userId);
         this.save(archive);
     }
 
@@ -62,12 +49,8 @@ public class HealthArchiveServiceImpl extends ServiceImpl<HealthArchiveMapper, H
             throw new BusinessException("档案ID不能为空");
         }
         Long userId = UserInfoContext.getUserId();
-        User user = userMapper.selectById(userId);
-        if (user == null) {
-            throw new BusinessException("用户不存在");
-        }
         HealthArchive archive = baseMapper.selectById(dto.getId());
-        if (archive == null || !archive.getPhone().equals(user.getPhone())) {
+        if (archive == null || !archive.getUserId().equals(userId)) {
             throw new BusinessException("档案不存在");
         }
         copyDtoToEntity(dto, archive);
@@ -107,6 +90,7 @@ public class HealthArchiveServiceImpl extends ServiceImpl<HealthArchiveMapper, H
 
     private void copyDtoToEntity(HealthArchiveDTO dto, HealthArchive archive) {
         archive.setPatientName(dto.getPatientName());
+        archive.setPhone(dto.getPhone());
         archive.setIdCard(dto.getIdCard());
         archive.setBirthDate(dto.getBirthDate());
         archive.setGender(dto.getGender());

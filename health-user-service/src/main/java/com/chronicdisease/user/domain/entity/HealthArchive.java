@@ -19,6 +19,10 @@ public class HealthArchive implements Serializable {
     @Schema(description = "档案ID")
     private Long id;
 
+    @TableField("user_id")
+    @Schema(description = "关联用户ID")
+    private Long userId;
+
     @TableField("patient_name")
     @Schema(description = "患者姓名")
     private String patientName;

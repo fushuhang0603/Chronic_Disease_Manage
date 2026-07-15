@@ -12,6 +12,7 @@ import ArchiveManage from '../views/ArchiveManage.vue'
 import PatientData from '../views/PatientData.vue'
 import PatientRemind from '../views/PatientRemind.vue'
 import PatientArticle from '../views/PatientArticle.vue'
+import AdminRemind from '../views/AdminRemind.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -26,6 +27,7 @@ const routes = [
       { path: 'users', name: 'UserManage', component: UserManage },
       { path: 'dicts', name: 'IndexDictManage', component: IndexDictManage },
       { path: 'archives', name: 'ArchiveManage', component: ArchiveManage },
+      { path: 'remind', name: 'AdminRemind', component: AdminRemind },
     ],
   },
   {

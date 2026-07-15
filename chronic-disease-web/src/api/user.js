@@ -141,3 +141,13 @@ export function updateRemindStatus(id, status) {
 export function deleteRemind(id) {
   return request.post('/remind/delete', null, { params: { id } })
 }
+
+// 管理员查看所有患者提醒
+export function getAllRemindPage(params) {
+  return request.post('/remind/pageAll', params)
+}
+
+// 管理员为患者创建提醒
+export function addRemindForPatient(data) {
+  return request.post('/remind/addForPatient', data)
+}

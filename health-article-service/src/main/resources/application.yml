@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: health-article-service
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.248.128:8848
+        username: nacos
+        password: nacos
+        namespace: d022c08c-d058-4c47-86a0-0579574fb9b5
+        group: chronic-disease-group
+      config:
+        server-addr: 192.168.248.128:8848
+        username: nacos
+        password: nacos
+        namespace: d022c08c-d058-4c47-86a0-0579574fb9b5
+  config:
+    import:
+      - nacos:health-article-service-dev.yml?group=HEALTH_ARTICLE_GROUP

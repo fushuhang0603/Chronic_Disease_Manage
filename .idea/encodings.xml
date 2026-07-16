@@ -7,6 +7,8 @@
     <file url="file://$PROJECT_DIR$/chronic-disease-common/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/chronic-disease-gateway/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/chronic-disease-gateway/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/health-article-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/health-article-service/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/health-record-service/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/health-record-service/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/health-remind-service/src/main/java" charset="UTF-8" />

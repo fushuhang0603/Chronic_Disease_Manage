@@ -26,3 +26,7 @@ spring:
           uri: lb://health-remind-service
           predicates:
             - Path=/remind/**
+        - id: health-article-service
+          uri: lb://health-article-service
+          predicates:
+            - Path=/article/**

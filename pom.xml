@@ -16,6 +16,7 @@
         <module>health-record-service</module>
         <module>chronic-disease-agent</module>
         <module>health-remind-service</module>
+        <module>health-article-service</module>
     </modules>
 
     <properties>

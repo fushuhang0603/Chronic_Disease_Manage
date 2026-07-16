@@ -7,8 +7,11 @@ import com.chronicdisease.common.result.PageResult;
 
 public interface IHealthArticleService {
 
-    /** 分页查询资讯列表 */
+    /** 患者端分页（仅上架资讯） */
     PageResult<HealthArticle> pageArticle(ArticlePageDTO dto);
+
+    /** 管理端分页（可查所有状态） */
+    PageResult<HealthArticle> pageArticleAdmin(ArticlePageDTO dto);
 
     /** 查询文章详情（浏览量+1） */
     HealthArticle getDetail(Long id);

@@ -41,33 +41,26 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
 
         LambdaQueryWrapper<HealthArticle> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(HealthArticle::getIsDeleted, BusinessConstant.isNotDelete);
+        wrapper.eq(HealthArticle::getStatus, BusinessConstant.Article_Status_On);
 
-        // 分类筛选
         if (StringUtils.isNotBlank(dto.getCategory())) {
             wrapper.eq(HealthArticle::getCategory, dto.getCategory());
         }
-        // 关键词搜索
         if (StringUtils.isNotBlank(dto.getKeyword())) {
             wrapper.like(HealthArticle::getTitle, dto.getKeyword());
         }
-        // 状态筛选（管理端传，患者端不传则只查上架的）
-        if (dto.getStatus() != null) {
-            wrapper.eq(HealthArticle::getStatus, dto.getStatus());
-        } else {
-            wrapper.eq(HealthArticle::getStatus, BusinessConstant.Article_Status_On);
-        }
 
-        // 仅查已收藏（患者端用）
+        // 仅查已收藏
         if (dto.getOnlyFavorited() != null && dto.getOnlyFavorited() && userId != null) {
             LambdaQueryWrapper<ArticleFavorite> favQuery = new LambdaQueryWrapper<>();
             favQuery.eq(ArticleFavorite::getUserId, userId)
                     .eq(ArticleFavorite::getCollectStatus, BusinessConstant.Collect_STATUS1);
-            List<Long> favArticleIds = articleFavoriteMapper.selectList(favQuery)
+            List<Long> favIds = articleFavoriteMapper.selectList(favQuery)
                     .stream().map(ArticleFavorite::getArticleId).collect(Collectors.toList());
-            if (favArticleIds.isEmpty()) {
+            if (favIds.isEmpty()) {
                 return new PageResult<>(List.of(), 0L);
             }
-            wrapper.in(HealthArticle::getId, favArticleIds);
+            wrapper.in(HealthArticle::getId, favIds);
         }
 
         wrapper.orderByDesc(HealthArticle::getPublishingTime);
@@ -75,11 +68,34 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
         Page<HealthArticle> page = new Page<>(dto.getPageNum(), dto.getPageSize());
         Page<HealthArticle> result = healthArticleMapper.selectPage(page, wrapper);
 
-        // 标记当前用户是否已收藏
         if (userId != null) {
             List<Long> favoritedIds = getFavoritedArticleIds(userId);
             result.getRecords().forEach(a -> a.setIsFavorited(favoritedIds.contains(a.getId())));
         }
+
+        return new PageResult<>(result.getRecords(), result.getTotal());
+    }
+
+    @Override
+    public PageResult<HealthArticle> pageArticleAdmin(ArticlePageDTO dto) {
+        LambdaQueryWrapper<HealthArticle> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(HealthArticle::getIsDeleted, BusinessConstant.isNotDelete);
+
+        if (StringUtils.isNotBlank(dto.getCategory())) {
+            wrapper.eq(HealthArticle::getCategory, dto.getCategory());
+        }
+        if (StringUtils.isNotBlank(dto.getKeyword())) {
+            wrapper.like(HealthArticle::getTitle, dto.getKeyword());
+        }
+        // 管理端按传参筛选状态，不传则查全部
+        if (dto.getStatus() != null) {
+            wrapper.eq(HealthArticle::getStatus, dto.getStatus());
+        }
+
+        wrapper.orderByDesc(HealthArticle::getPublishingTime);
+
+        Page<HealthArticle> page = new Page<>(dto.getPageNum(), dto.getPageSize());
+        Page<HealthArticle> result = healthArticleMapper.selectPage(page, wrapper);
 
         return new PageResult<>(result.getRecords(), result.getTotal());
     }
@@ -224,6 +240,8 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
             articleReadHistoryMapper.insert(history);
         }
     }
+
+
 
     /** 获取当前用户已收藏的文章ID列表 */
     private List<Long> getFavoritedArticleIds(Long userId) {

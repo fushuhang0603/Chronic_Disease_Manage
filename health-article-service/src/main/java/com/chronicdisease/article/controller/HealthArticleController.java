@@ -20,11 +20,18 @@ public class HealthArticleController {
     @Autowired
     private IHealthArticleService healthArticleService;
 
-    @OperationLog(module = "资讯管理", description = "分页查询资讯")
+    @OperationLog(module = "资讯管理", description = "患者端分页查询资讯")
     @PostMapping("/page")
-    @Operation(summary = "分页查询资讯")
+    @Operation(summary = "患者端分页查询资讯")
     public Result<PageResult<HealthArticle>> page(@RequestBody ArticlePageDTO dto) {
         return Result.success(healthArticleService.pageArticle(dto));
+    }
+
+    @OperationLog(module = "资讯管理", description = "管理端分页查询资讯")
+    @PostMapping("/admin/page")
+    @Operation(summary = "管理端分页查询资讯")
+    public Result<PageResult<HealthArticle>> adminPage(@RequestBody ArticlePageDTO dto) {
+        return Result.success(healthArticleService.pageArticleAdmin(dto));
     }
 
     @OperationLog(module = "资讯管理", description = "查看资讯详情")

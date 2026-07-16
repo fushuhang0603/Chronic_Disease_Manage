@@ -153,9 +153,13 @@ export function addRemindForPatient(data) {
 }
 
 // ==================== 健康资讯 ====================
-// 分页查询资讯
+// 患者端分页查询资讯
 export function getArticlePage(data) {
   return request.post('/article/page', data)
+}
+// 管理端分页查询资讯
+export function getArticlePageAdmin(data) {
+  return request.post('/article/admin/page', data)
 }
 // 资讯详情
 export function getArticleDetail(id) {

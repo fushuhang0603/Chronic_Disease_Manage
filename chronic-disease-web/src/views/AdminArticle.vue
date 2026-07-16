@@ -174,7 +174,7 @@ function viewDetail(item) {
 async function fetchRecords() {
   loading.value = true
   try {
-    const res = await getArticlePage({
+    const res = await getArticlePageAdmin({
       pageNum: pageNum.value, pageSize: pageSize.value,
       category: filterCategory.value || undefined,
       status: filterStatus.value !== '' ? Number(filterStatus.value) : undefined

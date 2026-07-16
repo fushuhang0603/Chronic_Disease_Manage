@@ -54,7 +54,7 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
         if (dto.getStatus() != null) {
             wrapper.eq(HealthArticle::getStatus, dto.getStatus());
         } else {
-            wrapper.eq(HealthArticle::getStatus, 1);
+            wrapper.eq(HealthArticle::getStatus, BusinessConstant.Article_Status_On);
         }
 
         // 仅查已收藏（患者端用）
@@ -87,7 +87,7 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
     @Override
     public HealthArticle getDetail(Long id) {
         HealthArticle article = healthArticleMapper.selectById(id);
-        if (article == null || article.getIsDeleted().equals(1)) {
+        if (article == null || article.getIsDeleted().equals(BusinessConstant.isDelete)) {
             throw new BusinessException("资讯不存在或已删除");
         }
         if (article.getStatus().equals(0)) {
@@ -111,9 +111,9 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
     public void addArticle(ArticleSaveDTO dto) {
         HealthArticle article = new HealthArticle();
         BeanUtil.copyProperties(dto, article);
-        article.setViewCount(0);
+        article.setViewCount(BusinessConstant.Article_View_Init);
         if (article.getStatus() == null) {
-            article.setStatus(1);
+            article.setStatus(BusinessConstant.Article_Status_On);
         }
         article.setCreateTime(LocalDateTime.now());
         article.setUpdateTime(LocalDateTime.now());
@@ -142,7 +142,7 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
         if (article == null) {
             throw new BusinessException("资讯不存在");
         }
-        article.setIsDeleted(1);
+        article.setIsDeleted(BusinessConstant.isDelete);
         article.setUpdateTime(LocalDateTime.now());
         healthArticleMapper.updateById(article);
     }

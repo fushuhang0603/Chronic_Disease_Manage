@@ -8,8 +8,8 @@ import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.common.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "健康资讯管理")
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/article")
 public class HealthArticleController {
 
-    @Resource
+    @Autowired
     private IHealthArticleService healthArticleService;
 
     @OperationLog(module = "资讯管理", description = "分页查询资讯")

@@ -34,4 +34,11 @@ public class BusinessConstant {
     /**取消收藏**/
     public static final Integer Collect_STATUS2 = 1;
 
+    /** 资讯下架 **/
+    public static final Integer Article_Status_Off = 0;
+    /** 资讯上架 **/
+    public static final Integer Article_Status_On = 1;
+    /** 初始浏览量 **/
+    public static final Integer Article_View_Init = 0;
+
 }

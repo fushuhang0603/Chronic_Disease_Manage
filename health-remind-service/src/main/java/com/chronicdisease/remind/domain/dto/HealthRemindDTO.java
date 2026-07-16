@@ -13,6 +13,9 @@ import java.time.LocalDateTime;
 @Schema(description = "新增健康提醒入参")
 public class HealthRemindDTO {
 
+    @Schema(description = "患者姓名")
+    private String patientName;
+
     @Schema(description = "提醒类型")
     private String remindType;
 

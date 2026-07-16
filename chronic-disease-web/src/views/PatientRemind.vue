@@ -14,7 +14,7 @@ const activeStatus = ref(0)
 const records = ref([])
 const total = ref(0)
 const pageNum = ref(1)
-const pageSize = ref(10)
+const pageSize = ref(20)
 
 const form = reactive({
   title: '',

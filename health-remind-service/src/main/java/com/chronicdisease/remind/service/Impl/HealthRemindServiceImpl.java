@@ -40,8 +40,14 @@ public class HealthRemindServiceImpl extends ServiceImpl<HealthRemindMapper, Hea
 
     @Override
     public void addRemind(HealthRemindDTO dto) {
+        // 管理端传入patientName通过Feign查userId；患者端不传 → 取当前登录用户
         Long userId = UserInfoContext.getUserId();
-
+        if (StringUtils.isNotBlank(dto.getPatientName())) {
+            Result<List<Long>> result = userServiceFeign.searchUserIds(dto.getPatientName());
+            if (result != null && result.getData() != null && !result.getData().isEmpty()) {
+                userId = result.getData().get(0);
+            }
+        }
         if (StringUtils.isBlank(dto.getRemindType())) {
             throw new BusinessException("提醒类型不能为空");
         }

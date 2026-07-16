@@ -147,7 +147,7 @@ export function getAllRemindPage(params) {
   return request.post('/remind/pageAll', params)
 }
 
-// 管理员为患者创建提醒
+// 管理员为患者创建提醒（复用 /remind/add）
 export function addRemindForPatient(data) {
-  return request.post('/remind/addForPatient', data)
+  return request.post('/remind/add', data)
 }

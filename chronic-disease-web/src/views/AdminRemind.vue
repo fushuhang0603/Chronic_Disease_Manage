@@ -15,8 +15,9 @@ const patientSearching = ref(false)
 const records = ref([])
 const total = ref(0)
 const pageNum = ref(1)
-const pageSize = ref(10)
+const pageSize = ref(20)
 const searchName = ref('')
+const activeStatus = ref('')
 
 const form = reactive({
   title: '',
@@ -48,6 +49,7 @@ async function fetchRecords() {
   try {
     const params = { pageNum: pageNum.value, pageSize: pageSize.value }
     if (searchName.value.trim()) params.patientName = searchName.value.trim()
+    if (activeStatus.value !== '') params.remindStatus = Number(activeStatus.value)
     const data = await getAllRemindPage(params)
     records.value = data.records || []
     total.value = data.total || 0
@@ -73,21 +75,16 @@ function fmtTime(val) {
   return val.replace('T', ' ').substring(0, 16)
 }
 
-// ====== 新建提醒弹窗 ======
-function openCreateDialog() {
-  form.title = ''
-  form.remindType = 'custom'
-  form.remindTime = ''
-  form.repeatType = 'none'
-  form.content = ''
-  patientSearch.value = ''
-  patientList.value = []
-  selectedPatient.value = null
-  showDialog.value = true
-}
+// ====== 新建提醒 ======
+let searchTimer = null
 
 async function searchPatient() {
-  if (!patientSearch.value.trim()) return
+  if (!patientSearch.value.trim() || patientSearch.value.trim().length < 2) {
+    patientList.value = []
+    return
+  }
+  clearTimeout(searchTimer)
+  searchTimer = setTimeout(async () => {
   patientSearching.value = true
   try {
     const data = await getArchivePage({ patientName: patientSearch.value.trim(), pageNum: 1, pageSize: 10 })
@@ -97,6 +94,7 @@ async function searchPatient() {
   } finally {
     patientSearching.value = false
   }
+  }, 300)
 }
 
 function selectPatient(p) {
@@ -105,14 +103,17 @@ function selectPatient(p) {
 }
 
 async function handleSubmit() {
-  if (!selectedPatient.value) { ElMessage.warning('请先选择患者'); return }
+  if (!selectedPatient.value) { ElMessage.warning('请先搜索并选择患者'); return }
   if (!form.title.trim()) { ElMessage.warning('请输入提醒标题'); return }
   if (!form.remindTime) { ElMessage.warning('请选择提醒时间'); return }
   submitting.value = true
   try {
-    await addRemindForPatient({ userId: selectedPatient.value.userId, ...form })
+    await addRemindForPatient({ patientName: selectedPatient.value.patientName, ...form })
     ElMessage.success('提醒创建成功')
     showDialog.value = false
+    form.title = ''; form.content = ''; form.remindTime = ''
+    form.remindType = 'custom'; form.repeatType = 'none'
+    patientSearch.value = ''; selectedPatient.value = null
     pageNum.value = 1
     fetchRecords()
   } catch (e) {
@@ -169,21 +170,80 @@ onMounted(() => fetchRecords())
           <span class="page-title">用药提醒管理</span>
           <span class="page-desc">管理所有患者的用药、复查提醒</span>
         </div>
-        <button class="create-btn" @click="openCreateDialog">
+        <button class="create-btn" @click="showDialog = !showDialog">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          新建提醒
+          {{ showDialog ? '收起' : '新建提醒' }}
         </button>
       </div>
 
-      <!-- 搜索栏 -->
-      <div class="search-bar">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" class="search-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input
-          v-model="searchName"
-          class="search-input"
-          placeholder="按患者姓名搜索提醒"
-          @keyup.enter="handleSearch"
-        />
+      <!-- 新建表单（行内展开，与患者端一致） -->
+      <Transition name="slide">
+        <div v-if="showDialog" class="remind-form">
+          <!-- 患者姓名 + 标题 + 类型 + 时间 + 重复 + 提交 -->
+          <div class="form-row">
+            <div style="position:relative">
+              <input v-if="!selectedPatient" v-model="patientSearch" class="text-input" style="width:160px" placeholder="患者姓名" @input="searchPatient" />
+              <div v-else class="selected-tag-inline">
+                <span>{{ selectedPatient.patientName }}</span>
+                <span class="selected-tag-phone">{{ selectedPatient.phone || '' }}</span>
+                <button class="selected-tag-close" @click="selectedPatient = null; patientSearch = ''">&#10005;</button>
+              </div>
+              <div v-if="patientList.length > 0 && !selectedPatient" class="patient-dropdown">
+                <div v-for="p in patientList" :key="p.id" class="patient-dropdown-item" @click="selectPatient(p)">
+                  <span class="pick-name">{{ p.patientName }}</span>
+                  <span class="pick-info">{{ p.phone || '-' }}</span>
+                </div>
+              </div>
+            </div>
+            <input v-model="form.title" class="text-input" style="width:200px" placeholder="提醒标题，如：服用降压药" maxlength="50" />
+            <el-select v-model="form.remindType" size="large" style="width:110px">
+              <el-option label="用药" value="medicine" />
+              <el-option label="复查" value="recheck" />
+              <el-option label="自定义" value="custom" />
+            </el-select>
+            <el-date-picker
+              v-model="form.remindTime"
+              type="datetime"
+              size="large"
+              style="width:190px"
+              placeholder="提醒时间"
+              format="YYYY-MM-DD HH:mm"
+              value-format="YYYY-MM-DD HH:mm:ss"
+            />
+            <el-select v-model="form.repeatType" size="large" style="width:110px">
+              <el-option label="不重复" value="none" />
+              <el-option label="每天" value="daily" />
+              <el-option label="每周" value="weekly" />
+              <el-option label="每月" value="monthly" />
+            </el-select>
+            <button class="save-btn" :disabled="submitting" @click="handleSubmit">
+              {{ submitting ? '保存中...' : '创建提醒' }}
+            </button>
+          </div>
+          <div class="form-row" style="margin-top:10px">
+            <input v-model="form.content" class="text-input" style="flex:1" placeholder="备注详情（选填）" maxlength="200" />
+          </div>
+        </div>
+      </Transition>
+    </div>
+
+    <!-- 列表卡片 -->
+    <div class="list-card">
+      <!-- 筛选栏 -->
+      <div class="filter-row">
+        <div class="search-bar">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" class="search-icon"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input v-model="searchName" class="search-input" placeholder="患者姓名" @keyup.enter="handleSearch" />
+        </div>
+        <select v-model="activeStatus" class="status-select" @change="handleSearch">
+          <option value="">全部状态</option>
+          <option value="0">待提醒</option>
+          <option value="1">已推送</option>
+          <option value="2">已读</option>
+          <option value="3">已完成</option>
+          <option value="5">已过期</option>
+          <option value="4">已关闭</option>
+        </select>
         <button class="search-btn" @click="handleSearch">搜索</button>
       </div>
 
@@ -235,7 +295,6 @@ onMounted(() => fetchRecords())
             </tr>
           </tbody>
         </table>
-
         <div v-else-if="!loading" class="empty-box">
           <el-icon :size="56" color="#cbd5e1"><AlarmClock /></el-icon>
           <p class="empty-text">暂无提醒数据</p>
@@ -254,137 +313,59 @@ onMounted(() => fetchRecords())
         />
       </div>
     </div>
-
-    <!-- ====== 新建提醒弹窗 ====== -->
-    <el-dialog v-model="showDialog" title="为患者创建提醒" width="560px" :close-on-click-modal="false" destroy-on-close>
-      <!-- 选择患者 -->
-      <div class="dialog-section">
-        <div class="section-label">选择患者</div>
-        <div v-if="!selectedPatient" class="patient-pick">
-          <div class="pick-search">
-            <input
-              v-model="patientSearch"
-              class="text-input"
-              placeholder="输入患者姓名搜索"
-              @keyup.enter="searchPatient"
-            />
-            <button class="pick-btn" @click="searchPatient" :disabled="patientSearching">
-              {{ patientSearching ? '搜索中...' : '搜索' }}
-            </button>
-          </div>
-          <div v-if="patientList.length > 0" class="pick-results">
-            <div
-              v-for="p in patientList"
-              :key="p.id"
-              class="pick-item"
-              @click="selectPatient(p)"
-            >
-              <span class="pick-name">{{ p.patientName }}</span>
-              <span class="pick-info">{{ p.chronicType || '-' }} · {{ p.gender === 1 ? '男' : p.gender === 2 ? '女' : '-' }} · {{ p.phone || '-' }}</span>
-            </div>
-          </div>
-        </div>
-        <div v-else class="selected-patient">
-          <span class="selected-label">已选择：</span>
-          <span class="selected-name">{{ selectedPatient.patientName }}</span>
-          <span class="selected-info">{{ selectedPatient.phone || '' }}</span>
-          <button class="change-btn" @click="selectedPatient = null">更换</button>
-        </div>
-      </div>
-
-      <!-- 提醒信息 -->
-      <div class="dialog-section" v-if="selectedPatient">
-        <div class="section-label">提醒信息</div>
-        <div class="form-grid">
-          <div class="form-item full">
-            <label>提醒标题</label>
-            <input v-model="form.title" class="text-input" placeholder="如：服用降压药" maxlength="50" />
-          </div>
-          <div class="form-item">
-            <label>提醒类型</label>
-            <el-select v-model="form.remindType" size="large" style="width:100%">
-              <el-option label="用药" value="medicine" />
-              <el-option label="复查" value="recheck" />
-              <el-option label="自定义" value="custom" />
-            </el-select>
-          </div>
-          <div class="form-item">
-            <label>重复方式</label>
-            <el-select v-model="form.repeatType" size="large" style="width:100%">
-              <el-option label="不重复" value="none" />
-              <el-option label="每天" value="daily" />
-              <el-option label="每周" value="weekly" />
-              <el-option label="每月" value="monthly" />
-            </el-select>
-          </div>
-          <div class="form-item full">
-            <label>提醒时间</label>
-            <el-date-picker
-              v-model="form.remindTime"
-              type="datetime"
-              size="large"
-              style="width:100%"
-              placeholder="选择提醒时间"
-              format="YYYY-MM-DD HH:mm"
-              value-format="YYYY-MM-DD HH:mm:ss"
-            />
-          </div>
-          <div class="form-item full">
-            <label>备注详情</label>
-            <input v-model="form.content" class="text-input" placeholder="选填" maxlength="200" />
-          </div>
-        </div>
-      </div>
-
-      <template #footer>
-        <el-button @click="showDialog = false">取消</el-button>
-        <el-button type="primary" :disabled="!selectedPatient" :loading="submitting" @click="handleSubmit">创建提醒</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
 <style scoped>
-.admin-remind { height: 100%; }
+.admin-remind {
+  display: flex; flex-direction: column; gap: 20px;
+  max-width: 1100px; margin: 0 auto; width: 100%; padding-bottom: 32px;
+}
 
-.page-card {
-  background: #fff; border-radius: 16px;
-  box-shadow: 0 1px 12px rgba(0,0,0,0.04);
-  padding: 28px 32px; height: 100%; display: flex; flex-direction: column;
+.page-card, .list-card {
+  background: #fff; border-radius: 20px;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.05);
+  padding: 28px 32px; border: 1px solid #f1f5f9;
 }
 
 /* 头部 */
-.page-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
+.page-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0; }
 .head-left { display: flex; flex-direction: column; gap: 4px; }
 .page-title { font-size: 18px; font-weight: 700; color: #1e293b; }
 .page-desc { font-size: 13px; color: #94a3b8; }
 
 .create-btn {
   display: flex; align-items: center; gap: 6px;
-  height: 38px; padding: 0 20px; border-radius: 10px;
-  border: none; cursor: pointer; font-size: 13px; font-weight: 600;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: #fff; box-shadow: 0 4px 12px rgba(37,99,235,0.3);
-  transition: all 0.2s; white-space: nowrap;
+  height: 38px; padding: 0 18px; border-radius: 10px;
+  border: 1.5px solid #cbd5e1; background: #fff;
+  color: #334155; font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
 }
-.create-btn:hover { box-shadow: 0 6px 18px rgba(37,99,235,0.4); transform: translateY(-1px); }
+.create-btn:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
 
-/* 搜索栏 */
-.search-bar {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 14px; background: #f8fafc;
-  border: 1.5px solid #e2e8f0; border-radius: 10px; margin-bottom: 18px;
+/* 筛选栏 */
+.filter-row {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 18px;
 }
+.search-bar {
+  display: flex; align-items: center; gap: 6px;
+  height: 36px; box-sizing: border-box;
+  padding: 0 10px; background: #fff;
+  border: 1.5px solid #cbd5e1; border-radius: 8px;
+  width: 200px;
+}
+.search-bar:focus-within { border-color: #3b82f6; }
 .search-icon { color: #94a3b8; flex-shrink: 0; }
 .search-input {
-  flex: 1; border: none; background: transparent; outline: none;
-  font-size: 14px; color: #1e293b;
+  width: 100%; border: none; background: transparent; outline: none;
+  font-size: 12px; color: #1e293b;
 }
 .search-input::placeholder { color: #94a3b8; }
 .search-btn {
-  height: 32px; padding: 0 16px; border-radius: 7px;
+  height: 36px; padding: 0 16px; border-radius: 8px;
   border: none; cursor: pointer; font-size: 13px; font-weight: 600;
   background: #3b82f6; color: #fff; transition: background 0.2s;
+  white-space: nowrap;
 }
 .search-btn:hover { background: #2563eb; }
 
@@ -439,68 +420,85 @@ onMounted(() => fetchRecords())
 /* 分页 */
 .page-wrap { display: flex; justify-content: flex-end; margin-top: 18px; }
 
-/* ====== 弹窗 ====== */
-.dialog-section { margin-bottom: 18px; }
-.section-label { font-size: 14px; font-weight: 600; color: #1e293b; margin-bottom: 10px; }
-
-/* 选择患者 */
-.pick-search { display: flex; gap: 10px; }
-.pick-btn {
-  height: 42px; padding: 0 18px; border-radius: 10px;
-  border: none; cursor: pointer; font-size: 13px; font-weight: 600;
-  background: #3b82f6; color: #fff;
+/* ===== 行内表单（与患者端一致） ===== */
+.remind-form {
+  margin-top: 18px; padding: 18px 22px; background: #f8fafc;
+  border-radius: 14px; border: 1.5px solid #e2e8f0;
 }
-.pick-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-.pick-results {
-  margin-top: 10px; border: 1.5px solid #e2e8f0; border-radius: 10px;
-  overflow: hidden;
+.form-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.form-row :deep(.el-select .el-input__wrapper) {
+  height: 42px; border-radius: 10px; box-shadow: 0 0 0 1.5px #e2e8f0;
 }
-.pick-item {
-  padding: 10px 14px; display: flex; align-items: center; gap: 12px;
-  cursor: pointer; transition: background 0.15s;
-  border-bottom: 1px solid #f1f5f9;
+.form-row :deep(.el-date-editor .el-input__wrapper) {
+  height: 42px; border-radius: 10px; box-shadow: 0 0 0 1.5px #e2e8f0;
 }
-.pick-item:last-child { border-bottom: none; }
-.pick-item:hover { background: #eff6ff; }
-.pick-name { font-weight: 600; color: #1e293b; }
-.pick-info { font-size: 12px; color: #94a3b8; }
-
-.selected-patient {
-  display: flex; align-items: center; gap: 10px;
-  padding: 12px 14px; background: #eff6ff; border-radius: 10px;
-  border: 1.5px solid #bfdbfe;
-}
-.selected-label { font-size: 13px; color: #64748b; }
-.selected-name { font-weight: 700; color: #1e40af; font-size: 14px; }
-.selected-info { font-size: 12px; color: #64748b; }
-.change-btn {
-  margin-left: auto; padding: 4px 14px; border-radius: 6px;
-  border: 1.5px solid #bfdbfe; background: #fff; color: #1e40af;
-  font-size: 12px; font-weight: 600; cursor: pointer;
-}
-.change-btn:hover { background: #dbeafe; }
-
-/* 表单 */
-.form-grid { display: flex; flex-wrap: wrap; gap: 12px; }
-.form-item { width: calc(50% - 6px); }
-.form-item.full { width: 100%; }
-.form-item label { display: block; font-size: 13px; color: #64748b; margin-bottom: 4px; font-weight: 500; }
 
 .text-input {
   height: 42px; border-radius: 10px; border: 1.5px solid #cbd5e1;
   padding: 0 14px; font-size: 14px; color: #1e293b;
   outline: none; background: #fff; transition: border-color 0.2s;
-  box-sizing: border-box; width: 100%;
+  box-sizing: border-box;
 }
 .text-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
 .text-input::placeholder { color: #94a3b8; }
 
-:deep(.el-select .el-input__wrapper) { height: 42px; border-radius: 10px; box-shadow: 0 0 0 1.5px #cbd5e1; }
-:deep(.el-date-editor .el-input__wrapper) { height: 42px; border-radius: 10px; box-shadow: 0 0 0 1.5px #cbd5e1; }
-:deep(.el-dialog) { border-radius: 16px; }
-:deep(.el-dialog__header) { padding: 24px 28px 0; }
-:deep(.el-dialog__title) { font-size: 17px; font-weight: 700; color: #1e293b; }
-:deep(.el-dialog__body) { padding: 16px 28px; }
-:deep(.el-dialog__footer) { padding: 0 28px 24px; }
+.save-btn {
+  height: 42px; padding: 0 28px; border-radius: 10px; font-size: 14px; font-weight: 600;
+  border: none; cursor: pointer; transition: all 0.2s;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff; box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+  white-space: nowrap;
+}
+.save-btn:hover { box-shadow: 0 6px 16px rgba(37,99,235,0.4); transform: translateY(-1px); }
+.save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* 已选患者 */
+.selected-tag-inline {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 42px; padding: 0 12px; background: #eff6ff;
+  border-radius: 10px; border: 1.5px solid #bfdbfe;
+  font-size: 14px; font-weight: 600; color: #1e40af;
+}
+.selected-tag-phone { font-size: 12px; color: #64748b; font-weight: 400; }
+.selected-tag-close {
+  margin-left: 4px; width: 20px; height: 20px; border-radius: 50%;
+  border: none; background: #dbeafe; color: #1e40af;
+  font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.selected-tag-close:hover { background: #bfdbfe; }
+
+/* 患者下拉 */
+.patient-dropdown {
+  position: absolute; top: 100%; left: 0; z-index: 10;
+  margin-top: 4px; min-width: 260px;
+  border: 1.5px solid #e2e8f0; border-radius: 10px;
+  background: #fff; box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+.patient-dropdown-item {
+  padding: 10px 14px; display: flex; align-items: center; gap: 12px;
+  cursor: pointer; transition: background 0.15s;
+  border-bottom: 1px solid #f1f5f9;
+}
+.patient-dropdown-item:last-child { border-bottom: none; }
+.patient-dropdown-item:hover { background: #eff6ff; }
+.pick-name { font-weight: 600; color: #1e293b; }
+.pick-info { font-size: 12px; color: #94a3b8; }
+
+/* 动画 */
+.slide-enter-active, .slide-leave-active { transition: all 0.3s ease; }
+.slide-enter-from, .slide-leave-to { opacity: 0; transform: translateY(-10px); }
+</style>
+
+<style>
+/* 筛选栏状态下拉框 — 与搜索输入框样式一致 */
+.status-select {
+  width: 200px; height: 36px;
+  padding: 0 8px; font-size: 13px; color: #1e293b;
+  border: 1.5px solid #cbd5e1; border-radius: 8px;
+  background: #fff; outline: none; cursor: pointer;
+  box-sizing: border-box;
+  appearance: auto;
+}
+.status-select:focus { border-color: #3b82f6; }
 </style>

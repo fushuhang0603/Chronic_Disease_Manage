@@ -79,6 +79,7 @@ public class HealthArchiveController {
     public Result<List<PatientBriefVO>> getAllPatientBriefs() {
         return Result.success(healthArchiveService.getAllPatientBriefs());
     }
-    
+
+
 
 }

@@ -10,7 +10,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.stereotype.Component;
+import org.slf4j.MDC;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,12 +19,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Aspect
 public class LogAspect {
 
     private static final int MAX_PARAM_LENGTH = 2000;
+    private static final String TRACE_ID_KEY = "traceId";
+    private static final String TRACE_HEADER = "X-Trace-Id";
 
     /** 切点：所有标注 @OperationLog 注解的方法 */
     @Pointcut("@annotation(com.chronicdisease.common.annotation.OperationLog)")
@@ -38,6 +41,13 @@ public class LogAspect {
 
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         HttpServletRequest request = attributes != null ? attributes.getRequest() : null;
+
+        // traceId：优先取网关传入的 X-Trace-Id，否则生成一个
+        String traceId = request != null ? request.getHeader(TRACE_HEADER) : null;
+        if (traceId == null || traceId.isBlank()) {
+            traceId = UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+        }
+        MDC.put(TRACE_ID_KEY, traceId);
 
         Long userId = UserInfoContext.getUserId();
         String method = request != null ? request.getMethod() : "UNKNOWN";
@@ -54,10 +64,12 @@ public class LogAspect {
         } finally {
             long elapsed = System.currentTimeMillis() - start;
             String ip = getClientIp(request);
-            log.info("[操作日志] {}-{} | {} {} | 用户:{} | 参数:{} | IP:{} | 耗时:{}ms | {}",
+            log.info("[操作日志] traceId:{} | {}-{} | {} {} | 用户:{} | 参数:{} | IP:{} | 耗时:{}ms | {}",
+                    traceId,
                     operationLog.module(), operationLog.description(),
                     method, uri,
                     userId, params, ip, elapsed, status);
+            MDC.remove(TRACE_ID_KEY);
         }
         return result;
     }

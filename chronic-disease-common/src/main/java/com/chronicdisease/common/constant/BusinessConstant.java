@@ -29,5 +29,9 @@ public class BusinessConstant {
     /** 已过期 **/
     public static final Integer Remind_Status6 = 5;
 
+    /**收藏**/
+    public static final Integer Collect_STATUS1 = 0;
+    /**取消收藏**/
+    public static final Integer Collect_STATUS2 = 1;
 
 }

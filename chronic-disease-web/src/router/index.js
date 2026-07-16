@@ -13,6 +13,7 @@ import PatientData from '../views/PatientData.vue'
 import PatientRemind from '../views/PatientRemind.vue'
 import PatientArticle from '../views/PatientArticle.vue'
 import AdminRemind from '../views/AdminRemind.vue'
+import AdminArticle from '../views/AdminArticle.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -28,6 +29,7 @@ const routes = [
       { path: 'dicts', name: 'IndexDictManage', component: IndexDictManage },
       { path: 'archives', name: 'ArchiveManage', component: ArchiveManage },
       { path: 'remind', name: 'AdminRemind', component: AdminRemind },
+      { path: 'article', name: 'AdminArticle', component: AdminArticle },
     ],
   },
   {

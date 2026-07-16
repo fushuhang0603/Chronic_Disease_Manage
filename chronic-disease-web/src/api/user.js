@@ -151,3 +151,37 @@ export function getAllRemindPage(params) {
 export function addRemindForPatient(data) {
   return request.post('/remind/add', data)
 }
+
+// ==================== 健康资讯 ====================
+// 分页查询资讯
+export function getArticlePage(data) {
+  return request.post('/article/page', data)
+}
+// 资讯详情
+export function getArticleDetail(id) {
+  return request.get('/article/detail', { params: { id } })
+}
+// 新增资讯
+export function addArticle(data) {
+  return request.post('/article/add', data)
+}
+// 编辑资讯
+export function editArticle(data) {
+  return request.post('/article/edit', data)
+}
+// 删除资讯
+export function deleteArticle(id) {
+  return request.post('/article/delete', null, { params: { id } })
+}
+// 上下架
+export function updateArticleStatus(id, status) {
+  return request.post('/article/updateStatus', null, { params: { id, status } })
+}
+// 收藏/取消收藏
+export function toggleFavorite(data) {
+  return request.post('/article/favorite', data)
+}
+// 记录阅读历史
+export function recordReadHistory(data) {
+  return request.post('/article/readHistory', data)
+}

@@ -1,389 +1,416 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { getArticlePage, toggleFavorite } from '../api/user'
+import { ArrowRight } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 
-// 健康知识轮播
-const carouselItems = [
-  {
-    title: '高血压患者夏季血压管理',
-    desc: '夏天气温升高，血管扩张，血压可能出现"假性正常"。切勿自行停药，应遵医嘱调整用药，每日早晚各测一次血压并记录。',
-    tag: '疾病管理',
-    bg: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-  },
-  {
-    title: '糖尿病饮食"手掌法则"',
-    desc: '每餐主食一拳头、蛋白质一手掌、蔬菜一捧、脂肪一大拇指。科学控糖从量化饮食开始。',
-    tag: '饮食健康',
-    bg: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
-  },
-  {
-    title: '运动是最好的降压药',
-    desc: '每周≥5天、每次30分钟的有氧运动（快走、游泳、太极），可使收缩压下降4~9mmHg。',
-    tag: '运动康复',
-    bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-  },
-  {
-    title: '脑卒中识别：牢记"120"口诀',
-    desc: '"1"看脸不对称、"2"查双臂无力、"0"听言语不清——出现任一症状立即拨打120。',
-    tag: '急救科普',
-    bg: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-  },
-]
+// ====== 患者信息 ======
+const userName = ref('')
+try {
+  const raw = localStorage.getItem('userInfo')
+  if (raw) {
+    const info = JSON.parse(raw)
+    userName.value = info.name || info.userName || info.realName || ''
+  }
+} catch {}
 
-// 功能入口
+// ====== 问候语 ======
+function getGreeting() {
+  const h = new Date().getHours()
+  if (h < 9) return '早上好'
+  if (h < 12) return '上午好'
+  if (h < 14) return '中午好'
+  if (h < 18) return '下午好'
+  return '晚上好'
+}
+function todayStr() {
+  const d = new Date()
+  return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日 星期${'日一二三四五六'[d.getDay()]}`
+}
+
+// ====== 功能入口 ======
 const featureCards = [
-  { title: '健康档案', desc: '管理个人健康信息，记录病史与过敏史', icon: 'Folder', color: '#3b82f6', bg: '#eff6ff', path: '/patient/archive' },
-  { title: '数据监测', desc: '记录血压/血糖/血脂，生成趋势图表', icon: 'DataAnalysis', color: '#10b981', bg: '#ecfdf5', path: '/patient/data' },
-  { title: '用药提醒', desc: '设置用药计划，准时推送防漏服', icon: 'AlarmClock', color: '#f59e0b', bg: '#fffbeb', path: '/patient/remind' },
-  { title: '健康资讯', desc: '权威慢病科普，科学管理每一天', icon: 'Document', color: '#8b5cf6', bg: '#f5f3ff', path: '/patient/article' },
+  { title: '健康档案', desc: '管理个人信息与病史', color: '#3b82f6', bg: 'linear-gradient(135deg, #eff6ff, #dbeafe)', path: '/patient/archive' },
+  { title: '数据监测', desc: '血压血糖趋势分析', color: '#10b981', bg: 'linear-gradient(135deg, #ecfdf5, #d1fae5)', path: '/patient/data' },
+  { title: '用药提醒', desc: '准时推送服药计划', color: '#f59e0b', bg: 'linear-gradient(135deg, #fffbeb, #fef3c7)', path: '/patient/remind' },
+  { title: '全部资讯', desc: '浏览慢病科普文章', color: '#8b5cf6', bg: 'linear-gradient(135deg, #f5f3ff, #ede9fe)', path: '/patient/article' },
 ]
 
-// 慢病指标参考
-const indicatorRefs = [
-  { label: '理想血压', value: '< 120 / 80', unit: 'mmHg', status: 'normal', desc: '收缩压 < 120 且 舒张压 < 80' },
-  { label: '正常高值', value: '120~139 / 80~89', unit: 'mmHg', status: 'warn', desc: '需关注，改善生活方式' },
-  { label: '高血压', value: '≥ 140 / 90', unit: 'mmHg', status: 'danger', desc: '请及时就医，规范用药' },
-  { label: '空腹血糖', value: '3.9 ~ 6.1', unit: 'mmol/L', status: 'normal', desc: '空腹 ≥ 8小时' },
-  { label: '餐后2h血糖', value: '< 7.8', unit: 'mmol/L', status: 'normal', desc: '从第一口饭开始计时' },
-  { label: '糖尿病诊断', value: '≥ 11.1', unit: 'mmol/L', status: 'danger', desc: '任意时间血糖 ≥ 11.1' },
+// ====== 慢病指标 ======
+const indicators = [
+  { label: '理想血压', value: '<120/80', unit: 'mmHg', bg: 'linear-gradient(135deg, #eff6ff, #dbeafe)', color: '#2563eb' },
+  { label: '高血压', value: '≥140/90', unit: 'mmHg', bg: 'linear-gradient(135deg, #f0f4ff, #dbeafe)', color: '#1d4ed8' },
+  { label: '空腹血糖', value: '3.9~6.1', unit: 'mmol/L', bg: 'linear-gradient(135deg, #eff6ff, #dbeafe)', color: '#2563eb' },
+  { label: '糖尿病', value: '≥11.1', unit: 'mmol/L', bg: 'linear-gradient(135deg, #f0f4ff, #dbeafe)', color: '#1d4ed8' },
 ]
 
-// 用药知识
-const medKnowledge = [
-  { title: '降压药', desc: '不可随意停药，即使血压正常也需维持用药。漏服后勿加倍补服。', icon: 'FirstAidKit', color: '#3b82f6' },
-  { title: '降糖药', desc: '磺脲类餐前30min服用；二甲双胍餐中或餐后服，减少胃肠反应。', icon: 'Timer', color: '#10b981' },
-  { title: '降脂药', desc: '他汀类建议睡前服用，肝功能异常者需定期监测转氨酶。', icon: 'Moon', color: '#8b5cf6' },
+// ====== 每日提醒 ======
+const tipGradients = [
+  'linear-gradient(135deg, #eff6ff, #dbeafe)',
+  'linear-gradient(135deg, #ecfdf5, #d1fae5)',
+  'linear-gradient(135deg, #fffbeb, #fef3c7)',
+  'linear-gradient(135deg, #f5f3ff, #ede9fe)',
 ]
-
-// 健康贴士
 const tips = [
-  { icon: 'Dish', text: '低盐饮食：每日食盐 < 6g（约一啤酒瓶盖），少吃腌制品' },
-  { icon: 'Sunny', text: '每天30分钟户外活动，晒太阳有助于维生素D合成' },
-  { icon: 'Clock', text: '早晨起床后1小时内测量血压，测前静坐5分钟' },
-  { icon: 'WarningFilled', text: '出现胸闷、头痛剧烈、视物模糊等症状请立即就医' },
+  { text: '低盐饮食：每日食盐 < 6g，少吃腌制品' },
+  { text: '每天30分钟户外活动，多晒太阳' },
+  { text: '晨起1小时内测血压，测前静坐5分钟' },
+  { text: '胸闷、头痛剧烈、视物模糊，立即就医' },
 ]
+
+// ====== 资讯 ======
+const articles = ref([])
+
+async function loadArticles() {
+  try {
+    const res = await getArticlePage({ pageNum: 1, pageSize: 6 })
+    articles.value = res.records || []
+  } catch { /* 无数据不报错 */ }
+}
+
+function getSummary(content) {
+  if (!content) return ''
+  return content.replace(/\s+/g, ' ').substring(0, 60) + (content.length > 60 ? '...' : '')
+}
+function fmtTime(t) {
+  return t ? t.replace('T', ' ').substring(0, 10) : '-'
+}
+
+// ====== 详情弹窗 ======
+const showDetail = ref(false)
+const detailItem = ref(null)
+
+function openDetail(item) {
+  detailItem.value = item
+  showDetail.value = true
+  try { fetch('/api/article/readHistory', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ articleId: item.id, readDuration: 5 }) }) } catch {}
+}
+
+async function handleFavorite(item) {
+  try {
+    await toggleFavorite({ articleId: item.id })
+    item.isFavorited = !item.isFavorited
+    ElMessage.success(item.isFavorited ? '已收藏' : '已取消收藏')
+  } catch { ElMessage.error('操作失败') }
+}
 
 function goPage(path) { router.push(path) }
+function goArticle() { router.push('/patient/article') }
+
+onMounted(() => loadArticles())
 </script>
 
 <template>
   <div class="home-root">
-    <!-- ====== 轮播区 ====== -->
-    <div class="carousel-section">
-      <el-carousel :interval="5000" arrow="hover" height="200px" indicator-position="none">
-        <el-carousel-item v-for="(item, idx) in carouselItems" :key="idx">
-          <div class="carousel-card" :style="{ background: item.bg }">
-            <div class="carousel-text">
-              <span class="carousel-tag">{{ item.tag }}</span>
-              <h3 class="carousel-title">{{ item.title }}</h3>
-              <p class="carousel-desc">{{ item.desc }}</p>
-            </div>
+    <!-- ====== 问候横幅 ====== -->
+    <div class="hero-banner">
+      <div class="hero-left">
+        <div class="hero-top-row">
+          <span class="hero-greeting">{{ getGreeting() }}<template v-if="userName">，{{ userName }}</template></span>
+          <span class="hero-badge">今日</span>
+        </div>
+        <p class="hero-date">{{ todayStr() }}</p>
+        <p class="hero-quote">科学管理慢病，享受品质生活</p>
+        <div class="hero-tags">
+          <span class="hero-tag" @click="goPage('/patient/remind')">用药提醒</span>
+          <span class="hero-tag" @click="goPage('/patient/data')">记录指标</span>
+          <span class="hero-tag" @click="goArticle">健康资讯</span>
+        </div>
+      </div>
+      <div class="hero-right">
+        <div class="hero-decor">
+          <svg viewBox="0 0 140 120" width="120" height="104" fill="none">
+            <circle cx="60" cy="44" r="38" fill="#dbeafe" opacity="0.6"/>
+            <circle cx="82" cy="68" r="30" fill="#bfdbfe" opacity="0.5"/>
+            <circle cx="100" cy="36" r="16" fill="#e0e7ff" opacity="0.6"/>
+            <path d="M32 82 Q60 32 88 82" stroke="#93c5fd" stroke-width="2.5" fill="none" opacity="0.4"/>
+            <path d="M40 90 Q60 52 80 90" stroke="#93c5fd" stroke-width="2" fill="none" opacity="0.35"/>
+            <rect x="90" y="70" width="28" height="6" rx="3" fill="#60a5fa" opacity="0.3" transform="rotate(-12 104 73)"/>
+            <rect x="96" y="80" width="20" height="4" rx="2" fill="#60a5fa" opacity="0.25" transform="rotate(-12 106 82)"/>
+          </svg>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat" v-if="articles.length > 0">
+            <span class="hs-num">{{ articles.length }}</span>
+            <span class="hs-label">篇新资讯</span>
           </div>
-        </el-carousel-item>
-      </el-carousel>
+          <div class="hero-stat">
+            <span class="hs-num">{{ indicators.length }}</span>
+            <span class="hs-label">项关键指标</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- ====== 功能入口 ====== -->
-    <div class="section-card">
-      <div class="card-hd">
-        <span class="hd-accent" style="background:#3b82f6"></span>
-        <span class="hd-title">健康服务</span>
-      </div>
-      <div class="feature-grid">
-        <div v-for="card in featureCards" :key="card.path" class="feature-card" @click="goPage(card.path)">
-          <div class="feature-icon" :style="{ background: card.bg, color: card.color }">
-            <el-icon :size="22"><component :is="card.icon" /></el-icon>
-          </div>
-          <div class="feature-info">
-            <span class="feature-title">{{ card.title }}</span>
-            <span class="feature-desc">{{ card.desc }}</span>
-          </div>
-          <el-icon class="feature-arrow" :size="14"><ArrowRight /></el-icon>
-        </div>
+    <div class="feature-section">
+      <div v-for="card in featureCards" :key="card.path" class="feature-card" :style="{ background: card.bg }" @click="goPage(card.path)">
+        <span class="fc-label" :style="{ color: card.color }">{{ card.title }}</span>
+        <span class="fc-desc">{{ card.desc }}</span>
+        <el-icon class="fc-arrow" :size="15"><ArrowRight /></el-icon>
       </div>
     </div>
 
-    <!-- ====== 慢病指标参考 ====== -->
-    <div class="section-card">
-      <div class="card-hd">
-        <span class="hd-accent" style="background:#10b981"></span>
-        <span class="hd-title">慢病指标参考值</span>
+    <!-- ====== 健康资讯 ====== -->
+    <div class="article-section" v-if="articles.length > 0">
+      <div class="section-hd">
+        <span class="shd-title">健康资讯</span>
+        <span class="shd-more" @click="goArticle">查看全部 <el-icon :size="14"><ArrowRight /></el-icon></span>
       </div>
-      <div class="ref-source">参考标准：《中国高血压防治指南》《中国2型糖尿病防治指南》</div>
-
-      <div class="ref-split">
-        <!-- 血压 -->
-        <div class="ref-group">
-          <div class="ref-group-title">血压指标</div>
-          <div class="ref-row" v-for="row in indicatorRefs.slice(0, 3)" :key="row.label">
-            <div class="ref-left">
-              <span class="ref-name">{{ row.label }}</span>
-              <span class="ref-desc">{{ row.desc }}</span>
-            </div>
-            <div class="ref-right">
-              <span class="ref-value">{{ row.value }}</span>
-              <span class="ref-unit">{{ row.unit }}</span>
-            </div>
-          </div>
-        </div>
-        <!-- 血糖 -->
-        <div class="ref-group">
-          <div class="ref-group-title">血糖指标</div>
-          <div class="ref-row" v-for="row in indicatorRefs.slice(3)" :key="row.label">
-            <div class="ref-left">
-              <span class="ref-name">{{ row.label }}</span>
-              <span class="ref-desc">{{ row.desc }}</span>
-            </div>
-            <div class="ref-right">
-              <span class="ref-value">{{ row.value }}</span>
-              <span class="ref-unit">{{ row.unit }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ====== 用药知识 + 贴士（双栏） ====== -->
-    <div class="dual-section">
-      <!-- 用药知识 -->
-      <div class="section-card flex-1">
-        <div class="card-hd">
-          <span class="hd-accent" style="background:#f59e0b"></span>
-          <span class="hd-title">用药小课堂</span>
-        </div>
-        <div class="med-list">
-          <div v-for="(m, idx) in medKnowledge" :key="idx" class="med-item">
-            <span class="med-icon" :style="{ background: m.color + '15', color: m.color }">
-              <el-icon :size="18"><component :is="m.icon" /></el-icon>
+      <div class="article-row">
+        <div v-for="item in articles.slice(0, 3)" :key="item.id" class="article-card" @click="openDetail(item)">
+          <div class="ac-top">
+            <span class="ac-cat">{{ item.category }}</span>
+            <span class="ac-fav" :class="{ on: item.isFavorited }" @click.stop="handleFavorite(item)">
+              {{ item.isFavorited ? '已收藏' : '收藏' }}
             </span>
-            <div class="med-body">
-              <span class="med-title">{{ m.title }}</span>
-              <span class="med-desc">{{ m.desc }}</span>
-            </div>
+          </div>
+          <h3 class="ac-title">{{ item.title }}</h3>
+          <p class="ac-desc">{{ getSummary(item.content) }}</p>
+          <div class="ac-bottom">
+            <span>{{ item.viewCount || 0 }} 阅读</span>
+            <span>{{ fmtTime(item.publishingTime) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 指标 + 贴士 ====== -->
+    <div class="dual-row">
+      <!-- 指标参考 -->
+      <div class="indicator-card">
+        <div class="section-hd">
+          <span class="shd-title">指标参考</span>
+        </div>
+        <div class="ind-grid">
+          <div v-for="ind in indicators" :key="ind.label" class="ind-item" :style="{ background: ind.bg, borderColor: ind.color + '30' }">
+            <span class="ind-label">{{ ind.label }}</span>
+            <span class="ind-value" :style="{ color: ind.color }">{{ ind.value }}</span>
+            <span class="ind-unit">{{ ind.unit }}</span>
           </div>
         </div>
       </div>
 
-      <!-- 健康贴士 -->
-      <div class="section-card flex-1">
-        <div class="card-hd">
-          <span class="hd-accent" style="background:#8b5cf6"></span>
-          <span class="hd-title">每日提醒</span>
+      <!-- 每日提醒 -->
+      <div class="tips-card">
+        <div class="section-hd">
+          <span class="shd-title">每日提醒</span>
         </div>
         <div class="tips-list">
-          <div v-for="(tip, idx) in tips" :key="idx" class="tip-item">
-            <el-icon :size="17" color="#3b82f6"><component :is="tip.icon" /></el-icon>
+          <div v-for="(tip, idx) in tips" :key="idx" class="tip-item" :style="{ background: tipGradients[idx] }">
+            <span class="tip-dot">{{ idx + 1 }}</span>
             <span>{{ tip.text }}</span>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- ====== 详情弹窗 ====== -->
+    <el-dialog v-model="showDetail" :title="detailItem?.title" width="700px" :close-on-click-modal="false" destroy-on-close>
+      <div class="detail-wrap" v-if="detailItem">
+        <div class="detail-meta">
+          <span class="detail-tag">{{ detailItem.category }}</span>
+          <span>{{ detailItem.viewCount || 0 }} 阅读</span>
+          <span>{{ fmtTime(detailItem.publishingTime) }}</span>
+        </div>
+        <div class="detail-content">{{ detailItem.content }}</div>
+      </div>
+      <template #footer>
+        <el-button @click="showDetail = false">关闭</el-button>
+        <el-button type="warning" v-if="detailItem" @click="handleFavorite(detailItem); detailItem.isFavorited = !detailItem.isFavorited">
+          {{ detailItem.isFavorited ? '取消收藏' : '加入收藏' }}
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <style scoped>
 .home-root {
-  max-width: 960px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 24px 20px 48px;
+  width: 100%;
+  padding: 20px 24px 40px;
   display: flex;
   flex-direction: column;
   gap: 24px;
+  box-sizing: border-box;
 }
 
-/* ====== 通用分区卡片 ====== */
-.section-card {
-  background: #dbeafe;
-  border: 1px solid #b4c8e0;
-  border-radius: 16px;
-  padding: 24px 28px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+/* 大屏适配 */
+@media (min-width: 1400px) {
+  .home-root { padding: 24px 40px 48px; }
 }
 
-.card-hd {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
+/* ====== 问候横幅 ====== */
+.hero-banner {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 28px 32px; border-radius: 20px;
+  background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 40%, #faf5ff 100%);
+  border: 1px solid #e0e7ff; overflow: hidden; position: relative; gap: 20px;
 }
-.hd-accent {
-  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+.hero-left { position: relative; z-index: 1; flex: 1; }
+.hero-top-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.hero-greeting { font-size: 22px; font-weight: 800; color: #1e293b; line-height: 1.3; }
+.hero-badge {
+  font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 10px;
+  background: linear-gradient(135deg, #dbeafe, #eff6ff); color: #2563eb;
+  border: 1px solid #bfdbfe;
 }
-.hd-title {
-  font-size: 16px; font-weight: 600; color: #1e293b; letter-spacing: 0.5px;
+.hero-date { font-size: 13px; color: #64748b; margin: 0 0 6px 0; }
+.hero-quote { font-size: 13px; color: #3b82f6; margin: 0 0 12px 0; font-weight: 500; }
+.hero-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+.hero-tag {
+  font-size: 12px; padding: 4px 14px; border-radius: 14px; cursor: pointer;
+  background: rgba(255,255,255,0.7); color: #475569;
+  border: 1px solid #e2e8f0; transition: all 0.15s; font-weight: 500;
 }
-.hd-note {
-  font-size: 11px; color: #94a3b8; margin-left: auto;
+.hero-tag:hover { background: #fff; border-color: #3b82f6; color: #2563eb; }
+/* 右侧 */
+.hero-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; z-index: 1; }
+.hero-decor { opacity: 0.75; flex-shrink: 0; }
+.hero-stats { display: flex; flex-direction: column; gap: 8px; }
+.hero-stat {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 12px; border-radius: 10px;
+  background: rgba(255,255,255,0.6); border: 1px solid #e2e8f0;
+  white-space: nowrap;
 }
+.hs-num { font-size: 18px; font-weight: 800; color: #3b82f6; }
+.hs-label { font-size: 11px; color: #64748b; font-weight: 500; }
 
-/* ====== 轮播 ====== */
-.carousel-section {
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  border: 1px solid #b4c8e0;
-}
-.carousel-section :deep(.el-carousel__container) { border-radius: 16px; }
-.carousel-card {
-  height: 100%; display: flex; align-items: flex-end;
-  padding: 28px 36px; box-sizing: border-box;
-}
-.carousel-text { display: flex; flex-direction: column; gap: 6px; }
-.carousel-tag {
-  display: inline-block; background: rgba(255,255,255,0.22);
-  color: #fff; font-size: 11px; padding: 3px 12px;
-  border-radius: 20px; width: fit-content; font-weight: 500;
-  letter-spacing: 0.5px;
-}
-.carousel-title { margin: 0; font-size: 21px; font-weight: 700; color: #fff; line-height: 1.3; }
-.carousel-desc {
-  margin: 0; font-size: 13px; color: rgba(255,255,255,0.85);
-  line-height: 1.65; max-width: 540px;
-}
-
-/* ====== 功能卡片 ====== */
-.feature-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+/* ====== 功能入口 ====== */
+.feature-section {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
 }
 .feature-card {
-  display: flex; align-items: center; gap: 16px;
-  padding: 18px 20px; border-radius: 14px; cursor: pointer;
-  transition: all 0.2s ease;
-  background: #dbeafe;
-  border: 1px solid #b4c8e0;
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 20px 18px; border-radius: 14px; cursor: pointer;
+  border: 1px solid #e2e8f0; position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-.feature-card:hover {
-  border-color: #89aac8;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  transform: translateY(-2px);
+.feature-card:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.08); }
+.fc-label { font-size: 15px; font-weight: 700; }
+.fc-desc { font-size: 12px; color: #94a3b8; line-height: 1.5; }
+.fc-arrow { position: absolute; right: 14px; top: 22px; color: #cbd5e1; }
+.feature-card:hover .fc-arrow { color: #64748b; }
+
+/* ====== 分区标题 ====== */
+.section-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.shd-title { font-size: 16px; font-weight: 700; color: #1e293b; }
+.shd-more {
+  font-size: 13px; color: #3b82f6; cursor: pointer; font-weight: 500;
+  display: flex; align-items: center; gap: 2px;
+}
+.shd-more:hover { color: #1d4ed8; }
+
+/* ====== 健康资讯卡片横排 ====== */
+.article-section {
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
+  padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.article-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.article-card {
+  border: 1px solid #f1f5f9; border-radius: 12px; padding: 18px;
+  cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column;
+  background: #fafcff;
+}
+.article-card:hover {
+  border-color: #bfdbfe; box-shadow: 0 4px 16px rgba(59,130,246,0.08);
   background: #fff;
 }
-.feature-icon {
-  width: 52px; height: 52px; border-radius: 14px;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+.ac-top {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
 }
-.feature-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-.feature-title { font-size: 15px; font-weight: 600; color: #1e293b; }
-.feature-desc { font-size: 12px; color: #94a3b8; line-height: 1.5; }
-.feature-arrow { flex-shrink: 0; color: #cbd5e1; transition: all 0.2s; }
-.feature-card:hover .feature-arrow { color: #64748b; transform: translateX(4px); }
-
-/* ====== 指标参考 ====== */
-.ref-source {
-  font-size: 13px;
-  color: #64748b;
-  margin-bottom: 18px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid #b4c8e0;
+.ac-cat {
+  font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px;
+  background: #eff6ff; color: #3b82f6;
 }
-
-.ref-split {
-  display: flex;
-  gap: 32px;
+.ac-fav {
+  font-size: 11px; color: #94a3b8; cursor: pointer; transition: color 0.15s;
 }
-.ref-group {
-  flex: 1;
-  min-width: 0;
+.ac-fav:hover { color: #3b82f6; }
+.ac-fav.on { color: #f59e0b; font-weight: 600; }
+.ac-title {
+  font-size: 14px; font-weight: 700; color: #1e293b; margin: 0 0 8px 0;
+  overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.5;
 }
-.ref-group-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: #64748b;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #b4c8e0;
+.ac-desc {
+  font-size: 12px; color: #94a3b8; line-height: 1.6; margin: 0 0 auto 0;
+  overflow: hidden; text-overflow: ellipsis;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+.ac-bottom {
+  display: flex; justify-content: space-between; font-size: 11px;
+  color: #cbd5e1; margin-top: 12px; padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
 }
 
-.ref-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid #cbd5e1;
-}
-.ref-row:last-child { border-bottom: none; }
-
-.ref-left {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-.ref-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #334155;
-}
-.ref-desc {
-  font-size: 12px;
-  color: #94a3b8;
-  line-height: 1.5;
+/* ====== 指标 + 贴士双栏 ====== */
+.dual-row { display: flex; gap: 20px; }
+.indicator-card, .tips-card {
+  flex: 1; background: #fff; border: 1px solid #e2e8f0;
+  border-radius: 16px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 
-.ref-right {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  flex-shrink: 0;
-  text-align: right;
+/* 指标网格 */
+.ind-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ind-item {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 14px 10px; border-radius: 10px; border: 1px solid transparent;
 }
-.ref-value {
-  font-size: 17px;
-  font-weight: 700;
-  color: #1e293b;
-  white-space: nowrap;
-}
-.ref-unit {
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-  color: #64748b;
-}
+.ind-label { font-size: 12px; color: #64748b; margin-bottom: 4px; }
+.ind-value { font-size: 20px; font-weight: 800; line-height: 1.3; }
+.ind-unit { font-size: 11px; color: #94a3b8; margin-top: 2px; }
 
-/* ====== 双栏布局 ====== */
-.dual-section { display: flex; gap: 24px; }
-.flex-1 { flex: 1; min-width: 0; }
-
-/* ====== 用药知识 ====== */
-.med-list { display: flex; flex-direction: column; gap: 16px; }
-.med-item { 
-  display: flex; gap: 14px; 
-  padding: 14px 16px;
-  border-radius: 12px;
-  background: #dbeafe;
-  border: 1px solid #b4c8e0;
-  transition: background 0.15s;
-}
-.med-item:hover { background: #fff; }
-.med-icon {
-  width: 42px; height: 42px; border-radius: 12px;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.med-body { display: flex; flex-direction: column; gap: 4px; }
-.med-title { font-size: 14px; font-weight: 600; color: #334155; }
-.med-desc { font-size: 12px; color: #64748b; line-height: 1.65; }
-
-/* ====== 每日提醒 ====== */
+/* 每日提醒 */
 .tips-list { display: flex; flex-direction: column; gap: 10px; }
 .tip-item {
-  display: flex; align-items: flex-start; gap: 10px;
-  font-size: 13px; color: #475569; line-height: 1.7;
-  padding: 12px 14px; border-radius: 10px;
-  background: #dbeafe;
-  border: 1px solid #b4c8e0;
-  transition: background 0.15s;
+  display: flex; align-items: center; gap: 12px;
+  font-size: 13px; color: #475569; line-height: 1.6;
+  padding: 10px 14px; border-radius: 10px;
 }
-.tip-item:hover { background: #fff; }
-.tip-item .el-icon { flex-shrink: 0; margin-top: 2px; }
+.tip-dot {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #eff6ff; color: #3b82f6; font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+/* ====== 详情弹窗 ====== */
+.detail-wrap { padding: 4px 0; }
+.detail-meta { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; font-size: 12px; color: #94a3b8; }
+.detail-tag {
+  display: inline-block; padding: 2px 8px; border-radius: 5px;
+  background: #eff6ff; color: #1d4ed8; font-size: 12px; font-weight: 600;
+}
+.detail-content {
+  font-size: 15px; color: #334155; line-height: 2; white-space: pre-wrap;
+  max-height: 480px; overflow-y: auto;
+}
+:deep(.el-dialog) { border-radius: 16px; }
+:deep(.el-dialog__header) { padding: 24px 28px 0; }
+:deep(.el-dialog__title) { font-size: 18px; font-weight: 700; max-width: 580px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+:deep(.el-dialog__body) { padding: 16px 28px; }
+:deep(.el-dialog__footer) { padding: 0 28px 24px; }
 
 /* ====== 响应式 ====== */
-@media (max-width: 700px) {
-  .feature-grid { grid-template-columns: 1fr; }
-  .dual-section { flex-direction: column; }
-  .ref-split { flex-direction: column; gap: 20px; }
+@media (max-width: 900px) {
+  .feature-section { grid-template-columns: 1fr 1fr; }
+  .article-row { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  .feature-section { grid-template-columns: 1fr; }
+  .article-row { grid-template-columns: 1fr; }
+  .dual-row { flex-direction: column; }
+  .hero-banner { padding: 20px; flex-direction: column; align-items: flex-start; }
+  .hero-right { flex-direction: row; width: 100%; justify-content: space-between; }
+  .hero-greeting { font-size: 18px; }
 }
 </style>

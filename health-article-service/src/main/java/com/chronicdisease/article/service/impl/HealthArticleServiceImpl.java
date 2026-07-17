@@ -209,6 +209,8 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
         HealthArticle article = healthArticleMapper.selectById(id);
         if (article == null) {
             throw new BusinessException("资讯不存在");
+        } if(Objects.equals(article.getStatus(), BusinessConstant.Article_Status_On)){
+            throw new BusinessException("该资讯处于上架状态,不可修改！");
         }
         article.setStatus(status);
         article.setUpdateTime(LocalDateTime.now());

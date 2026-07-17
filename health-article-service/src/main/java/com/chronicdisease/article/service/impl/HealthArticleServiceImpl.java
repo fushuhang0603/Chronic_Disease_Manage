@@ -18,12 +18,13 @@ import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.common.util.UserInfoContext;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,34 +37,47 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
     @Autowired
     private ArticleReadHistoryMapper articleReadHistoryMapper;
     @Autowired
-    private StringRedisTemplate redisTemplate;
+    private RedisTemplate<String, Object> redisTemplate;
+    private static final String CACHE_PREFIX = "article:list:";
+    private static final long CACHE_TTL = 5L;
 
     @Override
     public PageResult<HealthArticle> pageArticle(ArticlePageDTO dto) {
         Long userId = UserInfoContext.getUserId();
 
-        LambdaQueryWrapper<HealthArticle> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(HealthArticle::getIsDeleted, BusinessConstant.isNotDelete);
-        wrapper.eq(HealthArticle::getStatus, BusinessConstant.Article_Status_On);
-
-        if (StringUtils.isNotBlank(dto.getCategory())) {
-            wrapper.eq(HealthArticle::getCategory, dto.getCategory());
+        // 从缓存中获取文章列表
+        String key = StringUtils.isBlank(dto.getCategory()) ? "all" : dto.getCategory();
+        String cacheKey = CACHE_PREFIX + key;
+        Object cached = redisTemplate.opsForValue().get(cacheKey);
+        List<HealthArticle> allArticles;
+        if (cached != null) {
+            allArticles = (List<HealthArticle>) cached;
+        } else {
+            LambdaQueryWrapper<HealthArticle> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(HealthArticle::getIsDeleted, BusinessConstant.isNotDelete);
+            wrapper.eq(HealthArticle::getStatus, BusinessConstant.Article_Status_On);
+            if (StringUtils.isNotBlank(dto.getCategory())) {
+                wrapper.eq(HealthArticle::getCategory, dto.getCategory());
+            }
+            wrapper.orderByDesc(HealthArticle::getPublishingTime);
+            allArticles = healthArticleMapper.selectList(wrapper);
+            // 存入redis
+            redisTemplate.opsForValue().set(cacheKey, allArticles, CACHE_TTL, TimeUnit.MINUTES);
         }
-        if (StringUtils.isNotBlank(dto.getKeyword())) {
-            wrapper.like(HealthArticle::getTitle, dto.getKeyword());
-        }
 
-        wrapper.orderByDesc(HealthArticle::getPublishingTime);
-
-        Page<HealthArticle> page = new Page<>(dto.getPageNum(), dto.getPageSize());
-        Page<HealthArticle> result = healthArticleMapper.selectPage(page, wrapper);
+        // 内存分页
+        int from = (int) ((dto.getPageNum() - 1) * dto.getPageSize());
+        int to = Math.min(from + dto.getPageSize().intValue(), allArticles.size());
+        List<HealthArticle> pageRecords = from < allArticles.size()
+                ? allArticles.subList(from, to)
+                : List.of();
 
         if (userId != null) {
             List<Long> favoritedIds = getFavoritedArticleIds(userId);
-            result.getRecords().forEach(a -> a.setIsFavorited(favoritedIds.contains(a.getId())));
+            pageRecords.forEach(a -> a.setIsFavorited(favoritedIds.contains(a.getId())));
         }
 
-        return new PageResult<>(result.getRecords(), result.getTotal());
+        return new PageResult<>(pageRecords, (long) allArticles.size());
     }
 
     @Override
@@ -154,6 +168,7 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
         article.setCreateTime(LocalDateTime.now());
         article.setUpdateTime(LocalDateTime.now());
         healthArticleMapper.insert(article);
+        deleteArticleListCache();
     }
 
     @Override
@@ -170,6 +185,7 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
         BeanUtil.copyProperties(dto, article);
         article.setUpdateTime(LocalDateTime.now());
         healthArticleMapper.updateById(article);
+        deleteArticleListCache();
     }
 
     @Override
@@ -181,6 +197,7 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
         article.setIsDeleted(BusinessConstant.isDelete);
         article.setUpdateTime(LocalDateTime.now());
         healthArticleMapper.updateById(article);
+        deleteArticleListCache();
     }
 
     @Override
@@ -192,6 +209,7 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
         article.setStatus(status);
         article.setUpdateTime(LocalDateTime.now());
         healthArticleMapper.updateById(article);
+        deleteArticleListCache();
     }
 
     @Override
@@ -271,5 +289,10 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
                 .eq(ArticleFavorite::getArticleId, articleId)
                 .eq(ArticleFavorite::getCollectStatus, BusinessConstant.Collect_STATUS1);
         return articleFavoriteMapper.selectCount(query) > 0;
+    }
+
+    /** 清除文章列表缓存 */
+    private void deleteArticleListCache() {
+        redisTemplate.delete(redisTemplate.keys(CACHE_PREFIX + "*"));
     }
 }

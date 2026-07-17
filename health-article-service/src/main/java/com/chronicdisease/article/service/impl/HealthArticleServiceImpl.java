@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -193,6 +194,9 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
         HealthArticle article = healthArticleMapper.selectById(id);
         if (article == null) {
             throw new BusinessException("资讯不存在");
+        }
+        if(Objects.equals(article.getStatus(), BusinessConstant.Article_Status_On)){
+            throw new BusinessException("该资讯处于上架状态,不可删除！");
         }
         article.setIsDeleted(BusinessConstant.isDelete);
         article.setUpdateTime(LocalDateTime.now());

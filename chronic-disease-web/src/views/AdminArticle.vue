@@ -142,7 +142,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { getArticlePage, addArticle, editArticle, deleteArticle, updateArticleStatus } from '../api/user'
+import { getArticlePageAdmin, addArticle, editArticle, deleteArticle, updateArticleStatus } from '../api/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const loading = ref(false)
@@ -231,7 +231,11 @@ async function handleToggleStatus(item) {
     await updateArticleStatus(item.id, newStatus)
     ElMessage.success(`已${label}`)
     fetchRecords()
-  } catch { /* 取消 */ }
+  } catch (e) {
+    if (e !== 'cancel' && e !== 'close') {
+      ElMessage.error(e.message || '操作失败')
+    }
+  }
 }
 
 async function handleDelete(item) {
@@ -240,7 +244,11 @@ async function handleDelete(item) {
     await deleteArticle(item.id)
     ElMessage.success('已删除')
     fetchRecords()
-  } catch { /* 取消 */ }
+  } catch (e) {
+    if (e !== 'cancel' && e !== 'close') {
+      ElMessage.error(e.message || '删除失败')
+    }
+  }
 }
 
 onMounted(() => fetchRecords())

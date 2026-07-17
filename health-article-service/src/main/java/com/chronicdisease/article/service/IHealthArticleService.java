@@ -28,8 +28,8 @@ public interface IHealthArticleService {
     /** 上下架 */
     void updateStatus(Long id, Integer status);
 
-    /** 收藏/取消收藏（toggle） */
-    void toggleFavorite(FavoriteDTO dto);
+    /** 收藏/取消收藏 */
+    void updateFavoriteStatus(Long articleId, Integer status);
 
     /** 记录阅读历史 */
     void recordReadHistory(ReadHistoryDTO dto);

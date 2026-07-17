@@ -16,8 +16,8 @@ import com.chronicdisease.common.constant.BusinessConstant;
 import com.chronicdisease.common.exception.BusinessException;
 import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.common.util.UserInfoContext;
-import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,11 +28,11 @@ import java.util.stream.Collectors;
 @Service
 public class HealthArticleServiceImpl implements IHealthArticleService {
 
-    @Resource
+    @Autowired
     private HealthArticleMapper healthArticleMapper;
-    @Resource
+    @Autowired
     private ArticleFavoriteMapper articleFavoriteMapper;
-    @Resource
+    @Autowired
     private ArticleReadHistoryMapper articleReadHistoryMapper;
 
     @Override
@@ -176,32 +176,24 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
 
     @Override
     @Transactional
-    public void toggleFavorite(FavoriteDTO dto) {
+    public void updateFavoriteStatus(Long articleId, Integer status) {
         Long userId = UserInfoContext.getUserId();
 
-        // 查找现有收藏记录（含已取消的）
         LambdaQueryWrapper<ArticleFavorite> query = new LambdaQueryWrapper<>();
         query.eq(ArticleFavorite::getUserId, userId)
-                .eq(ArticleFavorite::getArticleId, dto.getArticleId());
+                .eq(ArticleFavorite::getArticleId, articleId);
         ArticleFavorite favorite = articleFavoriteMapper.selectOne(query);
 
         if (favorite == null) {
-            // 首次收藏
             favorite = new ArticleFavorite();
             favorite.setUserId(userId);
-            favorite.setArticleId(dto.getArticleId());
-            favorite.setCollectStatus(BusinessConstant.Collect_STATUS1);
+            favorite.setArticleId(articleId);
+            favorite.setCollectStatus(status);
             favorite.setCreateTime(LocalDateTime.now());
             favorite.setUpdateTime(LocalDateTime.now());
             articleFavoriteMapper.insert(favorite);
-        } else if (favorite.getCollectStatus().equals(BusinessConstant.Collect_STATUS1)) {
-            // 取消收藏
-            favorite.setCollectStatus(BusinessConstant.Collect_STATUS2);
-            favorite.setUpdateTime(LocalDateTime.now());
-            articleFavoriteMapper.updateById(favorite);
         } else {
-            // 重新收藏
-            favorite.setCollectStatus(BusinessConstant.Collect_STATUS1);
+            favorite.setCollectStatus(status);
             favorite.setUpdateTime(LocalDateTime.now());
             articleFavoriteMapper.updateById(favorite);
         }

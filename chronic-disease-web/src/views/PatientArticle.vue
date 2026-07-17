@@ -56,7 +56,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getArticlePage, toggleFavorite } from '../api/user'
+import { getArticlePage, updateFavoriteStatus } from '../api/user'
 import { ElMessage } from 'element-plus'
 
 const categories = ['饮食', '运动', '用药', '慢病常识', '并发症预防']
@@ -95,7 +95,8 @@ async function openDetail(item) {
   try { await fetch('/api/article/readHistory', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ articleId: item.id, readDuration: 5 }) }) } catch {}
 }
 async function handleFavorite(item) {
-  try { await toggleFavorite({ articleId: item.id }); item.isFavorited = !item.isFavorited; ElMessage.success(item.isFavorited ? '已收藏' : '已取消收藏') }
+  const status = item.isFavorited ? 1 : 0
+  try { await updateFavoriteStatus(item.id, status); item.isFavorited = !item.isFavorited; ElMessage.success(item.isFavorited ? '已收藏' : '已取消收藏') }
   catch { ElMessage.error('操作失败') }
 }
 function handlePageChange(p) { pageNum.value = p; fetchRecords() }

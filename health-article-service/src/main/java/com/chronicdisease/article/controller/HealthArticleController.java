@@ -76,8 +76,9 @@ public class HealthArticleController {
     @OperationLog(module = "资讯管理", description = "收藏/取消收藏")
     @PostMapping("/favorite")
     @Operation(summary = "收藏/取消收藏")
-    public Result<Void> favorite(@RequestBody FavoriteDTO dto) {
-        healthArticleService.toggleFavorite(dto);
+    public Result<Void> favorite(@RequestParam("articleId") Long articleId,
+                                  @RequestParam("status") Integer status) {
+        healthArticleService.updateFavoriteStatus(articleId, status);
         return Result.success();
     }
 

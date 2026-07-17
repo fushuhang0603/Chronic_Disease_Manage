@@ -181,9 +181,9 @@ export function deleteArticle(id) {
 export function updateArticleStatus(id, status) {
   return request.post('/article/updateStatus', null, { params: { id, status } })
 }
-// 收藏/取消收藏
-export function toggleFavorite(data) {
-  return request.post('/article/favorite', data)
+// 收藏/取消收藏（status: 0收藏 1取消收藏）
+export function updateFavoriteStatus(articleId, status) {
+  return request.post('/article/favorite', null, { params: { articleId, status } })
 }
 // 记录阅读历史
 export function recordReadHistory(data) {

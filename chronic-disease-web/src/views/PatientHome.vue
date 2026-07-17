@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getArticlePage, toggleFavorite } from '../api/user'
+import { getArticlePage, updateFavoriteStatus } from '../api/user'
 import { ArrowRight } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
@@ -91,7 +91,8 @@ function openDetail(item) {
 
 async function handleFavorite(item) {
   try {
-    await toggleFavorite({ articleId: item.id })
+    const status = item.isFavorited ? 1 : 0
+    await updateFavoriteStatus(item.id, status)
     item.isFavorited = !item.isFavorited
     ElMessage.success(item.isFavorited ? '已收藏' : '已取消收藏')
   } catch { ElMessage.error('操作失败') }

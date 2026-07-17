@@ -56,7 +56,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getArticlePage, updateFavoriteStatus } from '../api/user'
+import { getArticlePage, getFavoritesPage, updateFavoriteStatus } from '../api/user'
 import { ElMessage } from 'element-plus'
 
 const categories = ['饮食', '运动', '用药', '慢病常识', '并发症预防']
@@ -80,7 +80,9 @@ function getSummary(c) { if (!c) return ''; const s = c.replace(/\s+/g, ' '); re
 async function fetchRecords() {
   loading.value = true
   try {
-    const res = await getArticlePage({ pageNum: pageNum.value, pageSize: pageSize.value, category: activeCategory.value || undefined, onlyFavorited: onlyFavorited.value || undefined })
+    const res = onlyFavorited.value
+      ? await getFavoritesPage({ pageNum: pageNum.value, pageSize: pageSize.value })
+      : await getArticlePage({ pageNum: pageNum.value, pageSize: pageSize.value, category: activeCategory.value || undefined })
     records.value = res.records || []
     total.value = res.total || 0
   } finally { loading.value = false }

@@ -18,6 +18,7 @@ import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.common.util.UserInfoContext;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +35,8 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
     private ArticleFavoriteMapper articleFavoriteMapper;
     @Autowired
     private ArticleReadHistoryMapper articleReadHistoryMapper;
+    @Autowired
+    private StringRedisTemplate redisTemplate;
 
     @Override
     public PageResult<HealthArticle> pageArticle(ArticlePageDTO dto) {
@@ -50,19 +53,6 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
             wrapper.like(HealthArticle::getTitle, dto.getKeyword());
         }
 
-        // 仅查已收藏
-        if (dto.getOnlyFavorited() != null && dto.getOnlyFavorited() && userId != null) {
-            LambdaQueryWrapper<ArticleFavorite> favQuery = new LambdaQueryWrapper<>();
-            favQuery.eq(ArticleFavorite::getUserId, userId)
-                    .eq(ArticleFavorite::getCollectStatus, BusinessConstant.Collect_STATUS1);
-            List<Long> favIds = articleFavoriteMapper.selectList(favQuery)
-                    .stream().map(ArticleFavorite::getArticleId).collect(Collectors.toList());
-            if (favIds.isEmpty()) {
-                return new PageResult<>(List.of(), 0L);
-            }
-            wrapper.in(HealthArticle::getId, favIds);
-        }
-
         wrapper.orderByDesc(HealthArticle::getPublishingTime);
 
         Page<HealthArticle> page = new Page<>(dto.getPageNum(), dto.getPageSize());
@@ -72,6 +62,36 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
             List<Long> favoritedIds = getFavoritedArticleIds(userId);
             result.getRecords().forEach(a -> a.setIsFavorited(favoritedIds.contains(a.getId())));
         }
+
+        return new PageResult<>(result.getRecords(), result.getTotal());
+    }
+
+    @Override
+    public PageResult<HealthArticle> pageFavorites(ArticlePageDTO dto) {
+        Long userId = UserInfoContext.getUserId();
+
+        // 查用户收藏的文章ID
+        LambdaQueryWrapper<ArticleFavorite> favQuery = new LambdaQueryWrapper<>();
+        favQuery.eq(ArticleFavorite::getUserId, userId)
+                .eq(ArticleFavorite::getCollectStatus, BusinessConstant.Collect_STATUS1);
+        List<Long> favIds = articleFavoriteMapper.selectList(favQuery)
+                .stream().map(ArticleFavorite::getArticleId).collect(Collectors.toList());
+        if (favIds.isEmpty()) {
+            return new PageResult<>(List.of(), 0L);
+        }
+
+        // 查这些文章，只查上架未删除的
+        LambdaQueryWrapper<HealthArticle> wrapper = new LambdaQueryWrapper<>();
+        wrapper.in(HealthArticle::getId, favIds)
+                .eq(HealthArticle::getIsDeleted, BusinessConstant.isNotDelete)
+                .eq(HealthArticle::getStatus, BusinessConstant.Article_Status_On)
+                .orderByDesc(HealthArticle::getPublishingTime);
+
+        Page<HealthArticle> page = new Page<>(dto.getPageNum(), dto.getPageSize());
+        Page<HealthArticle> result = healthArticleMapper.selectPage(page, wrapper);
+
+        // 收藏列表里全部标记为已收藏
+        result.getRecords().forEach(a -> a.setIsFavorited(true));
 
         return new PageResult<>(result.getRecords(), result.getTotal());
     }

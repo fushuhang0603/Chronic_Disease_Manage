@@ -10,6 +10,9 @@ public interface IHealthArticleService {
     /** 患者端分页（仅上架资讯） */
     PageResult<HealthArticle> pageArticle(ArticlePageDTO dto);
 
+    /** 患者端分页查询我的收藏 */
+    PageResult<HealthArticle> pageFavorites(ArticlePageDTO dto);
+
     /** 管理端分页（可查所有状态） */
     PageResult<HealthArticle> pageArticleAdmin(ArticlePageDTO dto);
 

@@ -157,6 +157,10 @@ export function addRemindForPatient(data) {
 export function getArticlePage(data) {
   return request.post('/article/page', data)
 }
+// 患者端分页查询我的收藏
+export function getFavoritesPage(data) {
+  return request.post('/article/favorites/page', data)
+}
 // 管理端分页查询资讯
 export function getArticlePageAdmin(data) {
   return request.post('/article/admin/page', data)

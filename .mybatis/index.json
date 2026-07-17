@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "timestamp": 1784295261616,
+  "timestamp": 1784297917832,
   "projectRoot": "d:\\Code\\Chronic_Disease_Manage",
   "entries": [
     {
@@ -85,7 +85,7 @@
     },
     {
       "path": "health-article-service\\target\\classes\\com\\chronicdisease\\article\\HealthArticleServiceApplication.class",
-      "mtime": 1784295260398.397,
+      "mtime": 1784297916716.7808,
       "size": 1034
     }
   ]

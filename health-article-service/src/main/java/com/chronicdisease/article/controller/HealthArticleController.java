@@ -27,6 +27,13 @@ public class HealthArticleController {
         return Result.success(healthArticleService.pageArticle(dto));
     }
 
+    @OperationLog(module = "资讯管理", description = "患者端我的收藏")
+    @PostMapping("/favorites/page")
+    @Operation(summary = "患者端查询我的收藏")
+    public Result<PageResult<HealthArticle>> favoritesPage(@RequestBody ArticlePageDTO dto) {
+        return Result.success(healthArticleService.pageFavorites(dto));
+    }
+
     @OperationLog(module = "资讯管理", description = "管理端分页查询资讯")
     @PostMapping("/admin/page")
     @Operation(summary = "管理端分页查询资讯")

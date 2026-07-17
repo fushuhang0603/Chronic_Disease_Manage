@@ -16,7 +16,4 @@ public class ArticlePageDTO {
 
     /** 标题关键词搜索 */
     private String keyword;
-
-    /** 是否仅查看已收藏（患者端用） */
-    private Boolean onlyFavorited;
 }

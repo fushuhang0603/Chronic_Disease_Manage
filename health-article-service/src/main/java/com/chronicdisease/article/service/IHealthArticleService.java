@@ -41,4 +41,7 @@ public interface IHealthArticleService {
 
     /** 收藏排行 Top N */
     List<HealthArticle> getTopFavorited(int limit);
+
+    /** 管理端查看某日排行（含收藏数） */
+    List<HealthArticle> getAdminRank(String date, int limit);
 }

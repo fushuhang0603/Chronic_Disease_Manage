@@ -1,79 +1,104 @@
 <template>
-  <div class="admin-article">
-    <div class="page-card">
-      <div class="page-head">
-        <div class="head-left">
-          <span class="page-title">健康资讯管理</span>
-          <span class="page-desc">发布和管理慢病健康科普内容</span>
+  <div class="admin-root">
+    <!-- 顶部 -->
+    <div class="page-header">
+      <div class="header-info">
+        <h2 class="header-title">健康资讯管理</h2>
+        <p class="header-sub">发布和管理慢病健康科普内容</p>
+      </div>
+      <button class="btn-create" @click="openDialog(null)">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        新建资讯
+      </button>
+    </div>
+
+    <!-- 双栏 -->
+    <div class="content-cols">
+      <!-- 左：文章列表 -->
+      <div class="col-main">
+        <!-- 筛选 -->
+        <div class="filter-bar">
+          <div class="filter-left">
+            <select v-model="filterCategory" @change="handleSearch" class="flt-select">
+              <option value="">全部分类</option>
+              <option value="饮食">饮食</option>
+              <option value="运动">运动</option>
+              <option value="用药">用药</option>
+              <option value="慢病常识">慢病常识</option>
+              <option value="并发症预防">并发症预防</option>
+            </select>
+            <select v-model="filterStatus" @change="handleSearch" class="flt-select">
+              <option value="">全部状态</option>
+              <option value="1">已上架</option>
+              <option value="0">已下架</option>
+            </select>
+          </div>
+          <button class="btn-search" @click="handleSearch">筛选</button>
         </div>
-        <button class="create-btn" @click="openDialog(null)">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          新建资讯
-        </button>
-      </div>
 
-      <!-- 筛选栏 -->
-      <div class="filter-row">
-        <select v-model="filterCategory" class="status-select" @change="handleSearch">
-          <option value="">全部分类</option>
-          <option value="饮食">饮食</option>
-          <option value="运动">运动</option>
-          <option value="用药">用药</option>
-          <option value="慢病常识">慢病常识</option>
-          <option value="并发症预防">并发症预防</option>
-        </select>
-        <select v-model="filterStatus" class="status-select" @change="handleSearch">
-          <option value="">全部状态</option>
-          <option value="1">已上架</option>
-          <option value="0">已下架</option>
-        </select>
-        <button class="search-btn" @click="handleSearch">搜索</button>
-      </div>
+        <!-- 表格 -->
+        <div v-loading="loading" class="table-area">
+          <table class="data-table" v-if="records.length > 0">
+            <thead>
+              <tr>
+                <th>标题</th>
+                <th class="col-sm">分类</th>
+                <th class="col-sm">阅读</th>
+                <th class="col-sm">状态</th>
+                <th class="col-md">发布时间</th>
+                <th class="col-lg">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in records" :key="item.id" @click="viewDetail(item)">
+                <td><span class="link-title">{{ item.title }}</span></td>
+                <td><span class="cat-badge">{{ item.category }}</span></td>
+                <td class="num-cell">{{ item.viewCount || 0 }}</td>
+                <td><span class="status-badge" :class="item.status === 1 ? 'on' : 'off'">{{ item.status === 1 ? '上架' : '下架' }}</span></td>
+                <td class="time-cell">{{ fmtTime(item.publishingTime) }}</td>
+                <td @click.stop>
+                  <div class="row-actions">
+                    <button class="btn-row" @click="openDialog(item)">编辑</button>
+                    <button v-if="item.status === 1" class="btn-row warn" @click="handleToggleStatus(item)">下架</button>
+                    <button v-else class="btn-row success" @click="handleToggleStatus(item)">上架</button>
+                    <button class="btn-row danger" @click="handleDelete(item)">删除</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-else-if="!loading" class="empty-state">
+            <p>暂无资讯数据</p>
+          </div>
+        </div>
 
-      <!-- 表格 -->
-      <div v-loading="loading" class="table-wrap">
-        <table class="data-table" v-if="records.length > 0">
-          <thead>
-            <tr>
-              <th>标题</th>
-              <th style="width:80px">分类</th>
-              <th style="width:70px">浏览量</th>
-              <th style="width:70px">状态</th>
-              <th style="width:130px">发布时间</th>
-              <th style="width:180px">操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in records" :key="item.id" class="data-row" @click="viewDetail(item)">
-              <td class="title-td">
-                <span class="article-title">{{ item.title }}</span>
-              </td>
-              <td><span class="category-tag">{{ item.category }}</span></td>
-              <td>{{ item.viewCount || 0 }}</td>
-              <td>
-                <span class="status-dot" :class="item.status === 1 ? 'on' : 'off'">
-                  {{ item.status === 1 ? '上架' : '下架' }}
-                </span>
-              </td>
-              <td class="time-text">{{ fmtTime(item.publishingTime) }}</td>
-              <td>
-                <div class="action-btns" @click.stop>
-                  <button class="act-btn act-edit" @click="openDialog(item)">编辑</button>
-                  <button v-if="item.status === 1" class="act-btn act-off" @click="handleToggleStatus(item)">下架</button>
-                  <button v-else class="act-btn act-on" @click="handleToggleStatus(item)">上架</button>
-                  <button class="act-btn act-delete" @click="handleDelete(item)">删除</button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div v-else-if="!loading" class="empty-box">
-          <p class="empty-text">暂无资讯数据</p>
+        <div v-if="total > pageSize" class="pagination-wrap">
+          <el-pagination background layout="total, prev, pager, next" :total="total" :page-size="pageSize" :current-page="pageNum" @current-change="handlePageChange" />
         </div>
       </div>
 
-      <div v-if="total > pageSize" class="page-wrap">
-        <el-pagination background layout="total, prev, pager, next" :total="total" :page-size="pageSize" :current-page="pageNum" @current-change="handlePageChange" />
+      <!-- 右：排行 -->
+      <div class="col-side">
+        <div class="side-card">
+          <div class="side-card-head">
+            <span class="side-card-title">日收藏排行</span>
+            <input v-model="rankDate" type="date" class="date-input" @change="fetchRank" />
+          </div>
+          <div v-loading="rankLoading" class="rank-list">
+            <div v-if="rankRecords.length === 0 && !rankLoading" class="empty-state small">
+              <p>暂无排行数据</p>
+              <p class="hint">收藏文章后次日可见</p>
+            </div>
+            <div v-for="(item, idx) in rankRecords" :key="item.id" class="rank-item" @click="viewDetail(item)">
+              <span class="rank-idx" :class="{ 'top3': idx < 3 }">{{ idx + 1 }}</span>
+              <div class="rank-info">
+                <span class="rank-title">{{ item.title }}</span>
+                <span class="rank-meta">{{ item.category }} · {{ item.favoriteCount || 0 }} 收藏 · {{ item.viewCount || 0 }} 阅读</span>
+              </div>
+              <span class="rank-status" :class="item.status === 1 ? 'on' : 'off'">{{ item.status === 1 ? '上架' : '下架' }}</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -82,14 +107,12 @@
       <div class="detail-wrap" v-if="detailItem">
         <h2 class="detail-title">{{ detailItem.title }}</h2>
         <div class="detail-meta">
-          <span class="category-tag">{{ detailItem.category }}</span>
-          <span class="detail-meta-text">{{ detailItem.viewCount || 0 }} 阅读</span>
-          <span class="detail-meta-text">{{ fmtTime(detailItem.publishingTime) }} 发布</span>
-          <span class="status-dot" :class="detailItem.status === 1 ? 'on' : 'off'">
-            {{ detailItem.status === 1 ? '已上架' : '已下架' }}
-          </span>
+          <span class="cat-badge">{{ detailItem.category }}</span>
+          <span class="detail-meta-item">{{ detailItem.viewCount || 0 }} 阅读</span>
+          <span class="detail-meta-item">{{ fmtTime(detailItem.publishingTime) }} 发布</span>
+          <span class="status-badge" :class="detailItem.status === 1 ? 'on' : 'off'">{{ detailItem.status === 1 ? '已上架' : '已下架' }}</span>
         </div>
-        <div class="detail-content">{{ detailItem.content }}</div>
+        <div class="detail-body">{{ detailItem.content }}</div>
       </div>
       <template #footer>
         <el-button @click="showDetail = false">关闭</el-button>
@@ -142,7 +165,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { getArticlePageAdmin, addArticle, editArticle, deleteArticle, updateArticleStatus } from '../api/user'
+import { getArticlePageAdmin, addArticle, editArticle, deleteArticle, updateArticleStatus, getAdminRank } from '../api/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const loading = ref(false)
@@ -151,6 +174,10 @@ const records = ref([])
 const total = ref(0)
 const pageNum = ref(1)
 const pageSize = ref(10)
+
+const rankLoading = ref(false)
+const rankRecords = ref([])
+const rankDate = ref(new Date().toISOString().substring(0, 10))
 const filterCategory = ref('')
 const filterStatus = ref('')
 const showDialog = ref(false)
@@ -220,6 +247,7 @@ async function handleSave() {
     }
     showDialog.value = false
     fetchRecords()
+    fetchRank()
   } finally { submitting.value = false }
 }
 
@@ -231,6 +259,7 @@ async function handleToggleStatus(item) {
     await updateArticleStatus(item.id, newStatus)
     ElMessage.success(`已${label}`)
     fetchRecords()
+    fetchRank()
   } catch (e) {
     if (e !== 'cancel' && e !== 'close') {
       ElMessage.error(e.message || '操作失败')
@@ -244,6 +273,7 @@ async function handleDelete(item) {
     await deleteArticle(item.id)
     ElMessage.success('已删除')
     fetchRecords()
+    fetchRank()
   } catch (e) {
     if (e !== 'cancel' && e !== 'close') {
       ElMessage.error(e.message || '删除失败')
@@ -251,84 +281,162 @@ async function handleDelete(item) {
   }
 }
 
-onMounted(() => fetchRecords())
+async function fetchRank() {
+  rankLoading.value = true
+  try {
+    rankRecords.value = await getAdminRank(rankDate.value, 20) || []
+  } catch { /* ignore */ }
+  rankLoading.value = false
+}
+
+onMounted(() => { fetchRecords(); fetchRank() })
 </script>
 
 <style scoped>
-.admin-article { max-width: 1100px; margin: 0 auto; width: 100%; padding-bottom: 32px; }
-.page-card {
-  background: #fff; border-radius: 20px;
-  box-shadow: 0 2px 20px rgba(0,0,0,0.05);
-  padding: 28px 32px; border: 1px solid #f1f5f9;
-}
+.admin-root { max-width: 1280px; margin: 0 auto; width: 100%; padding: 24px 24px 40px; box-sizing: border-box; }
 
-.page-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 18px; }
-.head-left { display: flex; flex-direction: column; gap: 4px; }
-.page-title { font-size: 18px; font-weight: 700; color: #1e293b; }
-.page-desc { font-size: 13px; color: #94a3b8; }
-.create-btn {
-  display: flex; align-items: center; gap: 6px;
-  height: 38px; padding: 0 18px; border-radius: 10px;
-  border: 1.5px solid #cbd5e1; background: #fff;
-  color: #334155; font-size: 13px; font-weight: 600; cursor: pointer;
+/* 顶部 */
+.page-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px; gap: 16px;
 }
-.create-btn:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
+.header-title { font-size: 20px; font-weight: 700; color: #1e293b; margin: 0; }
+.header-sub { font-size: 13px; color: #94a3b8; margin: 2px 0 0 0; }
+.btn-create {
+  display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
+  height: 38px; padding: 0 20px; border-radius: 10px; font-size: 13px; font-weight: 600;
+  border: none; cursor: pointer; background: #3b82f6; color: #fff; transition: all 0.15s;
+}
+.btn-create:hover { background: #2563eb; }
 
-.filter-row { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
-.status-select {
-  height: 36px; padding: 0 10px; border-radius: 8px;
-  border: 1.5px solid #cbd5e1; background: #fff;
-  font-size: 13px; color: #334155; outline: none; cursor: pointer;
+/* 双栏 */
+.content-cols {
+  display: flex; gap: 20px; align-items: flex-start;
 }
-.search-btn {
-  height: 36px; padding: 0 16px; border-radius: 8px;
-  border: none; cursor: pointer; font-size: 13px; font-weight: 600;
-  background: #3b82f6; color: #fff;
-}
+.col-main { flex: 1; min-width: 0; }
+.col-side { width: 340px; flex-shrink: 0; }
 
-.table-wrap { min-height: 200px; }
+/* 筛选 */
+.filter-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 14px 18px; margin-bottom: 12px;
+  background: #fff; border-radius: 14px; border: 1px solid #f1f5f9;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+.filter-left { display: flex; gap: 10px; }
+.flt-select {
+  height: 34px; padding: 0 10px; border-radius: 8px;
+  border: 1.5px solid #e2e8f0; background: #fafbfc;
+  font-size: 13px; color: #475569; outline: none; cursor: pointer;
+}
+.flt-select:focus { border-color: #3b82f6; }
+.btn-search {
+  height: 34px; padding: 0 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  border: none; cursor: pointer; background: #f1f5f9; color: #475569;
+}
+.btn-search:hover { background: #e2e8f0; }
+
+/* 表格 */
+.table-area {
+  background: #fff; border-radius: 14px; border: 1px solid #f1f5f9;
+  min-height: 200px; overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
 .data-table { width: 100%; border-collapse: collapse; }
 .data-table th {
-  text-align: left; padding: 12px 14px; font-size: 12px; font-weight: 600;
-  color: #64748b; border-bottom: 1.5px solid #e2e8f0;
+  text-align: left; padding: 13px 16px; font-size: 11px; font-weight: 700;
+  color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;
+  border-bottom: 1px solid #f1f5f9; background: #fafbfc;
 }
 .data-table td {
-  padding: 12px 14px; font-size: 13px; color: #334155;
-  border-bottom: 1px solid #f1f5f9; vertical-align: middle;
+  padding: 13px 16px; font-size: 13px; color: #334155;
+  border-bottom: 1px solid #f8fafc; vertical-align: middle;
 }
+.data-table tbody tr { cursor: pointer; transition: background 0.1s; }
 .data-table tbody tr:hover { background: #f8fafc; }
-.data-row { cursor: pointer; }
-.article-title { font-weight: 600; color: #1e293b; }
-.category-tag {
+.col-sm { width: 72px; }
+.col-md { width: 130px; }
+.col-lg { width: 200px; }
+.link-title { font-weight: 600; color: #1e293b; }
+.link-title:hover { color: #3b82f6; }
+.cat-badge {
   display: inline-block; padding: 2px 8px; border-radius: 5px;
-  background: #eff6ff; color: #1d4ed8; font-size: 12px; font-weight: 600;
+  background: #eff6ff; color: #2563eb; font-size: 12px; font-weight: 600;
 }
-.time-text { font-size: 12px; color: #94a3b8; }
-
-.status-dot {
+.num-cell { color: #64748b; font-variant-numeric: tabular-nums; }
+.time-cell { font-size: 12px; color: #94a3b8; }
+.status-badge {
   display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 12px; font-weight: 600;
 }
-.status-dot.on { background: #ecfdf5; color: #059669; }
-.status-dot.off { background: #fef2f2; color: #dc2626; }
+.status-badge.on { background: #ecfdf5; color: #059669; }
+.status-badge.off { background: #fef2f2; color: #dc2626; }
 
-.action-btns { display: flex; gap: 6px; }
-.act-btn {
-  padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
-  cursor: pointer; border: 1.5px solid transparent;
+.row-actions { display: flex; gap: 6px; }
+.btn-row {
+  padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;
+  cursor: pointer; border: 1.5px solid #e2e8f0; background: #fff; color: #475569;
 }
-.act-edit { color: #334155; background: #f8fafc; border-color: #e2e8f0; }
-.act-edit:hover { background: #f1f5f9; }
-.act-on { color: #059669; background: #ecfdf5; border-color: #a7f3d0; }
-.act-on:hover { background: #d1fae5; }
-.act-off { color: #d97706; background: #fffbeb; border-color: #fde68a; }
-.act-off:hover { background: #fef3c7; }
-.act-delete { color: #dc2626; background: #fef2f2; border-color: #fecaca; }
-.act-delete:hover { background: #fee2e2; }
+.btn-row:hover { background: #f8fafc; border-color: #cbd5e1; }
+.btn-row.success { color: #059669; border-color: #a7f3d0; background: #f0fdf4; }
+.btn-row.success:hover { background: #dcfce7; }
+.btn-row.warn { color: #d97706; border-color: #fde68a; background: #fffbeb; }
+.btn-row.warn:hover { background: #fef3c7; }
+.btn-row.danger { color: #dc2626; border-color: #fecaca; background: #fef2f2; }
+.btn-row.danger:hover { background: #fee2e2; }
 
-.empty-box { display: flex; justify-content: center; padding: 64px 0; }
-.empty-text { color: #94a3b8; font-size: 15px; }
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 80px 20px; color: #94a3b8; }
+.empty-state p { font-size: 14px; margin: 0; }
+.empty-state .hint { font-size: 12px; margin-top: 4px; color: #cbd5e1; }
+.empty-state.small { padding: 40px 20px; }
 
-.page-wrap { display: flex; justify-content: center; margin-top: 18px; }
+.pagination-wrap { display: flex; justify-content: center; margin-top: 16px; }
+
+/* 排行侧栏 */
+.side-card {
+  background: #fff; border-radius: 14px; border: 1px solid #f1f5f9;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03); overflow: hidden;
+}
+.side-card-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 16px 18px; border-bottom: 1px solid #f8fafc;
+}
+.side-card-title { font-size: 14px; font-weight: 700; color: #1e293b; }
+.date-input {
+  padding: 4px 8px; border: 1.5px solid #e2e8f0; border-radius: 6px;
+  font-size: 12px; color: #475569; outline: none; background: #fafbfc;
+}
+.date-input:focus { border-color: #3b82f6; }
+
+.rank-list { padding: 6px 0; min-height: 100px; }
+.rank-item {
+  display: flex; align-items: center; gap: 12px; padding: 10px 18px;
+  border-bottom: 1px solid #fafbfc; transition: background 0.1s;
+}
+.rank-item:last-child { border-bottom: none; }
+.rank-item:hover { background: #f8fafc; }
+
+.rank-idx {
+  width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center;
+  justify-content: center; font-size: 12px; font-weight: 700; color: #94a3b8;
+  background: #f1f5f9; flex-shrink: 0;
+}
+.rank-idx.top3 { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #fff; }
+
+.rank-info { flex: 1; min-width: 0; }
+.rank-title {
+  display: block; font-size: 13px; font-weight: 600; color: #1e293b;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.rank-meta {
+  display: block; font-size: 11px; color: #94a3b8; margin-top: 2px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.rank-status {
+  font-size: 11px; font-weight: 600; flex-shrink: 0;
+  padding: 2px 6px; border-radius: 4px;
+}
+.rank-status.on { color: #059669; background: #ecfdf5; }
+.rank-status.off { color: #dc2626; background: #fef2f2; }
 
 /* 弹窗 */
 .form-wrap { padding: 4px 0; }
@@ -355,14 +463,19 @@ onMounted(() => fetchRecords())
 :deep(.el-dialog__body) { padding: 16px 28px; }
 :deep(.el-dialog__footer) { padding: 0 28px 24px; }
 
-/* 详情弹窗 */
 .detail-wrap { padding: 4px 0; }
 .detail-title { font-size: 20px; font-weight: 700; color: #1e293b; margin: 0 0 14px 0; line-height: 1.4; }
-.detail-meta { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
-.detail-meta-text { font-size: 12px; color: #94a3b8; }
-.detail-content {
+.detail-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+.detail-meta-item { font-size: 12px; color: #94a3b8; }
+.detail-body {
   font-size: 14px; color: #334155; line-height: 1.9; white-space: pre-wrap;
   background: #f8fafc; border-radius: 12px; padding: 20px 24px;
   border: 1px solid #f1f5f9; min-height: 120px; max-height: 460px; overflow-y: auto;
+}
+
+/* 响应式 */
+@media (max-width: 960px) {
+  .content-cols { flex-direction: column; }
+  .col-side { width: 100%; }
 }
 </style>

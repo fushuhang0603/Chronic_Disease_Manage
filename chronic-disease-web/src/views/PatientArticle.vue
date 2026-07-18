@@ -3,10 +3,11 @@
     <!-- 分类 Tab -->
     <div class="filter-bar">
       <div class="bar-tags">
-        <button :class="['tag-chip', { active: activeCategory === '' && !onlyFavorited }]" @click="switchTab('')">全部</button>
+        <button :class="['tag-chip', { active: activeCategory === '' && !onlyFavorited && !onlyRanked }]" @click="switchTab('')">全部</button>
         <button v-for="c in categories" :key="c"
-          :class="['tag-chip', { active: activeCategory === c && !onlyFavorited }]"
+          :class="['tag-chip', { active: activeCategory === c && !onlyFavorited && !onlyRanked }]"
           @click="switchTab(c)">{{ c }}</button>
+        <button :class="['tag-chip', { active: onlyRanked }]" @click="switchTab('rank')">排行</button>
         <button :class="['tag-chip', { active: onlyFavorited }]" @click="switchTab('favorites')">我的收藏</button>
       </div>
     </div>
@@ -56,7 +57,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { getArticlePage, getFavoritesPage, updateFavoriteStatus } from '../api/user'
+import { getArticlePage, getFavoritesPage, getTopArticles, updateFavoriteStatus } from '../api/user'
 import { ElMessage } from 'element-plus'
 
 const categories = ['饮食', '运动', '用药', '慢病常识', '并发症预防']
@@ -71,6 +72,7 @@ const pageNum = ref(1)
 const pageSize = ref(7)
 const activeCategory = ref('')
 const onlyFavorited = ref(false)
+const onlyRanked = ref(false)
 const showDetail = ref(false)
 const detailItem = ref(null)
 
@@ -80,16 +82,27 @@ function getSummary(c) { if (!c) return ''; const s = c.replace(/\s+/g, ' '); re
 async function fetchRecords() {
   loading.value = true
   try {
-    const res = onlyFavorited.value
-      ? await getFavoritesPage({ pageNum: pageNum.value, pageSize: pageSize.value })
-      : await getArticlePage({ pageNum: pageNum.value, pageSize: pageSize.value, category: activeCategory.value || undefined })
-    records.value = res.records || []
-    total.value = res.total || 0
+    if (onlyFavorited.value) {
+      const res = await getFavoritesPage({ pageNum: pageNum.value, pageSize: pageSize.value })
+      records.value = res.records || []
+      total.value = res.total || 0
+    } else if (onlyRanked.value) {
+      records.value = await getTopArticles(20) || []
+      total.value = records.value.length
+    } else {
+      const res = await getArticlePage({
+        pageNum: pageNum.value, pageSize: pageSize.value,
+        category: activeCategory.value || undefined
+      })
+      records.value = res.records || []
+      total.value = res.total || 0
+    }
   } finally { loading.value = false }
 }
 function switchTab(cat) {
-  if (cat === 'favorites') { onlyFavorited.value = true; activeCategory.value = '' }
-  else { onlyFavorited.value = false; activeCategory.value = cat }
+  if (cat === 'favorites') { onlyFavorited.value = true; onlyRanked.value = false; activeCategory.value = '' }
+  else if (cat === 'rank') { onlyFavorited.value = false; onlyRanked.value = true; activeCategory.value = '' }
+  else { onlyFavorited.value = false; onlyRanked.value = false; activeCategory.value = cat }
   pageNum.value = 1; fetchRecords()
 }
 async function openDetail(item) {

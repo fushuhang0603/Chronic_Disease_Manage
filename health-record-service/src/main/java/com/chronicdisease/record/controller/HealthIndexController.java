@@ -56,4 +56,19 @@ public class HealthIndexController {
         healthIndexService.deleteRecord(id);
         return Result.success();
     }
+
+
+    @OperationLog(module = "数据监测", description = "管理端查看指定患者指标记录")
+    @GetMapping("/admin/records")
+    @Operation(summary = "管理端查看指定患者指标记录")
+    public Result<PageResult<HealthIndexRecord>> adminRecords(
+            @RequestParam String patientName,
+            @RequestParam(defaultValue = "1") Integer pageNum,
+            @RequestParam(defaultValue = "6") Integer pageSize,
+            @RequestParam(required = false) String indexCode) {
+
+        PageResult<HealthIndexRecord> pageResult = healthIndexService.pageRecordsByPatientName(patientName, pageNum, pageSize, indexCode);
+
+        return Result.success(pageResult);
+    }
 }

@@ -197,3 +197,7 @@ export function recordReadHistory(data) {
 export function getTopArticles(limit = 6) {
   return request.get('/article/top', { params: { limit } })
 }
+// 管理端查看某日排行（含收藏数）
+export function getAdminRank(date, limit = 20) {
+  return request.get('/article/admin/rank', { params: { date, limit } })
+}

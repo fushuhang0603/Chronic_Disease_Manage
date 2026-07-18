@@ -105,4 +105,12 @@ public class HealthArticleController {
     public Result<List<HealthArticle>> top(@RequestParam(defaultValue = "6") int limit) {
         return Result.success(healthArticleService.getTopFavorited(limit));
     }
+
+    @OperationLog(module = "资讯管理", description = "管理端查看排行")
+    @GetMapping("/admin/rank")
+    @Operation(summary = "管理端查看某日排行（含收藏数）")
+    public Result<List<HealthArticle>> adminRank(@RequestParam String date,
+                                                  @RequestParam(defaultValue = "20") int limit) {
+        return Result.success(healthArticleService.getAdminRank(date, limit));
+    }
 }

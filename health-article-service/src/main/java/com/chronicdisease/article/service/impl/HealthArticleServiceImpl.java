@@ -304,7 +304,18 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
     /** 获取收藏量最高的 N 篇资讯 */
     @Override
     public List<HealthArticle> getTopFavorited(int limit) {
-        String rankKey = favoritesRankKey();
+        return queryRank(favoritesRankKey(), limit, true);
+    }
+
+    /** 管理端查看某日排行（含收藏数） */
+    @Override
+    public List<HealthArticle> getAdminRank(String date, int limit) {
+        String rankKey = FAVORITES_RANK_PREFIX + date;
+        return queryRank(rankKey, limit, false);
+    }
+
+    /** 通用排行查询 */
+    private List<HealthArticle> queryRank(String rankKey, int limit, boolean onlyOnline) {
         Set<ZSetOperations.TypedTuple<Object>> topTuples =
                 redisTemplate.opsForZSet()
                         .reverseRangeWithScores(rankKey, 0, limit - 1);
@@ -313,17 +324,23 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
             return List.of();
         }
 
-        // 提取 articleId 列表
-        List<Long> ids = topTuples.stream()
-                .map(t -> ((Number) t.getValue()).longValue())
-                .collect(Collectors.toList());
+        // 提取 articleId 和分数
+        List<Long> ids = new ArrayList<>();
+        Map<Long, Integer> scoreMap = new HashMap<>();
+        for (ZSetOperations.TypedTuple<Object> t : topTuples) {
+            Long id = ((Number) t.getValue()).longValue();
+            ids.add(id);
+            scoreMap.put(id, t.getScore() != null ? t.getScore().intValue() : 0);
+        }
 
-        // 批量查 DB，只取上架未删除的
+        // 批量查 DB
         List<HealthArticle> articles = healthArticleMapper.selectBatchIds(ids);
-        articles.removeIf(a -> a.getIsDeleted().equals(BusinessConstant.isDelete)
-                || !a.getStatus().equals(BusinessConstant.Article_Status_On));
+        if (onlyOnline) {
+            articles.removeIf(a -> a.getIsDeleted().equals(BusinessConstant.isDelete)
+                    || !a.getStatus().equals(BusinessConstant.Article_Status_On));
+        }
 
-        // 按 ZSet 顺序返回
+        // 构建 ID→文章 映射，按 ZSet 顺序返回，附带分数
         Map<Long, HealthArticle> articleMap = new HashMap<>();
         for (HealthArticle a : articles) {
             articleMap.put(a.getId(), a);
@@ -332,6 +349,7 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
         for (Long id : ids) {
             HealthArticle a = articleMap.get(id);
             if (a != null) {
+                a.setFavoriteCount(scoreMap.get(id));
                 result.add(a);
             }
         }

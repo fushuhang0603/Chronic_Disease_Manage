@@ -15,7 +15,7 @@ const patientSearching = ref(false)
 const records = ref([])
 const total = ref(0)
 const pageNum = ref(1)
-const pageSize = ref(20)
+const pageSize = ref(7)
 const searchName = ref('')
 const activeStatus = ref('')
 
@@ -418,7 +418,7 @@ onMounted(() => fetchRecords())
 .empty-text { font-size: 15px; color: #94a3b8; font-weight: 500; margin: 0; }
 
 /* 分页 */
-.page-wrap { display: flex; justify-content: flex-end; margin-top: 18px; }
+.page-wrap { display: flex; justify-content: center; margin-top: 18px; }
 
 /* ===== 行内表单（与患者端一致） ===== */
 .remind-form {

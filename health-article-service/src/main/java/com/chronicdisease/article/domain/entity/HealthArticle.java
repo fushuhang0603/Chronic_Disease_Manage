@@ -47,4 +47,8 @@ public class HealthArticle {
     /** 是否已收藏（前端展示用，非表字段） */
     @TableField(exist = false)
     private Boolean isFavorited;
+
+    /** 收藏次数（排行展示用，非表字段） */
+    @TableField(exist = false)
+    private Integer favoriteCount;
 }

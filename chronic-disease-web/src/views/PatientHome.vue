@@ -161,7 +161,7 @@ onMounted(() => loadArticles())
         <span class="shd-more" @click="goArticle">查看全部 <el-icon :size="14"><ArrowRight /></el-icon></span>
       </div>
       <div class="article-row">
-        <div v-for="item in articles.slice(0, 3)" :key="item.id" class="article-card" @click="openDetail(item)">
+        <div v-for="item in articles.slice(0, 5)" :key="item.id" class="article-card" @click="openDetail(item)">
           <div class="ac-top">
             <span class="ac-cat">{{ item.category }}</span>
             <span class="ac-fav" :class="{ on: item.isFavorited }" @click.stop="handleFavorite(item)">
@@ -315,9 +315,10 @@ onMounted(() => loadArticles())
   background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
   padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
-.article-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.article-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; }
 .article-card {
-  border: 1px solid #f1f5f9; border-radius: 12px; padding: 18px;
+  flex: 1 0 180px; min-width: 160px;
+  border: 1px solid #f1f5f9; border-radius: 12px; padding: 14px;
   cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column;
   background: #fafcff;
 }
@@ -403,11 +404,9 @@ onMounted(() => loadArticles())
 /* ====== 响应式 ====== */
 @media (max-width: 900px) {
   .feature-section { grid-template-columns: 1fr 1fr; }
-  .article-row { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 640px) {
   .feature-section { grid-template-columns: 1fr; }
-  .article-row { grid-template-columns: 1fr; }
   .dual-row { flex-direction: column; }
   .hero-banner { padding: 20px; flex-direction: column; align-items: flex-start; }
   .hero-right { flex-direction: row; width: 100%; justify-content: space-between; }

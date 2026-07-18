@@ -1,5 +1,6 @@
 package com.chronicdisease.record.service.Impl.Impl;
 
+import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -8,17 +9,21 @@ import com.chronicdisease.common.constant.BusinessConstant;
 import com.chronicdisease.common.constant.UnitEnum;
 import com.chronicdisease.common.exception.BusinessException;
 import com.chronicdisease.common.result.PageResult;
+import com.chronicdisease.common.result.Result;
 import com.chronicdisease.common.util.UserInfoContext;
 import com.chronicdisease.record.domain.dto.HealthIndexDTO;
 import com.chronicdisease.record.domain.dto.HealthIndexPageDTO;
 import com.chronicdisease.record.domain.entity.HealthIndexRecord;
+import com.chronicdisease.record.feign.UserServiceFeign;
 import com.chronicdisease.record.mapper.HealthIndexMapper;
 import com.chronicdisease.record.service.Impl.IHealthIndexService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,6 +34,9 @@ public class HealthIndexServiceImpl extends ServiceImpl<HealthIndexMapper, Healt
 
     @Autowired
     private HealthIndexMapper healthIndexMapper;
+    @Autowired
+    private UserServiceFeign userServiceFeign;
+
 
     @Override
     public void addRecord(HealthIndexDTO dto) {
@@ -91,5 +99,27 @@ public class HealthIndexServiceImpl extends ServiceImpl<HealthIndexMapper, Healt
                 .set(HealthIndexRecord::getIsDeleted, BusinessConstant.isDelete);
         healthIndexMapper.update(updateWrapper);
         log.info("健康指标记录删除成功, id={}, userId={}", id, userId);
+    }
+
+    @Override
+    public PageResult<HealthIndexRecord> pageRecordsByPatientName(String patientName, Integer pageNum, Integer pageSize, String indexCode) {
+        List<Long> userIds = userServiceFeign.searchUserIds(patientName).getData();
+        if (CollUtil.isEmpty(userIds)) {
+            return new PageResult<>();
+        }
+        Long userId = userIds.get(0);
+
+        LambdaQueryWrapper<HealthIndexRecord> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(HealthIndexRecord::getUserId, userId)
+                .eq(HealthIndexRecord::getIsDeleted, BusinessConstant.isNotDelete);
+        if (StringUtils.isNotBlank(indexCode)) {
+            wrapper.eq(HealthIndexRecord::getIndexCode, indexCode);
+        }
+        wrapper.orderByDesc(HealthIndexRecord::getRecordTime);
+
+        Page<HealthIndexRecord> page = new Page<>(pageNum, pageSize);
+        Page<HealthIndexRecord> result = healthIndexMapper.selectPage(page, wrapper);
+
+        return new PageResult<>(result.getRecords(), result.getTotal());
     }
 }

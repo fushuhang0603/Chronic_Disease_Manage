@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getArticlePage, updateFavoriteStatus } from '../api/user'
+import { getTopArticles, updateFavoriteStatus } from '../api/user'
 import { ArrowRight } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
@@ -66,8 +66,7 @@ const articles = ref([])
 
 async function loadArticles() {
   try {
-    const res = await getArticlePage({ pageNum: 1, pageSize: 6 })
-    articles.value = res.records || []
+    articles.value = await getTopArticles(6) || []
   } catch { /* 无数据不报错 */ }
 }
 

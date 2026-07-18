@@ -193,3 +193,7 @@ export function updateFavoriteStatus(articleId, status) {
 export function recordReadHistory(data) {
   return request.post('/article/readHistory', data)
 }
+// 收藏排行 Top N
+export function getTopArticles(limit = 6) {
+  return request.get('/article/top', { params: { limit } })
+}

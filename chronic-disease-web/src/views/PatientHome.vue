@@ -66,7 +66,7 @@ const articles = ref([])
 
 async function loadArticles() {
   try {
-    articles.value = await getTopArticles(6) || []
+    articles.value = await getTopArticles(5) || []
   } catch { /* 无数据不报错 */ }
 }
 

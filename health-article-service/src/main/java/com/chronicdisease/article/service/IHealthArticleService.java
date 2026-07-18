@@ -4,6 +4,8 @@ import com.chronicdisease.article.domain.dto.*;
 import com.chronicdisease.article.domain.entity.HealthArticle;
 import com.chronicdisease.common.result.PageResult;
 
+import java.util.List;
+
 
 public interface IHealthArticleService {
 
@@ -36,4 +38,7 @@ public interface IHealthArticleService {
 
     /** 记录阅读历史 */
     void recordReadHistory(ReadHistoryDTO dto);
+
+    /** 收藏排行 Top N */
+    List<HealthArticle> getTopFavorited(int limit);
 }

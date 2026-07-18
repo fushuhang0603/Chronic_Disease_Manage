@@ -9,6 +9,8 @@ import com.chronicdisease.common.result.Result;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -95,5 +97,12 @@ public class HealthArticleController {
     public Result<Void> readHistory(@RequestBody ReadHistoryDTO dto) {
         healthArticleService.recordReadHistory(dto);
         return Result.success();
+    }
+
+    @OperationLog(module = "资讯管理", description = "收藏排行Top N")
+    @GetMapping("/top")
+    @Operation(summary = "收藏排行Top N")
+    public Result<List<HealthArticle>> top(@RequestParam(defaultValue = "6") int limit) {
+        return Result.success(healthArticleService.getTopFavorited(limit));
     }
 }

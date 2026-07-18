@@ -23,10 +23,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import org.springframework.data.redis.core.ZSetOperations;
 
 @Service
 public class HealthArticleServiceImpl implements IHealthArticleService {
@@ -41,6 +47,11 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
     private RedisTemplate<String, Object> redisTemplate;
     private static final String CACHE_PREFIX = "article:list:";
     private static final long CACHE_TTL = 5L;
+    private static final String FAVORITES_RANK_PREFIX = "article:favorites:rank:";
+
+    private String favoritesRankKey() {
+        return FAVORITES_RANK_PREFIX + java.time.LocalDate.now();
+    }
 
     @Override
     public PageResult<HealthArticle> pageArticle(ArticlePageDTO dto) {
@@ -241,6 +252,16 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
             favorite.setUpdateTime(LocalDateTime.now());
             articleFavoriteMapper.updateById(favorite);
         }
+
+        // 维护 ZSet 排行：收藏 +1，取消收藏 -1，归零移除
+        String rankKey = favoritesRankKey();
+        int delta = status.equals(BusinessConstant.Collect_STATUS1) ? 1 : -1;
+        Double newScore = redisTemplate.opsForZSet()
+                .incrementScore(rankKey, articleId, delta);
+        if (newScore != null && newScore <= 0) {
+            redisTemplate.opsForZSet().remove(rankKey, articleId);
+        }
+        redisTemplate.expire(rankKey, 2, TimeUnit.DAYS);
     }
 
     @Override
@@ -278,6 +299,43 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
     }
 
 
+
+    /** 获取收藏量最高的 N 篇资讯 */
+    @Override
+    public List<HealthArticle> getTopFavorited(int limit) {
+        String rankKey = favoritesRankKey();
+        Set<ZSetOperations.TypedTuple<Object>> topTuples =
+                redisTemplate.opsForZSet()
+                        .reverseRangeWithScores(rankKey, 0, limit - 1);
+
+        if (topTuples == null || topTuples.isEmpty()) {
+            return List.of();
+        }
+
+        // 提取 articleId 列表
+        List<Long> ids = topTuples.stream()
+                .map(t -> ((Number) t.getValue()).longValue())
+                .collect(Collectors.toList());
+
+        // 批量查 DB，只取上架未删除的
+        List<HealthArticle> articles = healthArticleMapper.selectBatchIds(ids);
+        articles.removeIf(a -> a.getIsDeleted().equals(BusinessConstant.isDelete)
+                || !a.getStatus().equals(BusinessConstant.Article_Status_On));
+
+        // 按 ZSet 顺序返回
+        Map<Long, HealthArticle> articleMap = new HashMap<>();
+        for (HealthArticle a : articles) {
+            articleMap.put(a.getId(), a);
+        }
+        List<HealthArticle> result = new ArrayList<>();
+        for (Long id : ids) {
+            HealthArticle a = articleMap.get(id);
+            if (a != null) {
+                result.add(a);
+            }
+        }
+        return result;
+    }
 
     /** 获取当前用户已收藏的文章ID列表 */
     private List<Long> getFavoritedArticleIds(Long userId) {

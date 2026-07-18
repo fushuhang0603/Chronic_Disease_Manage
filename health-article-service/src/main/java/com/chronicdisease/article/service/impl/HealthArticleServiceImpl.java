@@ -22,6 +22,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,7 +51,7 @@ public class HealthArticleServiceImpl implements IHealthArticleService {
     private static final String FAVORITES_RANK_PREFIX = "article:favorites:rank:";
 
     private String favoritesRankKey() {
-        return FAVORITES_RANK_PREFIX + java.time.LocalDate.now();
+        return FAVORITES_RANK_PREFIX + LocalDate.now();
     }
 
     @Override

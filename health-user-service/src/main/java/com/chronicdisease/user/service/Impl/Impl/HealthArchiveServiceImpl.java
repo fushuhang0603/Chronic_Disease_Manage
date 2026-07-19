@@ -107,9 +107,12 @@ public class HealthArchiveServiceImpl extends ServiceImpl<HealthArchiveMapper, H
     }
 
     @Override
-    public List<PatientBriefVO> getAllPatientBriefs() {
-        LambdaUpdateWrapper<HealthArchive> wrapper = new LambdaUpdateWrapper<>();
+    public List<PatientBriefVO> getAllPatientBriefs(String patientName) {
+        LambdaQueryWrapper<HealthArchive> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(HealthArchive::getIsDeleted, BusinessConstant.isNotDelete);
+        if (StringUtils.isNotBlank(patientName)) {
+            wrapper.like(HealthArchive::getPatientName, patientName);
+        }
         List<HealthArchive> list = baseMapper.selectList(wrapper);
         return list.stream()
                 .map(a -> new PatientBriefVO(a.getUserId(), a.getPatientName()))

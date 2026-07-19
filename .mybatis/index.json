@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "timestamp": 1784357552188,
+  "timestamp": 1784386550705,
   "projectRoot": "d:\\Code\\Chronic_Disease_Manage",
   "entries": [
     {
@@ -69,34 +69,46 @@
       "size": 1795
     },
     {
+      "path": "health-user-service\\target\\classes\\com\\chronicdisease\\user\\UserServiceApplication.class",
+      "mtime": 1784357550663.798,
+      "size": 965
+    },
+    {
       "path": "chronic-disease-common\\target\\classes\\com\\chronicdisease\\common\\config\\MvcConfig.class",
-      "mtime": 1784357540154.673,
+      "mtime": 1784386538236.14,
       "size": 2670
     },
     {
       "path": "chronic-disease-gateway\\target\\classes\\com\\chronicdisease\\gateway\\GatewayApplication.class",
-      "mtime": 1784357540912.8933,
+      "mtime": 1784386543166.3804,
       "size": 805
     },
     {
       "path": "health-article-service\\target\\classes\\com\\chronicdisease\\article\\config\\RedisConfig.class",
-      "mtime": 1784357541721.9668,
+      "mtime": 1784386544950.4607,
       "size": 2923
     },
     {
       "path": "health-record-service\\target\\classes\\com\\chronicdisease\\record\\HealthRecordServiceApplication.class",
-      "mtime": 1784357548381.0222,
-      "size": 997
+      "mtime": 1784386548180.0532,
+      "size": 1060,
+      "mapperScan": {
+        "basePackages": [
+          "com.chronicdisease.record.**.mapper"
+        ],
+        "sourceFile": "d:\\Code\\Chronic_Disease_Manage\\health-record-service\\target\\classes\\com\\chronicdisease\\record\\HealthRecordServiceApplication.class"
+      }
     },
     {
       "path": "health-remind-service\\target\\classes\\com\\chronicdisease\\remind\\HealthRemindServiceApplication.class",
-      "mtime": 1784357549479.636,
-      "size": 1127
-    },
-    {
-      "path": "health-user-service\\target\\classes\\com\\chronicdisease\\user\\UserServiceApplication.class",
-      "mtime": 1784357550663.798,
-      "size": 965
+      "mtime": 1784386549430.7563,
+      "size": 1127,
+      "mapperScan": {
+        "basePackages": [
+          "com.chronicdisease.remind.**.mapper"
+        ],
+        "sourceFile": "d:\\Code\\Chronic_Disease_Manage\\health-remind-service\\target\\classes\\com\\chronicdisease\\remind\\HealthRemindServiceApplication.class"
+      }
     }
   ]
 }

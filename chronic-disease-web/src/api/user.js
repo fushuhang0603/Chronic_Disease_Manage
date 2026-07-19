@@ -201,3 +201,11 @@ export function getTopArticles(limit = 6) {
 export function getAdminRank(date, limit = 20) {
   return request.get('/article/admin/rank', { params: { date, limit } })
 }
+// 管理端获取患者健康指标记录
+export function getUserHealthRecords(params) {
+  return request.get('/index/admin/records', { params })
+}
+// 按姓名搜索患者简要信息
+export function searchPatients(name) {
+  return request.get('/archive/allPatientBriefs', { params: { patientName: name } })
+}

@@ -57,4 +57,8 @@ public class HealthIndexRecord implements Serializable {
     @TableField("is_deleted")
     @Schema(description = "是否删除 1-删除 0-未删除")
     private Integer isDeleted;
+
+    @TableField(exist = false)
+    @Schema(description = "患者姓名（非数据库字段，用于前端展示）")
+    private String patientName;
 }

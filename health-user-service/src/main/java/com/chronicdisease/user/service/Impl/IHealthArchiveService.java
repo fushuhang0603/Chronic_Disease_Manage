@@ -18,6 +18,6 @@ public interface IHealthArchiveService extends IService<HealthArchive> {
 
     List<Long> searchUserIds(String patientName);
 
-    /** 获取全部患者 userId → 姓名映射 */
-    List<PatientBriefVO> getAllPatientBriefs();
+    /** 获取患者简要信息，patientName 可选，不传返回全部 */
+    List<PatientBriefVO> getAllPatientBriefs(String patientName);
 }

@@ -14,6 +14,7 @@ import com.chronicdisease.common.util.UserInfoContext;
 import com.chronicdisease.record.domain.dto.HealthIndexDTO;
 import com.chronicdisease.record.domain.dto.HealthIndexPageDTO;
 import com.chronicdisease.record.domain.entity.HealthIndexRecord;
+import com.chronicdisease.record.domain.vo.PatientBriefVO;
 import com.chronicdisease.record.feign.UserServiceFeign;
 import com.chronicdisease.record.mapper.HealthIndexMapper;
 import com.chronicdisease.record.service.Impl.IHealthIndexService;
@@ -23,9 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -103,15 +102,26 @@ public class HealthIndexServiceImpl extends ServiceImpl<HealthIndexMapper, Healt
 
     @Override
     public PageResult<HealthIndexRecord> pageRecordsByPatientName(String patientName, Integer pageNum, Integer pageSize, String indexCode) {
-        List<Long> userIds = userServiceFeign.searchUserIds(patientName).getData();
-        if (CollUtil.isEmpty(userIds)) {
-            return new PageResult<>();
+        Map<Long, String> nameMap = new HashMap<>();
+        try {
+            List<PatientBriefVO> briefs = userServiceFeign.getAllPatientBriefs(patientName).getData();
+            if (CollUtil.isNotEmpty(briefs)) {
+                nameMap = briefs.stream()
+                        .collect(Collectors.toMap(PatientBriefVO::getUserId, PatientBriefVO::getPatientName, (a, b) -> a));
+            }
+        } catch (Exception e) {
+            log.warn("获取患者信息失败", e);
         }
-        Long userId = userIds.get(0);
 
         LambdaQueryWrapper<HealthIndexRecord> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(HealthIndexRecord::getUserId, userId)
-                .eq(HealthIndexRecord::getIsDeleted, BusinessConstant.isNotDelete);
+        wrapper.eq(HealthIndexRecord::getIsDeleted, BusinessConstant.isNotDelete);
+        if (StringUtils.isNotBlank(patientName)) {
+            if (CollUtil.isEmpty(nameMap)) {
+                return new PageResult<>();
+            }
+            wrapper.in(HealthIndexRecord::getUserId, nameMap.keySet());
+        }
+
         if (StringUtils.isNotBlank(indexCode)) {
             wrapper.eq(HealthIndexRecord::getIndexCode, indexCode);
         }
@@ -120,6 +130,13 @@ public class HealthIndexServiceImpl extends ServiceImpl<HealthIndexMapper, Healt
         Page<HealthIndexRecord> page = new Page<>(pageNum, pageSize);
         Page<HealthIndexRecord> result = healthIndexMapper.selectPage(page, wrapper);
 
-        return new PageResult<>(result.getRecords(), result.getTotal());
+        // 回填患者姓名
+        List<HealthIndexRecord> records = result.getRecords();
+        if (CollUtil.isNotEmpty(records) && CollUtil.isNotEmpty(nameMap)) {
+            Map<Long, String> finalNameMap = nameMap;
+            records.forEach(r -> r.setPatientName(finalNameMap.getOrDefault(r.getUserId(), "-")));
+        }
+
+        return new PageResult<>(records, result.getTotal());
     }
 }

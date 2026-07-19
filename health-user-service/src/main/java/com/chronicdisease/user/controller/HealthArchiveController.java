@@ -75,11 +75,11 @@ public class HealthArchiveController {
 
 
     @GetMapping("/allPatientBriefs")
-    @Operation(summary = "获取全部患者 userId做patientName映射")
-    public Result<List<PatientBriefVO>> getAllPatientBriefs() {
-        return Result.success(healthArchiveService.getAllPatientBriefs());
+    @Operation(summary = "获取患者简要信息，patientName可选，不传返回全部")
+    public Result<List<PatientBriefVO>> getAllPatientBriefs(
+            @RequestParam(value = "patientName", required = false) String patientName) {
+        return Result.success(healthArchiveService.getAllPatientBriefs(patientName));
     }
-
 
 
 }

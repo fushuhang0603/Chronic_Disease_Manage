@@ -62,10 +62,10 @@ public class HealthIndexController {
     @GetMapping("/admin/records")
     @Operation(summary = "管理端查看指定患者指标记录")
     public Result<PageResult<HealthIndexRecord>> adminRecords(
-            @RequestParam String patientName,
-            @RequestParam(defaultValue = "1") Integer pageNum,
-            @RequestParam(defaultValue = "6") Integer pageSize,
-            @RequestParam(required = false) String indexCode) {
+            @RequestParam (value = "patientName",required = false)String patientName,
+            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+            @RequestParam(value = "pageSize", defaultValue = "6") Integer pageSize,
+            @RequestParam(value = "indexCode", required = false) String indexCode) {
 
         PageResult<HealthIndexRecord> pageResult = healthIndexService.pageRecordsByPatientName(patientName, pageNum, pageSize, indexCode);
 

@@ -13,4 +13,6 @@ public interface IRecheckRecordService extends IService<RecheckRecord> {
     PageResult<RecheckRecord> pageRecords(RecheckRecordPageDTO dto);
 
     void deleteRecord(Long id);
+
+    PageResult<RecheckRecord> pageAdminRecords(String patientName, Integer pageNum, Integer pageSize);
 }

@@ -5,6 +5,7 @@ import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.common.result.Result;
 import com.chronicdisease.record.domain.dto.RecheckRecordDTO;
 import com.chronicdisease.record.domain.dto.RecheckRecordPageDTO;
+import com.chronicdisease.record.domain.entity.MedicineRecord;
 import com.chronicdisease.record.domain.entity.RecheckRecord;
 import com.chronicdisease.record.service.Impl.IRecheckRecordService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,5 +45,17 @@ public class RecheckRecordController {
     public Result<Void> delete(@RequestParam("id") Long id) {
         recheckRecordService.deleteRecord(id);
         return Result.success();
+    }
+
+    @OperationLog(module = "数据监测", description = "管理端查看患者复查记录")
+    @GetMapping("/admin/records")
+    @Operation(summary = "管理端查看患者复查记录")
+    public Result<PageResult<RecheckRecord>> adminRecords(
+            @RequestParam(value = "patientName", required = false) String patientName,
+            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+            @RequestParam(value = "pageSize", defaultValue = "6") Integer pageSize) {
+
+        PageResult<RecheckRecord> results = recheckRecordService.pageAdminRecords(patientName,pageNum,pageSize);
+        return Result.success(results);
     }
 }

@@ -1,5 +1,6 @@
 package com.chronicdisease.record.service.Impl.Impl;
 
+import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -10,11 +11,19 @@ import com.chronicdisease.common.util.UserInfoContext;
 import com.chronicdisease.record.domain.dto.RecheckRecordDTO;
 import com.chronicdisease.record.domain.dto.RecheckRecordPageDTO;
 import com.chronicdisease.record.domain.entity.RecheckRecord;
+import com.chronicdisease.record.domain.vo.PatientBriefVO;
+import com.chronicdisease.record.feign.UserServiceFeign;
 import com.chronicdisease.record.mapper.RecheckRecordMapper;
 import com.chronicdisease.record.service.Impl.IRecheckRecordService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -22,6 +31,9 @@ public class RecheckRecordServiceImpl extends ServiceImpl<RecheckRecordMapper, R
 
     @Autowired
     private RecheckRecordMapper recheckRecordMapper;
+
+    @Autowired
+    private UserServiceFeign userServiceFeign;
 
     @Override
     public void addRecord(RecheckRecordDTO dto) {
@@ -62,5 +74,38 @@ public class RecheckRecordServiceImpl extends ServiceImpl<RecheckRecordMapper, R
                 .set(RecheckRecord::getIsDeleted, BusinessConstant.isDelete);
         recheckRecordMapper.update(wrapper);
         log.info("复查记录删除成功, id={}, userId={}", id, userId);
+    }
+
+    @Override
+    public PageResult<RecheckRecord> pageAdminRecords(String patientName, Integer pageNum, Integer pageSize) {
+        Map<Long, String> map = new HashMap<>();
+        try {
+            List<PatientBriefVO> briefs = userServiceFeign.getAllPatientBriefs(patientName).getData();
+            map = briefs.stream().collect(Collectors.toMap(
+                PatientBriefVO::getUserId, PatientBriefVO::getPatientName, (a, b) -> a));
+        } catch (Exception e) {
+            log.warn("获取患者信息失败, patientName={}", patientName, e);
+        }
+
+        LambdaQueryWrapper<RecheckRecord> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(RecheckRecord::getIsDeleted, BusinessConstant.isNotDelete);
+        if (StringUtils.isNotBlank(patientName)) {
+            if (CollUtil.isEmpty(map)) {
+                return new PageResult<>();
+            }
+            wrapper.in(RecheckRecord::getUserId, map.keySet());
+        }
+        wrapper.orderByDesc(RecheckRecord::getActualRecheckTime);
+
+        Page<RecheckRecord> page = new Page<>(pageNum, pageSize);
+        Page<RecheckRecord> result = recheckRecordMapper.selectPage(page, wrapper);
+
+        List<RecheckRecord> records = result.getRecords();
+        if (CollUtil.isNotEmpty(records)) {
+            Map<Long, String> nameMap = new HashMap<>();
+            records.forEach(r -> nameMap.put(r.getUserId(), nameMap.getOrDefault(r.getUserId(), "-")));
+        }
+
+        return new PageResult<>(records, result.getTotal());
     }
 }

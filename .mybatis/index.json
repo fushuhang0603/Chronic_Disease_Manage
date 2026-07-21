@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "timestamp": 1784386550705,
+  "timestamp": 1784615030334,
   "projectRoot": "d:\\Code\\Chronic_Disease_Manage",
   "entries": [
     {
@@ -74,11 +74,6 @@
       "size": 965
     },
     {
-      "path": "chronic-disease-common\\target\\classes\\com\\chronicdisease\\common\\config\\MvcConfig.class",
-      "mtime": 1784386538236.14,
-      "size": 2670
-    },
-    {
       "path": "chronic-disease-gateway\\target\\classes\\com\\chronicdisease\\gateway\\GatewayApplication.class",
       "mtime": 1784386543166.3804,
       "size": 805
@@ -109,6 +104,11 @@
         ],
         "sourceFile": "d:\\Code\\Chronic_Disease_Manage\\health-remind-service\\target\\classes\\com\\chronicdisease\\remind\\HealthRemindServiceApplication.class"
       }
+    },
+    {
+      "path": "chronic-disease-common\\target\\classes\\com\\chronicdisease\\common\\config\\MvcConfig.class",
+      "mtime": 1784615030058.0132,
+      "size": 2670
     }
   ]
 }

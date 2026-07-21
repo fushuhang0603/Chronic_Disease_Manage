@@ -34,7 +34,7 @@ function todayStr() {
 // ====== 功能入口 ======
 const featureCards = [
   { title: '健康档案', desc: '管理个人信息与病史', color: '#3b82f6', bg: 'linear-gradient(135deg, #eff6ff, #dbeafe)', path: '/patient/archive' },
-  { title: '数据监测', desc: '血压血糖趋势分析', color: '#10b981', bg: 'linear-gradient(135deg, #ecfdf5, #d1fae5)', path: '/patient/data' },
+  { title: '健康监测', desc: '血压血糖趋势分析', color: '#10b981', bg: 'linear-gradient(135deg, #ecfdf5, #d1fae5)', path: '/patient/data' },
   { title: '用药提醒', desc: '准时推送服药计划', color: '#f59e0b', bg: 'linear-gradient(135deg, #fffbeb, #fef3c7)', path: '/patient/remind' },
   { title: '全部资讯', desc: '浏览慢病科普文章', color: '#8b5cf6', bg: 'linear-gradient(135deg, #f5f3ff, #ede9fe)', path: '/patient/article' },
 ]

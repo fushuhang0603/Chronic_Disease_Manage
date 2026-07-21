@@ -36,7 +36,7 @@ async function handleRegister() {
 
 const features = {
   monitor: {
-    title: '数据监测',
+    title: '健康监测',
     color: '#3b82f6',
     desc: '全方位健康数据追踪，支持血糖、血压、血脂、心率等多项指标录入与监测。自动生成健康趋势图表，异常指标智能预警，帮助您随时掌握身体状况变化。',
     items: ['多维度指标录入', '健康趋势图表', '异常智能预警', '历史数据对比']

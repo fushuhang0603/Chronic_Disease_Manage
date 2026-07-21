@@ -11,7 +11,7 @@ const menuItems = [
   { path: '/admin/users', label: '用户管理', icon: 'User', color: '#3b82f6' },
   { path: '/admin/dicts', label: '术语字典', icon: 'Collection', color: '#8b5cf6' },
   { path: '/admin/archives', label: '健康档案', icon: 'Folder', color: '#10b981' },
-  { path: '/admin/data', label: '数据监测', icon: 'DataAnalysis', color: '#f59e0b' },
+  { path: '/admin/data', label: '健康监测', icon: 'DataAnalysis', color: '#f59e0b' },
   { path: '/admin/remind', label: '用药提醒', icon: 'AlarmClock', color: '#8b5cf6' },
   { path: '/admin/article', label: '健康资讯', icon: 'Document', color: '#ef4444' },
 ]

@@ -201,7 +201,11 @@ export function getAdminRank(date, limit = 20) {
 export function getUserHealthRecords(params) {
   return request.get('/index/admin/records', { params })
 }
-// 按姓名搜索患者简要信息
-export function searchPatients(name) {
-  return request.get('/archive/allPatientBriefs', { params: { patientName: name } })
+// 管理端获取患者用药记录
+export function getMedicineRecords(params) {
+  return request.get('/medicine/admin/records', { params })
+}
+// 管理端获取患者复查记录
+export function getRecheckRecords(params) {
+  return request.get('/recheck/admin/records', { params })
 }

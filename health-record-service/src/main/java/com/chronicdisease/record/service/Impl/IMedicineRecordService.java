@@ -13,4 +13,6 @@ public interface IMedicineRecordService extends IService<MedicineRecord> {
     PageResult<MedicineRecord> pageRecords(MedicineRecordPageDTO dto);
 
     void deleteRecord(Long id);
+
+    PageResult<MedicineRecord> pageAdminRecords(String patientName, Integer pageNum, Integer pageSize);
 }

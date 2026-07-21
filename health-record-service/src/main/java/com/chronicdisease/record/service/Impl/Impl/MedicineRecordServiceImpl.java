@@ -1,20 +1,31 @@
 package com.chronicdisease.record.service.Impl.Impl;
 
+import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.chronicdisease.common.constant.BusinessConstant;
+import com.chronicdisease.common.exception.BusinessException;
 import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.common.util.UserInfoContext;
 import com.chronicdisease.record.domain.dto.MedicineRecordDTO;
 import com.chronicdisease.record.domain.dto.MedicineRecordPageDTO;
+import com.chronicdisease.record.domain.entity.HealthIndexRecord;
 import com.chronicdisease.record.domain.entity.MedicineRecord;
+import com.chronicdisease.record.domain.vo.PatientBriefVO;
+import com.chronicdisease.record.feign.UserServiceFeign;
 import com.chronicdisease.record.mapper.MedicineRecordMapper;
 import com.chronicdisease.record.service.Impl.IMedicineRecordService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -22,6 +33,8 @@ public class MedicineRecordServiceImpl extends ServiceImpl<MedicineRecordMapper,
 
     @Autowired
     private MedicineRecordMapper medicineRecordMapper;
+    @Autowired
+    private UserServiceFeign userServiceFeign;
 
     @Override
     public void addRecord(MedicineRecordDTO dto) {
@@ -62,5 +75,36 @@ public class MedicineRecordServiceImpl extends ServiceImpl<MedicineRecordMapper,
                 .set(MedicineRecord::getIsDeleted, BusinessConstant.isDelete);
         medicineRecordMapper.update(wrapper);
         log.info("用药记录删除成功, id={}, userId={}", id, userId);
+    }
+
+    @Override
+    public PageResult<MedicineRecord> pageAdminRecords(String patientName, Integer pageNum, Integer pageSize) {
+        Map<Long, String> map = new HashMap<>();
+        //根据患者姓名查询简要信息
+        try {
+            List<PatientBriefVO> patientBriefs = userServiceFeign.getAllPatientBriefs(patientName).getData();
+            map = patientBriefs.stream().collect(Collectors.toMap(PatientBriefVO::getUserId, PatientBriefVO::getPatientName,(a,b)-> a));
+        } catch (Exception e) {
+            //降级处理
+            log.warn("获取患者信息失败, patientName={}", patientName, e);
+        }
+        LambdaQueryWrapper<MedicineRecord> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(MedicineRecord::getIsDeleted, BusinessConstant.isNotDelete);
+        if(StringUtils.isNotBlank(patientName)){
+            if(CollUtil.isEmpty(map)){
+                return new PageResult<>();
+            }
+            wrapper.in(MedicineRecord::getUserId, map.keySet());
+        }
+        wrapper.orderByDesc(MedicineRecord::getCreateTime);
+        Page<MedicineRecord> page = new Page<>(pageNum, pageSize);
+        Page<MedicineRecord> result = medicineRecordMapper.selectPage(page, wrapper);
+        //回填患者姓名
+        List<MedicineRecord> records = result.getRecords();
+        if (CollUtil.isNotEmpty(records)){
+            Map<Long, String> nameMap = map;
+            records.forEach(record->record.setPatientName(nameMap.getOrDefault(record.getUserId(),"-")));
+        }
+        return new PageResult<>(result.getRecords(), result.getTotal());
     }
 }

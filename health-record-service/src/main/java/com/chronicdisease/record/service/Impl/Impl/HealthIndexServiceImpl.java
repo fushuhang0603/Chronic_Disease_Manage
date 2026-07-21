@@ -110,7 +110,8 @@ public class HealthIndexServiceImpl extends ServiceImpl<HealthIndexMapper, Healt
                         .collect(Collectors.toMap(PatientBriefVO::getUserId, PatientBriefVO::getPatientName, (a, b) -> a));
             }
         } catch (Exception e) {
-            log.warn("获取患者信息失败", e);
+            //降级处理
+            log.warn("获取患者信息失败, patientName={}", patientName, e);
         }
 
         LambdaQueryWrapper<HealthIndexRecord> wrapper = new LambdaQueryWrapper<>();
@@ -132,7 +133,7 @@ public class HealthIndexServiceImpl extends ServiceImpl<HealthIndexMapper, Healt
 
         // 回填患者姓名
         List<HealthIndexRecord> records = result.getRecords();
-        if (CollUtil.isNotEmpty(records) && CollUtil.isNotEmpty(nameMap)) {
+        if (CollUtil.isNotEmpty(records)) {
             Map<Long, String> finalNameMap = nameMap;
             records.forEach(r -> r.setPatientName(finalNameMap.getOrDefault(r.getUserId(), "-")));
         }

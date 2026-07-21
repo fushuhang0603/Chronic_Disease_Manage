@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "timestamp": 1784615030334,
+  "timestamp": 1784653165831,
   "projectRoot": "d:\\Code\\Chronic_Disease_Manage",
   "entries": [
     {
@@ -84,17 +84,6 @@
       "size": 2923
     },
     {
-      "path": "health-record-service\\target\\classes\\com\\chronicdisease\\record\\HealthRecordServiceApplication.class",
-      "mtime": 1784386548180.0532,
-      "size": 1060,
-      "mapperScan": {
-        "basePackages": [
-          "com.chronicdisease.record.**.mapper"
-        ],
-        "sourceFile": "d:\\Code\\Chronic_Disease_Manage\\health-record-service\\target\\classes\\com\\chronicdisease\\record\\HealthRecordServiceApplication.class"
-      }
-    },
-    {
       "path": "health-remind-service\\target\\classes\\com\\chronicdisease\\remind\\HealthRemindServiceApplication.class",
       "mtime": 1784386549430.7563,
       "size": 1127,
@@ -107,8 +96,19 @@
     },
     {
       "path": "chronic-disease-common\\target\\classes\\com\\chronicdisease\\common\\config\\MvcConfig.class",
-      "mtime": 1784615030058.0132,
+      "mtime": 1784647323399.0652,
       "size": 2670
+    },
+    {
+      "path": "health-record-service\\target\\classes\\com\\chronicdisease\\record\\HealthRecordServiceApplication.class",
+      "mtime": 1784653164545.9587,
+      "size": 1060,
+      "mapperScan": {
+        "basePackages": [
+          "com.chronicdisease.record.**.mapper"
+        ],
+        "sourceFile": "d:\\Code\\Chronic_Disease_Manage\\health-record-service\\target\\classes\\com\\chronicdisease\\record\\HealthRecordServiceApplication.class"
+      }
     }
   ]
 }

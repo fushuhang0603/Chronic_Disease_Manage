@@ -45,4 +45,16 @@ public class MedicineRecordController {
         medicineRecordService.deleteRecord(id);
         return Result.success();
     }
+
+    @OperationLog(module = "数据监测", description = "管理端查看患者用药记录")
+    @GetMapping("/admin/records")
+    @Operation(summary = "管理端查看患者用药记录")
+    public Result<PageResult<MedicineRecord>> adminRecords(
+            @RequestParam(value = "patientName", required = false) String patientName,
+            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+            @RequestParam(value = "pageSize", defaultValue = "6") Integer pageSize) {
+
+        PageResult<MedicineRecord> results = medicineRecordService.pageAdminRecords(patientName, pageNum, pageSize);
+        return Result.success(results);
+    }
 }

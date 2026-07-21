@@ -10,6 +10,7 @@ import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.common.util.UserInfoContext;
 import com.chronicdisease.record.domain.dto.RecheckRecordDTO;
 import com.chronicdisease.record.domain.dto.RecheckRecordPageDTO;
+import com.chronicdisease.record.domain.entity.MedicineRecord;
 import com.chronicdisease.record.domain.entity.RecheckRecord;
 import com.chronicdisease.record.domain.vo.PatientBriefVO;
 import com.chronicdisease.record.feign.UserServiceFeign;
@@ -79,33 +80,31 @@ public class RecheckRecordServiceImpl extends ServiceImpl<RecheckRecordMapper, R
     @Override
     public PageResult<RecheckRecord> pageAdminRecords(String patientName, Integer pageNum, Integer pageSize) {
         Map<Long, String> map = new HashMap<>();
+        //根据患者姓名查询简要信息
         try {
-            List<PatientBriefVO> briefs = userServiceFeign.getAllPatientBriefs(patientName).getData();
-            map = briefs.stream().collect(Collectors.toMap(
-                PatientBriefVO::getUserId, PatientBriefVO::getPatientName, (a, b) -> a));
+            List<PatientBriefVO> patientBriefs = userServiceFeign.getAllPatientBriefs(patientName).getData();
+            map = patientBriefs.stream().collect(Collectors.toMap(PatientBriefVO::getUserId, PatientBriefVO::getPatientName,(a,b)-> a));
         } catch (Exception e) {
+            //降级处理
             log.warn("获取患者信息失败, patientName={}", patientName, e);
         }
-
         LambdaQueryWrapper<RecheckRecord> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(RecheckRecord::getIsDeleted, BusinessConstant.isNotDelete);
-        if (StringUtils.isNotBlank(patientName)) {
-            if (CollUtil.isEmpty(map)) {
+        if(StringUtils.isNotBlank(patientName)){
+            if(CollUtil.isEmpty(map)){
                 return new PageResult<>();
             }
             wrapper.in(RecheckRecord::getUserId, map.keySet());
         }
-        wrapper.orderByDesc(RecheckRecord::getActualRecheckTime);
-
+        wrapper.orderByDesc(RecheckRecord::getCreateTime);
         Page<RecheckRecord> page = new Page<>(pageNum, pageSize);
         Page<RecheckRecord> result = recheckRecordMapper.selectPage(page, wrapper);
-
+        //患者姓名回填
         List<RecheckRecord> records = result.getRecords();
-        if (CollUtil.isNotEmpty(records)) {
-            Map<Long, String> nameMap = new HashMap<>();
-            records.forEach(r -> nameMap.put(r.getUserId(), nameMap.getOrDefault(r.getUserId(), "-")));
+        if (CollUtil.isNotEmpty(records)){
+            Map<Long, String> nameMap = map;
+            records.forEach(record->record.setPatientName(nameMap.getOrDefault(record.getUserId(),"-")));
         }
-
         return new PageResult<>(records, result.getTotal());
     }
 }

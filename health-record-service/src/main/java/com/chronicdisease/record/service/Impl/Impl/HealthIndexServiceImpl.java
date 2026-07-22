@@ -134,7 +134,7 @@ public class HealthIndexServiceImpl extends ServiceImpl<HealthIndexMapper, Healt
         return new PageResult<>(records, result.getTotal());
     }
 
-    // ==================== 趋势聚合 ====================
+
 
     @Override
     public Map<String, List<TrendPointVO>> getTrend(Integer days, String granularity, List<String> indexCodes) {

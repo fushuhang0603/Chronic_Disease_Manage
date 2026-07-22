@@ -87,8 +87,14 @@ export function getHealthIndexPage(params) {
   return request.post('/index/page', params)
 }
 
-export function getHealthIndexTrend(params) {
-  return request.get('/index/chart', { params })
+// 患者端趋势聚合（日/周/月粒度）
+export function getHealthIndexTrendV2(params) {
+  return request.get('/index/chart/trend', { params })
+}
+
+// 管理端趋势聚合（查看指定患者）
+export function getAdminIndexTrend(params) {
+  return request.get('/index/admin/trend', { params })
 }
 
 export function deleteHealthIndex(id) {

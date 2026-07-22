@@ -3,7 +3,7 @@ import { ref, computed, onMounted, nextTick, onBeforeUnmount } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import * as echarts from 'echarts'
 import {
-  addHealthIndex, getHealthIndexPage, getHealthIndexTrend, deleteHealthIndex,
+  addHealthIndex, getHealthIndexPage, getHealthIndexTrendV2, deleteHealthIndex,
   addMedicine, getMedicinePage, deleteMedicine,
   addRecheck, getRecheckPage, deleteRecheck,
   getDictPage
@@ -56,6 +56,7 @@ const trendLoaded = ref(false)
 const selectedTrendCode = ref('')
 const trendDays = ref(7)
 const trendDataMap = ref({})
+const trendGranularity = ref('DAY')
 
 function fmtTime(val) {
   if (!val) return ''
@@ -169,7 +170,7 @@ function handleIndexSizeChange(s) { indexPageSize.value = s; indexPageNum.value 
 async function fetchTrend() {
   trendLoading.value = true
   try {
-    const data = await getHealthIndexTrend({ days: trendDays.value })
+    const data = await getHealthIndexTrendV2({ days: trendDays.value, granularity: trendGranularity.value })
     trendDataMap.value = data || {}
     trendLoaded.value = true
     if (selectedTrendCode.value && trendDataMap.value[selectedTrendCode.value]) {
@@ -181,20 +182,38 @@ async function fetchTrend() {
 }
 
 function renderChart(code) {
-  const data = trendDataMap.value[code] || []
-  if (!trendChartEl.value || data.length === 0) {
+  const points = trendDataMap.value[code] || []
+  if (!trendChartEl.value || points.length === 0) {
     if (trendChartInstance) trendChartInstance.clear()
     return
   }
   if (!trendChartInstance) trendChartInstance = echarts.init(trendChartEl.value)
   const indicator = indicators.value.find(d => d.code === code)
   const unit = indicator?.unit || ''
-  const dates = data.map(d => (d.recordTime || '').substring(0, 10))
-  const values = data.map(d => d.indexValue)
+  const labels = points.map(p => p.timeLabel)
+  const values = points.map(p => p.avgValue)
   trendChartInstance.setOption({
-    tooltip: { trigger: 'axis', formatter: p => `${p[0].axisValue}<br/>${p[0].value} ${unit}` },
+    tooltip: {
+      trigger: 'axis',
+      formatter: (params) => {
+        if (!params || params.length === 0) return ''
+        const p = points[params[0].dataIndex]
+        if (!p) return ''
+        let html = `<b>${p.timeLabel}</b><br/>`
+        html += `日均值: <b>${p.avgValue}</b> ${unit}<br/>`
+        html += `最高: ${p.maxValue} &nbsp; 最低: ${p.minValue}<br/>`
+        html += `测量次数: ${p.recordCount} 次`
+        if (p.details && p.details.length > 0) {
+          html += '<br/><hr style="margin:4px 0;border-color:#e2e8f0"/>'
+          p.details.forEach(d => {
+            html += `<span style="color:#94a3b8">${(d.recordTime || '').substring(11, 16)}</span> &nbsp; ${d.indexValue} ${d.unit || unit}<br/>`
+          })
+        }
+        return html
+      }
+    },
     grid: { top: 20, right: 30, bottom: 30, left: 50 },
-    xAxis: { type: 'category', data: dates, axisLabel: { fontSize: 11, color: '#94a3b8' } },
+    xAxis: { type: 'category', data: labels, axisLabel: { fontSize: 11, color: '#94a3b8' } },
     yAxis: { type: 'value', name: unit, nameTextStyle: { fontSize: 11, color: '#94a3b8' }, axisLabel: { fontSize: 11, color: '#94a3b8' }, splitLine: { lineStyle: { color: '#f1f5f9' } } },
     series: [{
       type: 'line', data: values, smooth: true, symbol: 'circle', symbolSize: 6,
@@ -210,6 +229,7 @@ function handleTrendIndicatorChange(code) {
   else if (trendChartInstance) trendChartInstance.clear()
 }
 function handleTrendDaysChange(days) { trendDays.value = days; trendLoaded.value = false; fetchTrend() }
+function handleTrendGranularityChange(g) { trendGranularity.value = g; trendLoaded.value = false; fetchTrend() }
 function quickToTrend() {
   selectedTrendCode.value = selectedIndex.value.code
   switchTab('trend')
@@ -480,6 +500,11 @@ onMounted(() => {
           <el-select v-model="selectedTrendCode" placeholder="选择指标" size="default" style="width:160px" @change="handleTrendIndicatorChange" clearable>
             <el-option v-for="opt in indicators" :key="opt.code" :label="opt.name" :value="opt.code" />
           </el-select>
+          <el-radio-group v-model="trendGranularity" size="small" @change="handleTrendGranularityChange">
+            <el-radio-button value="DAY">按日</el-radio-button>
+            <el-radio-button value="WEEK">按周</el-radio-button>
+            <el-radio-button value="MONTH">按月</el-radio-button>
+          </el-radio-group>
           <el-radio-group v-model="trendDays" size="small" @change="handleTrendDaysChange">
             <el-radio-button :value="7">近7天</el-radio-button>
             <el-radio-button :value="14">近14天</el-radio-button>

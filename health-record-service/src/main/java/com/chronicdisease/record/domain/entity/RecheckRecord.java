@@ -2,6 +2,8 @@ package com.chronicdisease.record.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -22,6 +24,7 @@ public class RecheckRecord implements Serializable {
 
     @TableField("user_id")
     @Schema(description = "患者用户ID")
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long userId;
 
     @TableField("hospital_name")

@@ -3,7 +3,7 @@ import { ref, computed, onMounted, nextTick, watch, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
-import { getUserHealthRecords, getMedicineRecords, getRecheckRecords, getDictPage } from '../api/user.js'
+import { getUserHealthRecords, getMedicineRecords, getRecheckRecords, getDictPage, getAdminIndexTrend } from '../api/user.js'
 
 const activeTab = ref(localStorage.getItem('adminActiveTab') || 'trend')
 const patientSearch = ref('')
@@ -110,6 +110,7 @@ const trendLoading = ref(false)
 const trendData = ref({})
 const selectedTrendCode = ref('')
 const trendDays = ref(30)
+const trendGranularity = ref('DAY')
 let chartInstance = null
 
 async function fetchTrendChart() {
@@ -117,26 +118,12 @@ async function fetchTrendChart() {
   if (!name) return
   trendLoading.value = true
   try {
-    const data = await getUserHealthRecords({ patientName: name, pageNum: 1, pageSize: 1000 })
-    const records = data.records || []
-    if (records.length === 0) {
-      trendData.value = {}
-      selectedTrendCode.value = ''
-      return
+    const data = await getAdminIndexTrend({ patientName: name, days: trendDays.value, granularity: trendGranularity.value })
+    trendData.value = data || {}
+    const codes = Object.keys(trendData.value)
+    if (codes.length > 0 && !trendData.value[selectedTrendCode.value]) {
+      selectedTrendCode.value = codes[0]
     }
-
-    const cutoff = new Date()
-    cutoff.setDate(cutoff.getDate() - trendDays.value)
-    const grouped = {}
-    records
-      .filter(r => !trendDays.value || new Date(r.recordTime) >= cutoff)
-      .sort((a, b) => (a.recordTime || '').localeCompare(b.recordTime || ''))
-      .forEach(r => {
-        if (!grouped[r.indexCode]) grouped[r.indexCode] = []
-        grouped[r.indexCode].push(r)
-      })
-    trendData.value = Object.keys(grouped).length > 0 ? grouped : {}
-    selectedTrendCode.value = Object.keys(grouped).length > 0 ? Object.keys(grouped)[0] : ''
     nextTick(renderChart)
   } catch (e) {
     ElMessage.error(e.message || '加载趋势图失败')
@@ -147,25 +134,37 @@ function renderChart() {
   const code = selectedTrendCode.value
   const dom = document.getElementById('admin-trend-chart')
   if (!dom || !code) return
-  const records = trendData.value[code] || []
+  const points = trendData.value[code] || []
   if (chartInstance) chartInstance.dispose()
   chartInstance = echarts.init(dom)
 
   const indicator = indicators.value.find(i => i.code === code)
   const unit = indicator?.unit || ''
-  const dates = records.map(r => (r.recordTime || '').substring(0, 10))
-  const values = records.map(r => Number(r.indexValue || 0))
+  const labels = points.map(p => p.timeLabel)
+  const values = points.map(p => Number(p.avgValue || 0))
 
   chartInstance.setOption({
     tooltip: {
       trigger: 'axis',
-      formatter: p => {
-        const name = indicator?.name || code
-        return `<b>${name}</b><br/>${p[0].axisValue}<br/>数值：<b>${p[0].value} ${unit}</b>`
+      formatter: (params) => {
+        if (!params || params.length === 0) return ''
+        const p = points[params[0].dataIndex]
+        if (!p) return ''
+        let html = `<b>${indicator?.name || code}</b><br/>${p.timeLabel}<br/>`
+        html += `均值：<b>${p.avgValue} ${unit}</b><br/>`
+        html += `最高：${p.maxValue} &nbsp; 最低：${p.minValue}<br/>`
+        html += `测量次数：${p.recordCount} 次`
+        if (p.details && p.details.length > 0) {
+          html += '<br/><hr style="margin:4px 0;border-color:#e2e8f0"/>'
+          p.details.forEach(d => {
+            html += `<span style="color:#94a3b8">${(d.recordTime || '').substring(11, 16)}</span> &nbsp; ${d.indexValue} ${d.unit || unit}<br/>`
+          })
+        }
+        return html
       }
     },
     grid: { top: 20, right: 30, bottom: 30, left: 60 },
-    xAxis: { type: 'category', data: dates, axisLabel: { fontSize: 11, color: '#94a3b8' } },
+    xAxis: { type: 'category', data: labels, axisLabel: { fontSize: 11, color: '#94a3b8' } },
     yAxis: { type: 'value', name: unit, nameTextStyle: { fontSize: 11, color: '#94a3b8' }, axisLabel: { fontSize: 11, color: '#94a3b8' }, splitLine: { lineStyle: { color: '#f1f5f9' } } },
     series: [{
       type: 'line', data: values, smooth: true, symbol: 'circle', symbolSize: 6,
@@ -179,12 +178,25 @@ watch(selectedTrendCode, () => nextTick(renderChart))
 watch(trendDays, () => {
   if (selectedPatient.value) fetchTrendChart()
 })
+watch(trendGranularity, () => {
+  if (selectedPatient.value) fetchTrendChart()
+})
 
 const trendTablePage = ref(1)
 const trendTableSize = ref(10)
 const trendTableRecords = computed(() => {
   if (!selectedTrendCode.value) return []
-  return (trendData.value[selectedTrendCode.value] || []).slice().reverse()
+  const points = trendData.value[selectedTrendCode.value] || []
+  // 扁平化所有明细记录用于表格展示
+  const records = []
+  points.forEach(p => {
+    if (p.details && p.details.length > 0) {
+      p.details.forEach(d => {
+        records.push({ timeLabel: p.timeLabel, ...d })
+      })
+    }
+  })
+  return records.reverse()
 })
 const trendPagedRecords = computed(() => {
   const from = (trendTablePage.value - 1) * trendTableSize.value
@@ -338,7 +350,9 @@ onBeforeUnmount(() => {
         <div class="search-card">
           <div class="selected-patient">
             <span class="sp-name">{{ selectedPatient.patientName }}</span>
-            <button class="sp-close" @click="clearTrend">← 返回患者列表</button>
+            <button class="sp-back" @click="clearTrend">
+              <span class="sp-back-arrow">‹</span> 返回患者列表
+            </button>
           </div>
         </div>
 
@@ -350,7 +364,11 @@ onBeforeUnmount(() => {
             </el-select>
           </div>
           <div class="tb-right">
-            <span class="tb-label">范围：</span>
+            <span class="tb-label">粒度：</span>
+            <button :class="['tb-chip', { active: trendGranularity === 'DAY' }]" @click="trendGranularity = 'DAY'">按日</button>
+            <button :class="['tb-chip', { active: trendGranularity === 'WEEK' }]" @click="trendGranularity = 'WEEK'">按周</button>
+            <button :class="['tb-chip', { active: trendGranularity === 'MONTH' }]" @click="trendGranularity = 'MONTH'">按月</button>
+            <span class="tb-label" style="margin-left:16px">范围：</span>
             <button :class="['tb-chip', { active: trendDays === 7 }]" @click="trendDays = 7">近7天</button>
             <button :class="['tb-chip', { active: trendDays === 14 }]" @click="trendDays = 14">近14天</button>
             <button :class="['tb-chip', { active: trendDays === 30 }]" @click="trendDays = 30">近30天</button>
@@ -365,13 +383,13 @@ onBeforeUnmount(() => {
         <div class="table-card" v-if="selectedTrendCode && trendTableRecords.length > 0">
           <div class="card-title">{{ indName(selectedTrendCode) }} — 记录明细</div>
           <table class="data-table">
-            <thead><tr><th>记录时间</th><th>数值</th><th>单位</th><th>备注</th></tr></thead>
+            <thead><tr><th>日期</th><th>时间</th><th>数值</th><th>单位</th></tr></thead>
             <tbody>
               <tr v-for="r in trendPagedRecords" :key="r.id">
+                <td>{{ r.timeLabel }}</td>
                 <td>{{ fmtTime(r.recordTime) }}</td>
                 <td><span class="value-num">{{ r.indexValue }}</span></td>
                 <td>{{ r.unit || '-' }}</td>
-                <td>{{ r.remark || '-' }}</td>
               </tr>
             </tbody>
           </table>
@@ -570,10 +588,12 @@ onBeforeUnmount(() => {
 .main-tabs :deep(.el-tabs__nav-wrap::after) { height: 1px; }
 
 .search-card { background: #fff; border-radius: 16px; padding: 16px 24px; border: 1px solid #f1f5f9; box-shadow: 0 1px 4px rgba(0,0,0,0.03); }
-.selected-patient { display: flex; align-items: center; gap: 8px; }
-.sp-name { font-size: 14px; font-weight: 700; color: #1e40af; }
-.sp-close { margin-left: auto; padding: 4px 12px; border-radius: 7px; border: 1px solid #fecaca; background: #fef2f2; color: #dc2626; font-size: 12px; cursor: pointer; white-space: nowrap; }
-.sp-close:hover { background: #fee2e2; }
+.selected-patient { display: flex; align-items: center; gap: 12px; }
+.sp-name { font-size: 15px; font-weight: 700; color: #1e293b; }
+.sp-back { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; padding: 6px 16px 6px 12px; border-radius: 20px; border: 1px solid #e2e8f0; background: #fff; color: #64748b; font-size: 13px; cursor: pointer; transition: all .2s; }
+.sp-back-arrow { font-size: 20px; font-weight: 300; line-height: 1; color: #94a3b8; transition: color .2s; }
+.sp-back:hover { background: #f8fafc; border-color: #93c5fd; color: #3b82f6; }
+.sp-back:hover .sp-back-arrow { color: #3b82f6; }
 
 .toolbar-card { background: #fff; border-radius: 16px; padding: 14px 20px; border: 1px solid #f1f5f9; box-shadow: 0 1px 4px rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
 .filter-row { display: flex; align-items: center; gap: 12px; }

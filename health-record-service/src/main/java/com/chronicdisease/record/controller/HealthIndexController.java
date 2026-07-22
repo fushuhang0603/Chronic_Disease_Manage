@@ -6,6 +6,7 @@ import com.chronicdisease.record.domain.dto.HealthIndexDTO;
 import com.chronicdisease.record.domain.dto.HealthIndexPageDTO;
 import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.record.domain.entity.HealthIndexRecord;
+import com.chronicdisease.record.domain.vo.TrendPointVO;
 import com.chronicdisease.record.service.Impl.IHealthIndexService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -41,14 +42,6 @@ public class HealthIndexController {
         return Result.success(healthIndexService.pageRecords(dto));
     }
 
-    @OperationLog(module = "健康指标", description = "获取指标图表数据")
-    @GetMapping("/chart")
-    @Operation(summary = "获取健康指标图表数据")
-    public Result<Map<String, List<HealthIndexRecord>>> getChart(@RequestParam(value = "days", defaultValue = "7") Integer Days) {
-        Map<String, List<HealthIndexRecord>> map = healthIndexService.getChart(Days);
-        return Result.success(map);
-    }
-
     @OperationLog(module = "健康指标", description = "删除健康指标记录")
     @PostMapping("/delete")
     @Operation(summary = "删除健康指标记录")
@@ -70,5 +63,27 @@ public class HealthIndexController {
         PageResult<HealthIndexRecord> pageResult = healthIndexService.pageRecordsByPatientName(patientName, pageNum, pageSize, indexCode);
 
         return Result.success(pageResult);
+    }
+
+
+    @OperationLog(module = "健康指标", description = "患者端获取指标趋势聚合数据")
+    @GetMapping("/chart/trend")
+    @Operation(summary = "患者端获取指标趋势聚合数据（日/周/月粒度）")
+    public Result<Map<String, List<TrendPointVO>>> trend(
+            @RequestParam(value = "days", defaultValue = "7") Integer days,
+            @RequestParam(value = "granularity", defaultValue = "DAY") String granularity,
+            @RequestParam(value = "indexCodes", required = false) List<String> indexCodes) {
+        return Result.success(healthIndexService.getTrend(days, granularity, indexCodes));
+    }
+
+    @OperationLog(module = "数据监测", description = "管理端获取指定患者指标趋势聚合数据")
+    @GetMapping("/admin/trend")
+    @Operation(summary = "管理端获取指定患者指标趋势聚合数据（日/周/月粒度）")
+    public Result<Map<String, List<TrendPointVO>>> adminTrend(
+            @RequestParam(value = "patientName") String patientName,
+            @RequestParam(value = "days", defaultValue = "30") Integer days,
+            @RequestParam(value = "granularity", defaultValue = "DAY") String granularity,
+            @RequestParam(value = "indexCodes", required = false) List<String> indexCodes) {
+        return Result.success(healthIndexService.getAdminTrend(patientName, days, granularity, indexCodes));
     }
 }

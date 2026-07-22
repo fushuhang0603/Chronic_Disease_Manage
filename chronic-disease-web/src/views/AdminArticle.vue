@@ -72,8 +72,8 @@
           </div>
         </div>
 
-        <div v-if="total > pageSize" class="pagination-wrap">
-          <el-pagination background layout="total, prev, pager, next" :total="total" :page-size="pageSize" :current-page="pageNum" @current-change="handlePageChange" />
+        <div class="pagination-wrap">
+          <el-pagination background layout="total, sizes, prev, pager, next" :total="total" :page-size="pageSize" :page-sizes="[10, 20, 50]" :current-page="pageNum" @current-change="handlePageChange" @size-change="handleSizeChange" />
         </div>
       </div>
 
@@ -213,6 +213,7 @@ async function fetchRecords() {
 
 function handleSearch() { pageNum.value = 1; fetchRecords() }
 function handlePageChange(p) { pageNum.value = p; fetchRecords() }
+function handleSizeChange(s) { pageSize.value = s; pageNum.value = 1; fetchRecords() }
 
 function openDialog(item) {
   if (item) {
@@ -389,7 +390,7 @@ onMounted(() => { fetchRecords(); fetchRank() })
 .empty-state .hint { font-size: 12px; margin-top: 4px; color: #cbd5e1; }
 .empty-state.small { padding: 40px 20px; }
 
-.pagination-wrap { display: flex; justify-content: center; margin-top: 16px; }
+.pagination-wrap { display: flex; justify-content: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9; }
 
 /* 排行侧栏 */
 .side-card {
@@ -477,5 +478,10 @@ onMounted(() => { fetchRecords(); fetchRank() })
 @media (max-width: 960px) {
   .content-cols { flex-direction: column; }
   .col-side { width: 100%; }
+}
+
+::deep(.el-pagination.is-background .el-pager li:not(.is-disabled).is-active) {
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  border-radius: 8px;
 }
 </style>

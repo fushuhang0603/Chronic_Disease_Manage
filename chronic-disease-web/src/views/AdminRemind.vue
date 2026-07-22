@@ -70,6 +70,12 @@ function handlePageChange(p) {
   fetchRecords()
 }
 
+function handleSizeChange(s) {
+  pageSize.value = s
+  pageNum.value = 1
+  fetchRecords()
+}
+
 function fmtTime(val) {
   if (!val) return ''
   return val.replace('T', ' ').substring(0, 16)
@@ -302,14 +308,16 @@ onMounted(() => fetchRecords())
       </div>
 
       <!-- 分页 -->
-      <div v-if="total > pageSize" class="page-wrap">
+      <div class="pagination-wrap">
         <el-pagination
           background
-          layout="total, prev, pager, next"
+          layout="total, sizes, prev, pager, next"
           :total="total"
           :page-size="pageSize"
+          :page-sizes="[10, 20, 50]"
           :current-page="pageNum"
           @current-change="handlePageChange"
+          @size-change="handleSizeChange"
         />
       </div>
     </div>
@@ -418,7 +426,7 @@ onMounted(() => fetchRecords())
 .empty-text { font-size: 15px; color: #94a3b8; font-weight: 500; margin: 0; }
 
 /* 分页 */
-.page-wrap { display: flex; justify-content: center; margin-top: 18px; }
+.pagination-wrap { display: flex; justify-content: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9; }
 
 /* ===== 行内表单（与患者端一致） ===== */
 .remind-form {
@@ -488,6 +496,11 @@ onMounted(() => fetchRecords())
 /* 动画 */
 .slide-enter-active, .slide-leave-active { transition: all 0.3s ease; }
 .slide-enter-from, .slide-leave-to { opacity: 0; transform: translateY(-10px); }
+
+::deep(.el-pagination.is-background .el-pager li:not(.is-disabled).is-active) {
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  border-radius: 8px;
+}
 </style>
 
 <style>

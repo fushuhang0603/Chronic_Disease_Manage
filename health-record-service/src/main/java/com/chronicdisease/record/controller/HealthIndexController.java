@@ -44,7 +44,7 @@ public class HealthIndexController {
     @OperationLog(module = "健康指标", description = "获取指标图表数据")
     @GetMapping("/chart")
     @Operation(summary = "获取健康指标图表数据")
-    public Result<Map<String, List<HealthIndexRecord>>> getChart(@RequestParam(value = "Days", defaultValue = "7") Integer Days) {
+    public Result<Map<String, List<HealthIndexRecord>>> getChart(@RequestParam(value = "days", defaultValue = "7") Integer Days) {
         Map<String, List<HealthIndexRecord>> map = healthIndexService.getChart(Days);
         return Result.success(map);
     }

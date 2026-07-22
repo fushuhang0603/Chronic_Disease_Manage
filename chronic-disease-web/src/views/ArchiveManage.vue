@@ -58,6 +58,12 @@ function handlePageChange(page) {
   fetchPage()
 }
 
+function handleSizeChange(s) {
+  query.pageSize = s
+  query.pageNum = 1
+  fetchPage()
+}
+
 function openDetail(archive) {
   currentArchive.value = archive
 }
@@ -181,14 +187,16 @@ onMounted(() => fetchPage())
       </div>
 
       <!-- 分页 -->
-      <div v-if="total > query.pageSize" class="pagination-wrap">
+      <div class="pagination-wrap">
         <el-pagination
           background
-          layout="prev, pager, next"
+          layout="total, sizes, prev, pager, next"
           :total="total"
           :page-size="query.pageSize"
+          :page-sizes="[10, 20, 50]"
           :current-page="query.pageNum"
           @current-change="handlePageChange"
+          @size-change="handleSizeChange"
         />
       </div>
     </template>
@@ -371,7 +379,7 @@ onMounted(() => fetchPage())
 
 /* ===== 分页 ===== */
 .pagination-wrap {
-  display: flex; justify-content: center; margin-top: 28px;
+  display: flex; justify-content: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9;
 }
 
 /* ===== 详情模式 ===== */
@@ -453,4 +461,9 @@ onMounted(() => fetchPage())
   margin: 0; white-space: pre-wrap;
 }
 .text-content.warn { color: #dc2626; font-weight: 600; }
+
+::deep(.el-pagination.is-background .el-pager li:not(.is-disabled).is-active) {
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  border-radius: 8px;
+}
 </style>

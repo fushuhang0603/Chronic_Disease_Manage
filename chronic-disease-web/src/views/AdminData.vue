@@ -266,8 +266,8 @@ onMounted(() => {
             </tbody>
           </table>
           <div v-else class="empty-msg">暂无记录</div>
-          <div v-if="patientFilteredRecords.length > patientTableSize" class="page-wrap">
-            <el-pagination background layout="prev, pager, next" :total="patientFilteredRecords.length" :page-size="patientTableSize" :current-page="patientTablePage" @current-change="p => patientTablePage = p" />
+          <div class="pagination-wrap">
+            <el-pagination background layout="total, sizes, prev, pager, next" :page-sizes="[10, 20, 50]" :total="patientFilteredRecords.length" :page-size="patientTableSize" :current-page="patientTablePage" @current-change="p => patientTablePage = p" @size-change="s => patientTableSize = s" />
           </div>
         </div>
       </template>
@@ -300,8 +300,8 @@ onMounted(() => {
             </tbody>
           </table>
           <div v-else class="empty-msg">暂无数据</div>
-          <div v-if="allTotal > allPageSize" class="page-wrap">
-            <el-pagination background layout="prev, pager, next" :total="allTotal" :page-size="allPageSize" :current-page="allPage" @current-change="handleAllPageChange" />
+          <div class="pagination-wrap">
+            <el-pagination background layout="total, sizes, prev, pager, next" :page-sizes="[10, 20, 50]" :total="allTotal" :page-size="allPageSize" :current-page="allPage" @current-change="handleAllPageChange" @size-change="s => { allPageSize = s; allPage = 1; loadTabAllRecords() }" />
           </div>
         </div>
       </template>
@@ -352,8 +352,8 @@ onMounted(() => {
             </tbody>
           </table>
           <div v-else class="empty-msg">暂无数据</div>
-          <div v-if="allTotal > allPageSize" class="page-wrap">
-            <el-pagination background layout="prev, pager, next" :total="allTotal" :page-size="allPageSize" :current-page="allPage" @current-change="handleAllPageChange" />
+          <div class="pagination-wrap">
+            <el-pagination background layout="total, sizes, prev, pager, next" :page-sizes="[10, 20, 50]" :total="allTotal" :page-size="allPageSize" :current-page="allPage" @current-change="handleAllPageChange" @size-change="s => { allPageSize = s; allPage = 1; loadTabAllRecords() }" />
           </div>
         </div>
       </template>
@@ -404,8 +404,8 @@ onMounted(() => {
             </tbody>
           </table>
           <div v-else class="empty-msg">暂无数据</div>
-          <div v-if="allTotal > allPageSize" class="page-wrap">
-            <el-pagination background layout="prev, pager, next" :total="allTotal" :page-size="allPageSize" :current-page="allPage" @current-change="handleAllPageChange" />
+          <div class="pagination-wrap">
+            <el-pagination background layout="total, sizes, prev, pager, next" :page-sizes="[10, 20, 50]" :total="allTotal" :page-size="allPageSize" :current-page="allPage" @current-change="handleAllPageChange" @size-change="s => { allPageSize = s; allPage = 1; loadTabAllRecords() }" />
           </div>
         </div>
       </template>
@@ -447,6 +447,10 @@ onMounted(() => {
 .value-num { font-weight: 600; color: #1e293b; }
 .patient-name { font-weight: 600; color: #1e40af; }
 
-.page-wrap { display: flex; justify-content: center; margin-top: 14px; }
+.pagination-wrap { display: flex; justify-content: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9; }
+::deep(.el-pagination.is-background .el-pager li:not(.is-disabled).is-active) {
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  border-radius: 8px;
+}
 .empty-msg { display: flex; align-items: center; justify-content: center; padding: 60px 20px; color: #94a3b8; font-size: 14px; }
 </style>

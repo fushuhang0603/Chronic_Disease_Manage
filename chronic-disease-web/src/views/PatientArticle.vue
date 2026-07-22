@@ -31,8 +31,8 @@
       <div v-else-if="!loading" class="empty-box">暂无资讯</div>
     </div>
 
-    <div v-if="total > pageSize" class="page-wrap">
-      <el-pagination background layout="total, prev, pager, next" :total="total" :page-size="pageSize" :current-page="pageNum" @current-change="handlePageChange" />
+    <div class="pagination-wrap">
+      <el-pagination background layout="total, sizes, prev, pager, next" :total="total" :page-size="pageSize" :page-sizes="[10, 20, 50]" :current-page="pageNum" @current-change="handlePageChange" @size-change="handleSizeChange" />
     </div>
 
     <!-- 详情弹窗 -->
@@ -115,6 +115,7 @@ async function handleFavorite(item) {
   catch { ElMessage.error('操作失败') }
 }
 function handlePageChange(p) { pageNum.value = p; fetchRecords() }
+function handleSizeChange(s) { pageSize.value = s; pageNum.value = 1; fetchRecords() }
 onMounted(() => fetchRecords())
 </script>
 
@@ -159,11 +160,16 @@ onMounted(() => fetchRecords())
 .fav-dialog-btn:hover { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #1d4ed8; }
 
 .empty-box { display: flex; justify-content: center; padding: 48px 0; color: #94a3b8; font-size: 14px; }
-.page-wrap { display: flex; justify-content: center; padding: 10px 0; }
+.pagination-wrap { display: flex; justify-content: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9; }
 
 :deep(.el-dialog) { border-radius: 14px; resize: both; overflow: auto; min-width: 400px; min-height: 300px; background: linear-gradient(180deg, #fff 0%, #f0f6ff 100%); }
 :deep(.el-dialog__header) { padding: 22px 24px 0; }
 :deep(.el-dialog__title) { font-size: 17px; font-weight: 700; max-width: 580px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
 :deep(.el-dialog__body) { padding: 14px 24px; }
 :deep(.el-dialog__footer) { padding: 0 24px 22px; }
+
+::deep(.el-pagination.is-background .el-pager li:not(.is-disabled).is-active) {
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  border-radius: 8px;
+}
 </style>

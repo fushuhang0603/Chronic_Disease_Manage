@@ -458,7 +458,7 @@ onMounted(() => {
         </el-table>
         <div class="pagination-wrap">
           <el-pagination background layout="total, sizes, prev, pager, next" :total="indexTotal" :page-size="indexPageSize"
-            :current-page="indexPageNum" :page-sizes="[5, 10, 20]" @size-change="handleIndexSizeChange" @current-change="handleIndexPageChange" />
+            :current-page="indexPageNum" :page-sizes="[10, 20, 50]" @size-change="handleIndexSizeChange" @current-change="handleIndexPageChange" />
         </div>
       </div>
     </div>
@@ -717,7 +717,7 @@ onMounted(() => {
 
 .value-cell { font-size: 16px; font-weight: 700; color: #1e293b; }
 .value-unit { font-size: 12px; font-weight: 400; color: #64748b; margin-left: 4px; }
-.pagination-wrap { display: flex; justify-content: flex-end; margin-top: 16px; }
+.pagination-wrap { display: flex; justify-content: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9; }
 
 .value-input::-webkit-outer-spin-button,
 .value-input::-webkit-inner-spin-button { opacity: 1; }

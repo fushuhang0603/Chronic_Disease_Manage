@@ -72,6 +72,12 @@ function handlePageChange(p) {
   fetchRecords()
 }
 
+function handleSizeChange(s) {
+  pageSize.value = s
+  pageNum.value = 1
+  fetchRecords()
+}
+
 async function handleSubmit() {
   if (!form.title.trim()) { ElMessage.warning('请输入提醒标题'); return }
   if (!form.remindTime) { ElMessage.warning('请选择提醒时间'); return }
@@ -290,14 +296,16 @@ onMounted(() => fetchRecords())
       </div>
 
       <!-- 分页 -->
-      <div v-if="total > pageSize" class="pagination-wrap">
+      <div class="pagination-wrap">
         <el-pagination
           background
-          layout="total, prev, pager, next"
+          layout="total, sizes, prev, pager, next"
           :total="total"
           :page-size="pageSize"
+          :page-sizes="[10, 20, 50]"
           :current-page="pageNum"
           @current-change="handlePageChange"
+          @size-change="handleSizeChange"
         />
       </div>
     </div>
@@ -509,9 +517,14 @@ onMounted(() => fetchRecords())
 .empty-sub { font-size: 13px; color: #cbd5e1; margin: 0; }
 
 /* ===== 分页 ===== */
-.pagination-wrap { display: flex; justify-content: flex-end; margin-top: 18px; }
+.pagination-wrap { display: flex; justify-content: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9; }
 
 /* ===== 动画 ===== */
 .slide-enter-active, .slide-leave-active { transition: all 0.3s ease; }
 .slide-enter-from, .slide-leave-to { opacity: 0; transform: translateY(-10px); }
+
+::deep(.el-pagination.is-background .el-pager li:not(.is-disabled).is-active) {
+  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  border-radius: 8px;
+}
 </style>

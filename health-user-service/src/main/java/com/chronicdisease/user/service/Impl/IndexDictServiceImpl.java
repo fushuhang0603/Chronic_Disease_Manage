@@ -1,4 +1,4 @@
-package com.chronicdisease.user.service.Impl.Impl;
+package com.chronicdisease.user.service.Impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -11,7 +11,7 @@ import com.chronicdisease.user.domain.dto.IndexDictDTO;
 import com.chronicdisease.user.domain.entity.IndexDict;
 import com.chronicdisease.user.domain.query.IndexDictQuery;
 import com.chronicdisease.user.mapper.IndexDictMapper;
-import com.chronicdisease.user.service.Impl.IIndexDictService;
+import com.chronicdisease.user.service.IIndexDictService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 

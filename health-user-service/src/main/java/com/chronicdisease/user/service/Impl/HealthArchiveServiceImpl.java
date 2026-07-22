@@ -1,4 +1,4 @@
-package com.chronicdisease.user.service.Impl.Impl;
+package com.chronicdisease.user.service.Impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
@@ -13,7 +13,7 @@ import com.chronicdisease.user.domain.entity.HealthArchive;
 import com.chronicdisease.user.domain.query.HealthArchiveQuery;
 import com.chronicdisease.user.domain.vo.PatientBriefVO;
 import com.chronicdisease.user.mapper.HealthArchiveMapper;
-import com.chronicdisease.user.service.Impl.IHealthArchiveService;
+import com.chronicdisease.user.service.IHealthArchiveService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

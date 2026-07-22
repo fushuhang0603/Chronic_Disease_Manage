@@ -1,7 +1,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { User } from '@element-plus/icons-vue'
+import { ArrowLeft, DocumentCopy, User } from '@element-plus/icons-vue'
 import { getArchivePage, deleteArchive } from '../api/user.js'
 
 const loading = ref(false)
@@ -135,47 +135,29 @@ onMounted(() => fetchPage())
           class="arc-card"
           @click="openDetail(item)"
         >
-          <div class="card-top">
-            <div class="card-avatar">
-              <el-icon :size="22"><User /></el-icon>
-            </div>
-            <div class="card-name">{{ item.patientName || '未填写' }}</div>
-            <el-tag
-              :type="item.chronicType === '糖尿病' ? 'danger' : item.chronicType === '高血压' ? 'warning' : 'info'"
-              size="small"
-              effect="plain"
-            >
-              {{ item.chronicType || '未知' }}
-            </el-tag>
-          </div>
-
-          <div class="card-body">
-            <div class="card-row">
-              <span class="card-label">性别</span>
-              <span class="card-value">{{ genderMap[item.gender] || '—' }}</span>
-            </div>
-            <div class="card-row">
-              <span class="card-label">年龄</span>
-              <span class="card-value">{{ calcAge(item.birthDate) || '—' }}岁</span>
-            </div>
-            <div class="card-row">
-              <span class="card-label">手机</span>
-              <span class="card-value">{{ item.phone || '—' }}</span>
-            </div>
-            <div class="card-row">
-              <span class="card-label">身份证</span>
-              <span class="card-value">{{ maskIdCard(item.idCard) }}</span>
+          <div class="arc-head">
+            <div class="arc-head-info">
+              <div class="arc-name">{{ item.patientName || '未填写' }}</div>
+              <span class="arc-tag">{{ item.chronicType || '未知慢病' }}</span>
             </div>
           </div>
-
-          <div class="card-foot">
-            <span class="card-time">建档：{{ item.createTime?.slice(0, 10) || '—' }}</span>
-            <el-button
-              type="danger"
-              text
-              size="small"
-              @click.stop="handleDelete(item)"
-            >删除</el-button>
+          <div class="arc-body">
+            <div class="arc-stat">
+              <span class="arc-stat-label">性别 / 年龄</span>
+              <span class="arc-stat-val">{{ genderMap[item.gender] || '—' }} · {{ calcAge(item.birthDate) || '—' }}岁</span>
+            </div>
+            <div class="arc-stat">
+              <span class="arc-stat-label">联系电话</span>
+              <span class="arc-stat-val">{{ item.phone || '—' }}</span>
+            </div>
+            <div class="arc-stat">
+              <span class="arc-stat-label">身份证号</span>
+              <span class="arc-stat-val">{{ maskIdCard(item.idCard) }}</span>
+            </div>
+          </div>
+          <div class="arc-foot">
+            <span class="arc-time">建档：{{ item.createTime?.slice(0, 10) || '—' }}</span>
+            <button class="arc-del" @click.stop="handleDelete(item)">删除</button>
           </div>
         </div>
       </div>
@@ -320,7 +302,7 @@ onMounted(() => fetchPage())
 /* ===== 卡片网格 ===== */
 .card-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 16px;
   min-height: 120px;
 }
@@ -328,47 +310,63 @@ onMounted(() => fetchPage())
 .arc-card {
   background: #fff;
   border-radius: 14px;
-  border: 1px solid #e2e8f0;
-  padding: 20px;
+  overflow: hidden;
   cursor: pointer;
-  transition: all 0.2s;
-  display: flex; flex-direction: column; gap: 14px;
+  transition: all 0.25s;
+  display: flex; flex-direction: column;
+  border: 1px solid #f1f5f9;
 }
 .arc-card:hover {
-  box-shadow: 0 4px 16px rgba(59,130,246,0.12);
-  border-color: #93c5fd;
-  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+  transform: translateY(-3px);
+  border-color: #e2e8f0;
 }
 
-.card-top {
-  display: flex; align-items: center; gap: 10px;
+.arc-head {
+  padding: 18px 20px 14px;
+  background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 50%, #ecfeff 100%);
+  border-bottom: 1px solid #e0f2fe;
 }
-.card-avatar {
-  width: 38px; height: 38px; border-radius: 10px;
-  background: linear-gradient(135deg, #93c5fd, #60a5fa);
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.card-avatar .el-icon { color: #fff; }
-.card-name {
-  font-size: 16px; font-weight: 700; color: #1e293b;
-  flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-
-.card-body {
+.arc-head-info {
   display: flex; flex-direction: column; gap: 6px;
-  padding: 10px 0;
-  border-top: 1px solid #f1f5f9;
-  border-bottom: 1px solid #f1f5f9;
 }
-.card-row { display: flex; justify-content: space-between; align-items: center; }
-.card-label { font-size: 12px; color: #94a3b8; }
-.card-value { font-size: 13px; color: #334155; font-weight: 500; }
+.arc-name {
+  font-size: 16px; font-weight: 700; color: #1e293b;
+}
+.arc-tag {
+  display: inline-block; width: fit-content;
+  padding: 2px 10px; border-radius: 10px;
+  font-size: 11px; font-weight: 600;
+  background: #dbeafe; color: #2563eb;
+}
 
-.card-foot {
+.arc-body {
+  padding: 14px 18px; flex: 1;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.arc-stat {
   display: flex; justify-content: space-between; align-items: center;
 }
-.card-time { font-size: 12px; color: #94a3b8; }
+.arc-stat-label {
+  font-size: 12px; color: #94a3b8;
+}
+.arc-stat-val {
+  font-size: 13px; color: #334155; font-weight: 500;
+}
+
+.arc-foot {
+  padding: 12px 18px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid #f8fafc;
+}
+.arc-time { font-size: 12px; color: #94a3b8; }
+.arc-del {
+  padding: 4px 10px; border-radius: 6px; border: none;
+  background: #fef2f2; color: #dc2626;
+  font-size: 12px; cursor: pointer; font-weight: 500;
+  transition: all 0.15s;
+}
+.arc-del:hover { background: #fee2e2; }
 
 /* ===== 空状态 ===== */
 .empty-state {

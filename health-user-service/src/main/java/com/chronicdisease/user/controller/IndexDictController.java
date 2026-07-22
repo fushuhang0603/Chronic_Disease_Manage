@@ -6,7 +6,7 @@ import com.chronicdisease.common.result.Result;
 import com.chronicdisease.user.domain.dto.IndexDictDTO;
 import com.chronicdisease.user.domain.entity.IndexDict;
 import com.chronicdisease.user.domain.query.IndexDictQuery;
-import com.chronicdisease.user.service.Impl.IIndexDictService;
+import com.chronicdisease.user.service.IIndexDictService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

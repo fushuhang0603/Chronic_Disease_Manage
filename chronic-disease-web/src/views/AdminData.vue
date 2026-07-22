@@ -1,11 +1,11 @@
 <script setup>
-import { ref, computed, onMounted, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, nextTick, watch, onBeforeUnmount } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import { getUserHealthRecords, getMedicineRecords, getRecheckRecords, getDictPage } from '../api/user.js'
 
-const activeTab = ref('index')
+const activeTab = ref(localStorage.getItem('adminActiveTab') || 'trend')
 const patientSearch = ref('')
 const selectedPatient = ref(null)
 const patientSearching = ref(false)
@@ -19,7 +19,7 @@ async function loadIndicators() {
   try {
     const data = await getDictPage({ pageNum: 1, pageSize: 100, termType: 'indicator' })
     indicators.value = (data.records || []).filter(d => d.status === 1).map(d => ({
-      code: d.indexCode, name: d.indexName, unit: d.unit
+      code: d.indexCode, name: d.indexName, unit: d.unit || ''
     }))
   } catch { /* ignore */ }
 }
@@ -57,107 +57,147 @@ function recheckItemName(code) {
   return d ? d.name : code
 }
 
-// ====== 图表（仅 index tab 用） ======
-const chartData = ref({})
-const selectedIndicator = ref(null)
+// ====== 趋势图表 Tab — 患者卡片列表 ======
+const cardLoading = ref(false)
+const patientCards = ref([])
+const cardSearch = ref('')
+
+const filteredCards = computed(() => {
+  if (!cardSearch.value.trim()) return patientCards.value
+  const kw = cardSearch.value.trim().toLowerCase()
+  return patientCards.value.filter(c => c.patientName.toLowerCase().includes(kw))
+})
+
+async function loadPatientCards() {
+  cardLoading.value = true
+  try {
+    const data = await getUserHealthRecords({ pageSize: 1000 })
+    const records = data.records || []
+    // 按患者姓名分组，统计每个患者的概要信息
+    const map = {}
+    records.forEach(r => {
+      const name = r.patientName || '未知'
+      if (!map[name]) {
+        map[name] = {
+          patientName: name,
+          recordCount: 0,
+          lastRecordTime: '',
+          indicatorCodes: new Set()
+        }
+      }
+      map[name].recordCount++
+      if (!map[name].lastRecordTime || r.recordTime > map[name].lastRecordTime) {
+        map[name].lastRecordTime = r.recordTime
+      }
+      map[name].indicatorCodes.add(r.indexCode)
+    })
+    patientCards.value = Object.values(map)
+      .map(c => ({ ...c, indicatorCount: c.indicatorCodes.size }))
+      .sort((a, b) => b.lastRecordTime.localeCompare(a.lastRecordTime))
+  } catch (e) {
+    ElMessage.error(e.message || '加载患者列表失败')
+  } finally { cardLoading.value = false }
+}
+
+function openPatientChart(patientName) {
+  selectedPatient.value = { patientName }
+  patientSearch.value = patientName
+  fetchTrendChart()
+}
+
+// ====== 趋势图表 Tab — 图表详情 ======
+const trendLoading = ref(false)
+const trendData = ref({})
+const selectedTrendCode = ref('')
 const trendDays = ref(30)
 let chartInstance = null
 
-function buildChartData(records) {
-  const grouped = {}
-  const sorted = records.sort((a, b) => (a.recordTime || '').localeCompare(b.recordTime || ''))
-  for (const r of sorted) {
-    if (!grouped[r.indexCode]) grouped[r.indexCode] = []
-    grouped[r.indexCode].push(r)
-  }
-  chartData.value = grouped
-  const codes = Object.keys(grouped)
-  selectedIndicator.value = codes.length > 0 ? codes[0] : null
-  nextTick(renderChart)
+async function fetchTrendChart() {
+  const name = selectedPatient.value?.patientName
+  if (!name) return
+  trendLoading.value = true
+  try {
+    const data = await getUserHealthRecords({ patientName: name, pageNum: 1, pageSize: 1000 })
+    const records = data.records || []
+    if (records.length === 0) {
+      trendData.value = {}
+      selectedTrendCode.value = ''
+      return
+    }
+
+    const cutoff = new Date()
+    cutoff.setDate(cutoff.getDate() - trendDays.value)
+    const grouped = {}
+    records
+      .filter(r => !trendDays.value || new Date(r.recordTime) >= cutoff)
+      .sort((a, b) => (a.recordTime || '').localeCompare(b.recordTime || ''))
+      .forEach(r => {
+        if (!grouped[r.indexCode]) grouped[r.indexCode] = []
+        grouped[r.indexCode].push(r)
+      })
+    trendData.value = Object.keys(grouped).length > 0 ? grouped : {}
+    selectedTrendCode.value = Object.keys(grouped).length > 0 ? Object.keys(grouped)[0] : ''
+    nextTick(renderChart)
+  } catch (e) {
+    ElMessage.error(e.message || '加载趋势图失败')
+  } finally { trendLoading.value = false }
 }
 
 function renderChart() {
-  const code = selectedIndicator.value
-  if (!code) return
-  const records = (chartData.value[code] || []).filter(r => {
-    if (trendDays.value <= 0) return true
-    const cutoff = new Date()
-    cutoff.setDate(cutoff.getDate() - trendDays.value)
-    return new Date(r.recordTime) >= cutoff
-  })
-  const dom = document.getElementById('trend-chart')
-  if (!dom) return
+  const code = selectedTrendCode.value
+  const dom = document.getElementById('admin-trend-chart')
+  if (!dom || !code) return
+  const records = trendData.value[code] || []
   if (chartInstance) chartInstance.dispose()
   chartInstance = echarts.init(dom)
 
+  const indicator = indicators.value.find(i => i.code === code)
+  const unit = indicator?.unit || ''
   const dates = records.map(r => (r.recordTime || '').substring(0, 10))
   const values = records.map(r => Number(r.indexValue || 0))
-  const unit = indicators.value.find(i => i.code === code)?.unit || ''
 
   chartInstance.setOption({
-    tooltip: { trigger: 'axis' },
+    tooltip: {
+      trigger: 'axis',
+      formatter: p => {
+        const name = indicator?.name || code
+        return `<b>${name}</b><br/>${p[0].axisValue}<br/>数值：<b>${p[0].value} ${unit}</b>`
+      }
+    },
     grid: { top: 20, right: 30, bottom: 30, left: 60 },
     xAxis: { type: 'category', data: dates, axisLabel: { fontSize: 11, color: '#94a3b8' } },
-    yAxis: { type: 'value', name: unit, nameTextStyle: { fontSize: 11, color: '#94a3b8' }, axisLabel: { fontSize: 11, color: '#94a3b8' } },
+    yAxis: { type: 'value', name: unit, nameTextStyle: { fontSize: 11, color: '#94a3b8' }, axisLabel: { fontSize: 11, color: '#94a3b8' }, splitLine: { lineStyle: { color: '#f1f5f9' } } },
     series: [{
-      type: 'line', data: values, smooth: true, symbol: 'circle', symbolSize: 5,
-      lineStyle: { color: '#3b82f6', width: 2 },
+      type: 'line', data: values, smooth: true, symbol: 'circle', symbolSize: 6,
+      lineStyle: { color: '#3b82f6', width: 2 }, itemStyle: { color: '#3b82f6' },
       areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(59,130,246,0.25)' }, { offset: 1, color: 'rgba(59,130,246,0.02)' }]) },
-      itemStyle: { color: '#3b82f6' }
-    }]
+    }],
   })
 }
 
-watch(selectedIndicator, () => nextTick(renderChart))
-watch(trendDays, () => nextTick(renderChart))
-
-const patientTablePage = ref(1)
-const patientTableSize = ref(10)
-const patientFilteredRecords = computed(() => {
-  if (!selectedIndicator.value) return []
-  let records = (chartData.value[selectedIndicator.value] || [])
-  if (trendDays.value > 0) {
-    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - trendDays.value)
-    records = records.filter(r => new Date(r.recordTime) >= cutoff)
-  }
-  return records.slice().reverse()
+watch(selectedTrendCode, () => nextTick(renderChart))
+watch(trendDays, () => {
+  if (selectedPatient.value) fetchTrendChart()
 })
-const patientPagedRecords = computed(() => {
-  const from = (patientTablePage.value - 1) * patientTableSize.value
-  return patientFilteredRecords.value.slice(from, from + patientTableSize.value)
+
+const trendTablePage = ref(1)
+const trendTableSize = ref(10)
+const trendTableRecords = computed(() => {
+  if (!selectedTrendCode.value) return []
+  return (trendData.value[selectedTrendCode.value] || []).slice().reverse()
 })
-watch(selectedIndicator, () => { patientTablePage.value = 1 })
-watch(trendDays, () => { patientTablePage.value = 1 })
+const trendPagedRecords = computed(() => {
+  const from = (trendTablePage.value - 1) * trendTableSize.value
+  return trendTableRecords.value.slice(from, from + trendTableSize.value)
+})
+watch(selectedTrendCode, () => { trendTablePage.value = 1 })
+watch(trendDays, () => { trendTablePage.value = 1 })
 
-// ====== 搜索患者 ======
-async function searchPatient() {
-  const name = patientSearch.value.trim()
-  if (!name) return
-  patientSearching.value = true
-  try {
-    const data = await callTabApi({ patientName: name, pageNum: 1, pageSize: 1000 })
-    if (!data.records || data.records.length === 0) {
-      ElMessage.warning('未找到该患者的数据')
-      return
-    }
-    selectedPatient.value = { patientName: name }
-    if (activeTab.value === 'index') {
-      buildChartData(data.records)
-    } else {
-      detailRecords.value = data.records
-    }
-  } catch (e) { ElMessage.error(e.message || '查询失败')
-  } finally { patientSearching.value = false }
-}
-
-function clearPatient() {
+function clearTrend() {
   selectedPatient.value = null
-  chartData.value = {}
-  selectedIndicator.value = null
-  trendDays.value = 30
-  detailRecords.value = []
+  trendData.value = {}
+  selectedTrendCode.value = ''
   if (chartInstance) { chartInstance.dispose(); chartInstance = null }
-  loadTabAllRecords()
 }
 
 // ====== 全部数据 ======
@@ -167,7 +207,7 @@ const allTotal = ref(0)
 const allPage = ref(1)
 const allPageSize = ref(10)
 const allIndexCode = ref('')
-const detailRecords = ref([]) // 非 index tab 的详情记录
+const detailRecords = ref([])
 
 function callTabApi(params) {
   const apiMap = {
@@ -190,12 +230,39 @@ async function loadTabAllRecords() {
   } finally { allLoading.value = false }
 }
 
-function onTabChange() {
+async function searchPatient() {
+  const name = patientSearch.value.trim()
+  if (!name) return
+  patientSearching.value = true
+  try {
+    const data = await callTabApi({ patientName: name, pageNum: 1, pageSize: 1000 })
+    if (!data.records || data.records.length === 0) {
+      ElMessage.warning('未找到该患者的数据')
+      return
+    }
+    selectedPatient.value = { patientName: name }
+    detailRecords.value = data.records
+  } catch (e) { ElMessage.error(e.message || '查询失败')
+  } finally { patientSearching.value = false }
+}
+
+function clearPatient() {
   selectedPatient.value = null
-  chartData.value = {}
   detailRecords.value = []
-  allPage.value = 1
   loadTabAllRecords()
+}
+
+function onTabChange(tab) {
+  localStorage.setItem('adminActiveTab', tab)
+  selectedPatient.value = null
+  trendData.value = {}
+  detailRecords.value = []
+  if (tab === 'trend') {
+    loadPatientCards()
+  } else {
+    allPage.value = 1
+    loadTabAllRecords()
+  }
 }
 
 function handleAllPageChange(p) { allPage.value = p; loadTabAllRecords() }
@@ -208,36 +275,78 @@ onMounted(() => {
   loadIndicators()
   loadDrugDict()
   loadRecheckItemDict()
-  loadTabAllRecords()
+  if (activeTab.value === 'trend') {
+    loadPatientCards()
+  } else {
+    loadTabAllRecords()
+  }
   window.addEventListener('resize', () => chartInstance?.resize())
+})
+
+onBeforeUnmount(() => {
+  if (chartInstance) { chartInstance.dispose(); chartInstance = null }
 })
 </script>
 
 <template>
   <div class="admin-data">
     <el-tabs v-model="activeTab" @tab-change="onTabChange" class="main-tabs">
+      <el-tab-pane label="趋势图表" name="trend" />
       <el-tab-pane label="健康指标" name="index" />
       <el-tab-pane label="用药记录" name="medicine" />
       <el-tab-pane label="复查记录" name="recheck" />
     </el-tabs>
 
-    <!-- 患者详情栏 -->
-    <div class="search-card" v-if="selectedPatient">
-      <div class="selected-patient">
-        <span class="sp-name">{{ selectedPatient.patientName }}</span>
-        <button class="sp-close" @click="clearPatient">✕ 返回全部数据</button>
-      </div>
-    </div>
+    <!-- ========== 趋势图表 Tab ========== -->
+    <template v-if="activeTab === 'trend'">
+      <!-- 列表模式：患者卡片 -->
+      <template v-if="!selectedPatient">
+        <div class="toolbar-card">
+          <div class="filter-row">
+            <el-input v-model="cardSearch" placeholder="搜索患者姓名" :prefix-icon="Search" clearable size="default" style="width: 280px" />
+          </div>
+        </div>
 
-    <!-- ========== 健康指标 Tab ========== -->
-    <template v-if="activeTab === 'index'">
-      <!-- 患者详情：图表 -->
-      <template v-if="selectedPatient">
-        <div class="toolbar-card" v-if="Object.keys(chartData).length > 0">
+        <div v-loading="cardLoading" class="card-grid">
+          <div v-for="card in filteredCards" :key="card.patientName" class="tcard" @click="openPatientChart(card.patientName)">
+            <div class="tcard-head">
+              <div class="tcard-name">{{ card.patientName }}</div>
+            </div>
+            <div class="tcard-body">
+              <div class="tcard-stat-row">
+                <div class="tcard-stat-item">
+                  <span class="tcard-num">{{ card.recordCount }}</span>
+                  <span class="tcard-label">条记录</span>
+                </div>
+                <div class="tcard-stat-item">
+                  <span class="tcard-num">{{ card.indicatorCount }}</span>
+                  <span class="tcard-label">项指标</span>
+                </div>
+              </div>
+              <div class="tcard-time">最近记录：{{ fmtDate(card.lastRecordTime?.substring(0, 10)) }}</div>
+            </div>
+            <div class="tcard-foot">查看趋势图 →</div>
+          </div>
+        </div>
+
+        <div v-if="!cardLoading && filteredCards.length === 0 && patientCards.length > 0" class="empty-msg">未找到匹配的患者</div>
+        <div v-if="!cardLoading && patientCards.length === 0" class="empty-msg">暂无患者指标数据</div>
+      </template>
+
+      <!-- 详情模式：图表 -->
+      <template v-else>
+        <div class="search-card">
+          <div class="selected-patient">
+            <span class="sp-name">{{ selectedPatient.patientName }}</span>
+            <button class="sp-close" @click="clearTrend">← 返回患者列表</button>
+          </div>
+        </div>
+
+        <div class="toolbar-card" v-if="Object.keys(trendData).length > 0">
           <div class="tb-left">
             <span class="tb-label">指标：</span>
-            <el-select v-model="selectedIndicator" placeholder="选择指标" size="default" style="width: 180px">
-              <el-option v-for="code in Object.keys(chartData)" :key="code" :label="indName(code)" :value="code" />
+            <el-select v-model="selectedTrendCode" placeholder="选择指标" size="default" style="width: 200px">
+              <el-option v-for="code in Object.keys(trendData)" :key="code" :label="indName(code)" :value="code" />
             </el-select>
           </div>
           <div class="tb-right">
@@ -245,19 +354,20 @@ onMounted(() => {
             <button :class="['tb-chip', { active: trendDays === 7 }]" @click="trendDays = 7">近7天</button>
             <button :class="['tb-chip', { active: trendDays === 14 }]" @click="trendDays = 14">近14天</button>
             <button :class="['tb-chip', { active: trendDays === 30 }]" @click="trendDays = 30">近30天</button>
-            <button :class="['tb-chip', { active: trendDays === 0 }]" @click="trendDays = 0">全部</button>
+            <button :class="['tb-chip', { active: trendDays === 90 }]" @click="trendDays = 90">近90天</button>
           </div>
         </div>
-        <div class="chart-card">
-          <div v-if="selectedIndicator" id="trend-chart" class="chart-wrap"></div>
-          <div v-else class="empty-msg">请选择一项指标查看趋势图</div>
+
+        <div class="chart-card" v-if="selectedTrendCode">
+          <div v-loading="trendLoading" id="admin-trend-chart" class="chart-wrap"></div>
         </div>
-        <div class="table-card" v-if="selectedIndicator">
-          <div class="card-title">{{ indName(selectedIndicator) }} 记录明细</div>
-          <table class="data-table" v-if="patientPagedRecords.length > 0">
+
+        <div class="table-card" v-if="selectedTrendCode && trendTableRecords.length > 0">
+          <div class="card-title">{{ indName(selectedTrendCode) }} — 记录明细</div>
+          <table class="data-table">
             <thead><tr><th>记录时间</th><th>数值</th><th>单位</th><th>备注</th></tr></thead>
             <tbody>
-              <tr v-for="r in patientPagedRecords" :key="r.id">
+              <tr v-for="r in trendPagedRecords" :key="r.id">
                 <td>{{ fmtTime(r.recordTime) }}</td>
                 <td><span class="value-num">{{ r.indexValue }}</span></td>
                 <td>{{ r.unit || '-' }}</td>
@@ -265,14 +375,41 @@ onMounted(() => {
               </tr>
             </tbody>
           </table>
-          <div v-else class="empty-msg">暂无记录</div>
           <div class="pagination-wrap">
-            <el-pagination background layout="total, sizes, prev, pager, next" :page-sizes="[10, 20, 50]" :total="patientFilteredRecords.length" :page-size="patientTableSize" :current-page="patientTablePage" @current-change="p => patientTablePage = p" @size-change="s => patientTableSize = s" />
+            <el-pagination background layout="total, sizes, prev, pager, next" :page-sizes="[10, 20, 50]" :total="trendTableRecords.length" :page-size="trendTableSize" :current-page="trendTablePage" @current-change="p => trendTablePage = p" @size-change="s => trendTableSize = s" />
           </div>
         </div>
-      </template>
 
-      <!-- 全部数据 -->
+        <div class="table-card empty-msg" v-if="!trendLoading && Object.keys(trendData).length === 0">该患者暂无指标数据</div>
+      </template>
+    </template>
+
+    <!-- ========== 健康指标 Tab ========== -->
+    <template v-if="activeTab === 'index'">
+      <template v-if="selectedPatient">
+        <div class="search-card">
+          <div class="selected-patient">
+            <span class="sp-name">{{ selectedPatient.patientName }}</span>
+            <button class="sp-close" @click="clearPatient">✕ 返回全部数据</button>
+          </div>
+        </div>
+        <div v-loading="allLoading" class="table-card">
+          <div class="card-title">{{ selectedPatient.patientName }} 的指标记录</div>
+          <table class="data-table" v-if="detailRecords.length > 0">
+            <thead><tr><th>指标名称</th><th>数值</th><th>单位</th><th>记录时间</th><th>备注</th></tr></thead>
+            <tbody>
+              <tr v-for="r in detailRecords" :key="r.id">
+                <td>{{ indName(r.indexCode) }}</td>
+                <td><span class="value-num">{{ r.indexValue }}</span></td>
+                <td>{{ r.unit || '-' }}</td>
+                <td>{{ fmtTime(r.recordTime) }}</td>
+                <td>{{ r.remark || '-' }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div v-else class="empty-msg">暂无数据</div>
+        </div>
+      </template>
       <template v-else>
         <div class="toolbar-card">
           <div class="filter-row">
@@ -310,6 +447,12 @@ onMounted(() => {
     <!-- ========== 用药记录 Tab ========== -->
     <template v-if="activeTab === 'medicine'">
       <template v-if="selectedPatient">
+        <div class="search-card">
+          <div class="selected-patient">
+            <span class="sp-name">{{ selectedPatient.patientName }}</span>
+            <button class="sp-close" @click="clearPatient">✕ 返回全部数据</button>
+          </div>
+        </div>
         <div v-loading="allLoading" class="table-card">
           <div class="card-title">{{ selectedPatient.patientName }} 的用药记录</div>
           <table class="data-table" v-if="detailRecords.length > 0">
@@ -362,6 +505,12 @@ onMounted(() => {
     <!-- ========== 复查记录 Tab ========== -->
     <template v-if="activeTab === 'recheck'">
       <template v-if="selectedPatient">
+        <div class="search-card">
+          <div class="selected-patient">
+            <span class="sp-name">{{ selectedPatient.patientName }}</span>
+            <button class="sp-close" @click="clearPatient">✕ 返回全部数据</button>
+          </div>
+        </div>
         <div v-loading="allLoading" class="table-card">
           <div class="card-title">{{ selectedPatient.patientName }} 的复查记录</div>
           <table class="data-table" v-if="detailRecords.length > 0">
@@ -434,9 +583,77 @@ onMounted(() => {
 .tb-chip:hover { border-color: #3b82f6; color: #3b82f6; }
 .tb-chip.active { background: #eff6ff; border-color: #3b82f6; color: #2563eb; }
 
-.chart-card { background: #fff; border-radius: 16px; padding: 20px 24px; border: 1px solid #f1f5f9; box-shadow: 0 1px 4px rgba(0,0,0,0.03); min-height: 280px; }
-.chart-wrap { width: 100%; height: 300px; }
+/* ===== 患者卡片 ===== */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  min-height: 120px;
+}
 
+.tcard {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.25s;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #f1f5f9;
+}
+.tcard:hover {
+  box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+  transform: translateY(-3px);
+  border-color: #e2e8f0;
+}
+
+.tcard-head {
+  padding: 18px 20px 10px;
+  background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 50%, #ecfeff 100%);
+  border-bottom: 1px solid #e0f2fe;
+}
+.tcard-name {
+  font-size: 16px; font-weight: 700; color: #0f172a;
+}
+
+.tcard-body {
+  padding: 16px 20px;
+  flex: 1;
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+.tcard-stat-row {
+  display: flex; gap: 24px;
+}
+.tcard-stat-item {
+  display: flex; align-items: baseline; gap: 4px;
+}
+.tcard-num {
+  font-size: 22px; font-weight: 700; color: #2563eb;
+}
+.tcard-label {
+  font-size: 12px; color: #94a3b8;
+}
+
+.tcard-time {
+  font-size: 12px; color: #94a3b8;
+}
+
+.tcard-foot {
+  padding: 12px 20px;
+  border-top: 1px solid #f8fafc;
+  font-size: 13px; color: #2563eb; font-weight: 500;
+  transition: all 0.2s;
+}
+.tcard:hover .tcard-foot {
+  color: #1d4ed8;
+}
+
+/* ===== 图表 ===== */
+.chart-card { background: #fff; border-radius: 16px; padding: 20px 24px; border: 1px solid #f1f5f9; box-shadow: 0 1px 4px rgba(0,0,0,0.03); min-height: 320px; }
+.chart-wrap { width: 100%; height: 320px; }
+
+/* ===== 表格 ===== */
 .table-card { background: #fff; border-radius: 16px; padding: 20px 24px; border: 1px solid #f1f5f9; box-shadow: 0 1px 4px rgba(0,0,0,0.03); }
 .card-title { font-size: 14px; font-weight: 700; color: #1e293b; margin-bottom: 12px; }
 
@@ -448,7 +665,7 @@ onMounted(() => {
 .patient-name { font-weight: 600; color: #1e40af; }
 
 .pagination-wrap { display: flex; justify-content: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9; }
-::deep(.el-pagination.is-background .el-pager li:not(.is-disabled).is-active) {
+:deep(.el-pagination.is-background .el-pager li:not(.is-disabled).is-active) {
   background: linear-gradient(135deg, #60a5fa, #3b82f6);
   border-radius: 8px;
 }

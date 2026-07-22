@@ -1,4 +1,4 @@
-package com.chronicdisease.user.service.Impl;
+package com.chronicdisease.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.chronicdisease.common.result.PageResult;

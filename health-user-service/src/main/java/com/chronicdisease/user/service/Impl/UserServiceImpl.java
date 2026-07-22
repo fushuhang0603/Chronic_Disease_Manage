@@ -1,4 +1,4 @@
-package com.chronicdisease.user.service.Impl.Impl;
+package com.chronicdisease.user.service.Impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.PhoneUtil;
@@ -18,7 +18,7 @@ import com.chronicdisease.user.domain.vo.LoginVO;
 import com.chronicdisease.user.domain.vo.UserInfoVO;
 import com.chronicdisease.common.exception.BusinessException;
 import com.chronicdisease.user.mapper.UserMapper;
-import com.chronicdisease.user.service.Impl.IUserService;
+import com.chronicdisease.user.service.IUserService;
 import com.chronicdisease.common.util.JwtTool;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;

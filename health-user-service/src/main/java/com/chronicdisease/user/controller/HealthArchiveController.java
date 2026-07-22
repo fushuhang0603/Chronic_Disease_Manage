@@ -7,7 +7,7 @@ import com.chronicdisease.user.domain.dto.HealthArchiveDTO;
 import com.chronicdisease.user.domain.entity.HealthArchive;
 import com.chronicdisease.user.domain.query.HealthArchiveQuery;
 import com.chronicdisease.user.domain.vo.PatientBriefVO;
-import com.chronicdisease.user.service.Impl.IHealthArchiveService;
+import com.chronicdisease.user.service.IHealthArchiveService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

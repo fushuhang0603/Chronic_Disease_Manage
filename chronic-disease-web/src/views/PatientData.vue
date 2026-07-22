@@ -10,9 +10,10 @@ import {
 } from '../api/user.js'
 
 // ====== 通用 ======
-const activeTab = ref('index')
+const activeTab = ref(localStorage.getItem('patientActiveTab') || 'index')
 function switchTab(tab) {
   activeTab.value = tab
+  localStorage.setItem('patientActiveTab', tab)
   nextTick(() => {
     if (tab === 'index' && !indexLoaded.value) fetchIndexRecords()
     if (tab === 'medicine' && !medLoaded.value) fetchMedRecords()
@@ -354,6 +355,12 @@ onMounted(() => {
   fetchIndicators()
   fetchDrugDict()
   fetchRecheckDict()
+  // 恢复刷新前所在 Tab 的数据
+  const tab = activeTab.value
+  if (tab === 'index') fetchIndexRecords()
+  if (tab === 'medicine') fetchMedRecords()
+  if (tab === 'recheck') fetchRecRecords()
+  if (tab === 'trend') fetchTrend()
 })
 </script>
 
@@ -492,18 +499,39 @@ onMounted(() => {
     <div v-show="activeTab === 'medicine'" class="tab-body">
       <div class="input-card">
         <div class="card-head"><span class="head-label">录入用药记录</span></div>
-        <div class="form-row">
-          <el-select v-model="medForm.drugCode" placeholder="选择药品" style="width:180px" filterable>
-            <el-option v-for="opt in drugOptions" :key="opt.code" :label="opt.name" :value="opt.code" />
-          </el-select>
-          <el-input v-model="medForm.dosage" placeholder="剂量，如 0.5g/次" style="width:150px" />
-          <el-input v-model="medForm.frequency" placeholder="频次，如 每日2次" style="width:160px" />
-          <el-date-picker v-model="medForm.startDate" type="date" placeholder="开始日期" style="width:150px" value-format="YYYY-MM-DD" />
-          <el-date-picker v-model="medForm.stopDate" type="date" placeholder="停药日期（选填）" style="width:150px" value-format="YYYY-MM-DD" />
-          <el-input v-model="medForm.remark" placeholder="备注（选填）" style="width:180px" maxlength="200" />
-          <button class="save-btn" :disabled="medSubmitting" @click="handleMedSubmit">
-            {{ medSubmitting ? '保存中...' : '保存' }}
-          </button>
+        <div class="form-grid">
+          <div class="field">
+            <span class="field-label">药品名称</span>
+            <el-select v-model="medForm.drugCode" placeholder="选择药品" filterable>
+              <el-option v-for="opt in drugOptions" :key="opt.code" :label="opt.name" :value="opt.code" />
+            </el-select>
+          </div>
+          <div class="field">
+            <span class="field-label">剂量</span>
+            <el-input v-model="medForm.dosage" placeholder="如 0.5g/次" />
+          </div>
+          <div class="field">
+            <span class="field-label">频次</span>
+            <el-input v-model="medForm.frequency" placeholder="如 每日2次" />
+          </div>
+          <div></div>
+          <div class="field">
+            <span class="field-label">开始日期</span>
+            <el-date-picker v-model="medForm.startDate" type="date" placeholder="选择日期" value-format="YYYY-MM-DD" />
+          </div>
+          <div class="field">
+            <span class="field-label">停药日期</span>
+            <el-date-picker v-model="medForm.stopDate" type="date" placeholder="选填" value-format="YYYY-MM-DD" />
+          </div>
+          <div class="field field-wide">
+            <span class="field-label">备注</span>
+            <el-input v-model="medForm.remark" placeholder="选填" maxlength="200" />
+          </div>
+          <div class="field field-btn">
+            <button class="save-btn" :disabled="medSubmitting" @click="handleMedSubmit">
+              {{ medSubmitting ? '保存中...' : '保存' }}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -544,18 +572,38 @@ onMounted(() => {
     <div v-show="activeTab === 'recheck'" class="tab-body">
       <div class="input-card">
         <div class="card-head"><span class="head-label">录入复查记录</span></div>
-        <div class="form-row">
-          <el-input v-model="recForm.hospitalName" placeholder="医院名称" style="width:170px" />
-          <el-select v-model="recForm.recheckItemCode" placeholder="复查项目" style="width:180px" filterable>
-            <el-option v-for="opt in itemOptions" :key="opt.code" :label="opt.name" :value="opt.code" />
-          </el-select>
-          <el-date-picker v-model="recForm.actualRecheckTime" type="date" placeholder="复查日期" style="width:150px" value-format="YYYY-MM-DD" />
-          <el-date-picker v-model="recForm.planNextTime" type="date" placeholder="下次复查（选填）" style="width:160px" value-format="YYYY-MM-DD" />
-          <el-input v-model="recForm.recheckResult" placeholder="检查结果（选填）" style="width:170px" maxlength="500" />
-          <el-input v-model="recForm.doctorAdvice" placeholder="医嘱建议（选填）" style="width:170px" maxlength="500" />
-          <button class="save-btn" :disabled="recSubmitting" @click="handleRecSubmit">
-            {{ recSubmitting ? '保存中...' : '保存' }}
-          </button>
+        <div class="form-grid">
+          <div class="field">
+            <span class="field-label">医院名称</span>
+            <el-input v-model="recForm.hospitalName" placeholder="如 人民医院" />
+          </div>
+          <div class="field">
+            <span class="field-label">复查项目</span>
+            <el-select v-model="recForm.recheckItemCode" placeholder="选择项目" filterable>
+              <el-option v-for="opt in itemOptions" :key="opt.code" :label="opt.name" :value="opt.code" />
+            </el-select>
+          </div>
+          <div class="field">
+            <span class="field-label">复查日期</span>
+            <el-date-picker v-model="recForm.actualRecheckTime" type="date" placeholder="选择日期" value-format="YYYY-MM-DD" />
+          </div>
+          <div class="field">
+            <span class="field-label">下次复查</span>
+            <el-date-picker v-model="recForm.planNextTime" type="date" placeholder="选填" value-format="YYYY-MM-DD" />
+          </div>
+          <div class="field">
+            <span class="field-label">检查结果</span>
+            <el-input v-model="recForm.recheckResult" placeholder="选填" maxlength="500" />
+          </div>
+          <div class="field">
+            <span class="field-label">医嘱建议</span>
+            <el-input v-model="recForm.doctorAdvice" placeholder="选填" maxlength="500" />
+          </div>
+          <div class="field field-btn">
+            <button class="save-btn" :disabled="recSubmitting" @click="handleRecSubmit">
+              {{ recSubmitting ? '保存中...' : '保存' }}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -700,8 +748,34 @@ onMounted(() => {
 .save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
 /* ===== 通用表单行（用药/复查） ===== */
-.form-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.form-row :deep(.el-input__wrapper) { border-radius: 10px; box-shadow: 0 0 0 1.5px #e2e8f0; }
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 24px;
+}
+.form-grid .field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.form-grid .field-label {
+  font-size: 13px;
+  color: #475569;
+  font-weight: 500;
+  white-space: nowrap;
+  min-width: 60px;
+  text-align: right;
+}
+.form-grid .field-btn {
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+.form-grid .field-wide {
+  grid-column: 1 / -1;
+}
+.form-grid :deep(.el-select) { flex: 1; }
+.form-grid :deep(.el-input__wrapper) { border-radius: 10px; box-shadow: 0 0 0 1.5px #e2e8f0; }
 
 /* ===== 动画 ===== */
 .slide-enter-active, .slide-leave-active { transition: all 0.3s ease; }
@@ -712,7 +786,7 @@ onMounted(() => {
 .filter-row :deep(.el-input__wrapper) { border-radius: 10px; box-shadow: 0 0 0 1.5px #e2e8f0; }
 
 .index-tag { display: inline-block; padding: 2px 12px; border-radius: 6px; background: #eff6ff; color: #3b82f6; font-size: 13px; font-weight: 500; }
-.med-tag { display: inline-block; padding: 2px 12px; border-radius: 6px; background: #ecfdf5; color: #059669; font-size: 13px; font-weight: 500; }
+.med-tag { display: inline-block; padding: 2px 12px; border-radius: 6px; background: #eff6ff; color: #2563eb; font-size: 13px; font-weight: 500; }
 .rec-tag { display: inline-block; padding: 2px 12px; border-radius: 6px; background: #fdf2f8; color: #be185d; font-size: 13px; font-weight: 500; }
 
 .value-cell { font-size: 16px; font-weight: 700; color: #1e293b; }

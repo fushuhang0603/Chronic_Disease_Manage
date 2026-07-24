@@ -240,3 +240,20 @@ export function deleteDoctorProfile(id) {
 export function getDoctorUserList() {
   return request.get('/doctor/user/list')
 }
+
+// ====== 患者端医生绑定 ======
+export function getDoctorList() {
+  return request.get('/doctor/profile/list')
+}
+
+export function getMyDoctor() {
+  return request.get('/doctor/patient/my')
+}
+
+export function bindDoctor(doctorId) {
+  return request.post('/doctor/patient/bind', null, { params: { doctorId } })
+}
+
+export function unbindDoctor() {
+  return request.post('/doctor/patient/unbind')
+}

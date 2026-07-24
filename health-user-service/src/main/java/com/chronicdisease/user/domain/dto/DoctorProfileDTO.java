@@ -8,6 +8,9 @@ import lombok.Data;
 @Data
 public class DoctorProfileDTO {
 
+    @Schema(description = "资历id")
+    private Long id;
+
     @NotNull(message = "医生账号不能为空")
     @Schema(description = "用于关联user_id")
     private Long doctorId;

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getTopArticles, updateFavoriteStatus } from '../api/user'
+import { getTopArticles, updateFavoriteStatus, getMyDoctor } from '../api/user'
 import { ArrowRight } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
@@ -61,6 +61,17 @@ const tips = [
   { text: '胸闷、头痛剧烈、视物模糊，立即就医' },
 ]
 
+// ====== 医生绑定 ======
+const myDoctor = ref(null)
+
+async function loadMyDoctor() {
+  try {
+    myDoctor.value = await getMyDoctor()
+  } catch { myDoctor.value = null }
+}
+
+function goDoctors() { router.push('/patient/doctors') }
+
 // ====== 资讯 ======
 const articles = ref([])
 
@@ -100,7 +111,7 @@ async function handleFavorite(item) {
 function goPage(path) { router.push(path) }
 function goArticle() { router.push('/patient/article') }
 
-onMounted(() => loadArticles())
+onMounted(() => { loadArticles(); loadMyDoctor() })
 </script>
 
 <template>
@@ -150,6 +161,12 @@ onMounted(() => loadArticles())
       <div v-for="card in featureCards" :key="card.path" class="feature-card" :style="{ background: card.bg }" @click="goPage(card.path)">
         <span class="fc-label" :style="{ color: card.color }">{{ card.title }}</span>
         <span class="fc-desc">{{ card.desc }}</span>
+        <el-icon class="fc-arrow" :size="15"><ArrowRight /></el-icon>
+      </div>
+      <!-- 我的医生 -->
+      <div class="feature-card fc-doctor" :style="{ background: 'linear-gradient(135deg, #f0fdfa, #ccfbf1)' }" @click="goDoctors">
+        <span class="fc-label" style="color:#0d9488">{{ myDoctor ? myDoctor.realName : '我的医生' }}</span>
+        <span class="fc-desc">{{ myDoctor ? (myDoctor.title + ' · ' + myDoctor.hospital) : '绑定专属医生' }}</span>
         <el-icon class="fc-arrow" :size="15"><ArrowRight /></el-icon>
       </div>
     </div>
@@ -284,7 +301,7 @@ onMounted(() => loadArticles())
 
 /* ====== 功能入口 ====== */
 .feature-section {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px;
 }
 .feature-card {
   display: flex; flex-direction: column; gap: 8px;
@@ -402,6 +419,9 @@ onMounted(() => loadArticles())
 :deep(.el-dialog__footer) { padding: 0 28px 24px; }
 
 /* ====== 响应式 ====== */
+@media (max-width: 1100px) {
+  .feature-section { grid-template-columns: repeat(3, 1fr); }
+}
 @media (max-width: 900px) {
   .feature-section { grid-template-columns: 1fr 1fr; }
 }

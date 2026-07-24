@@ -64,7 +64,20 @@ public class DoctorProfileServiceImpl extends ServiceImpl<DoctorProfileMapper, D
 
     @Override
     public void editProfile(DoctorProfileDTO dto) {
-
+        DoctorProfile existing = baseMapper.selectById(dto.getId());
+        if (existing == null) {
+            throw new BusinessException("医生资历不存在");
+        }
+        existing.setRealName(dto.getRealName());
+        existing.setTitle(dto.getTitle());
+        existing.setHospital(dto.getHospital());
+        existing.setDepartment(dto.getDepartment());
+        existing.setSpecialty(dto.getSpecialty());
+        existing.setIntroduction(dto.getIntroduction());
+        if (dto.getAvatar() != null) {
+            existing.setAvatar(dto.getAvatar());
+        }
+        baseMapper.updateById(existing);
     }
 
     @Override
@@ -89,5 +102,10 @@ public class DoctorProfileServiceImpl extends ServiceImpl<DoctorProfileMapper, D
             throw new BusinessException("医生资历不存在");
         }
         baseMapper.deleteById(id);
+    }
+
+    @Override
+    public List<DoctorProfile> getDoctorList() {
+        return baseMapper.selectList(null);
     }
 }

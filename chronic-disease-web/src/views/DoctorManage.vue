@@ -68,13 +68,6 @@ async function fetchDoctorUsers() {
   }
 }
 
-const avatarColors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316']
-function getAvatarColor(name) {
-  let hash = 0
-  for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  return avatarColors[Math.abs(hash) % avatarColors.length]
-}
-
 function handleAdd() {
   dialogMode.value = 'add'
   addForm.id = null
@@ -282,12 +275,7 @@ onMounted(() => fetchData())
   <!-- 新增/编辑弹窗 -->
   <el-dialog v-model="dialogVisible" :close-on-click-modal="false" width="560px" class="add-dialog">
     <template #header>
-      <div class="dialog-header">
-        <div class="dialog-icon" :class="dialogMode">
-          <el-icon :size="20"><component :is="dialogMode === 'add' ? 'Plus' : 'EditPen'" /></el-icon>
-        </div>
-        <span class="dialog-title">{{ dialogMode === 'add' ? '新增医生资历' : '编辑医生资历' }}</span>
-      </div>
+      <span class="dialog-title">{{ dialogMode === 'add' ? '新增医生资历' : '编辑医生资历' }}</span>
     </template>
 
     <el-form ref="formRef" :model="addForm" :rules="addRules" label-position="top" class="add-form" v-loading="editLoading">
@@ -301,9 +289,7 @@ onMounted(() => fetchData())
             :class="['doctor-card', { selected: addForm.doctorId === doc.id }]"
             @click="addForm.doctorId = doc.id"
           >
-            <div class="doc-avatar-sm" :style="{ background: getAvatarColor(doc.username) }">
-              {{ (doc.nickname || doc.username || '医')[0] }}
-            </div>
+            <div class="doc-avatar-sm">{{ (doc.nickname || doc.username || '医')[0] }}</div>
             <span class="doc-name-sm">{{ doc.nickname || doc.username }}</span>
             <span class="doc-username-sm">{{ doc.username }}</span>
             <span class="doc-phone-sm" v-if="doc.phone">{{ doc.phone }}</span>
@@ -315,9 +301,7 @@ onMounted(() => fetchData())
           </div>
         </div>
         <div v-if="dialogMode === 'edit'" class="doctor-card readonly">
-          <div class="doc-avatar-sm" :style="{ background: getAvatarColor(doctorUserOptions[0]?.username || '') }">
-            {{ (doctorUserOptions[0]?.nickname || doctorUserOptions[0]?.username || '医')[0] }}
-          </div>
+          <div class="doc-avatar-sm">{{ (doctorUserOptions[0]?.nickname || doctorUserOptions[0]?.username || '医')[0] }}</div>
           <span class="doc-name-sm">{{ doctorUserOptions[0]?.nickname || doctorUserOptions[0]?.username }}</span>
           <span class="doc-username-sm">{{ doctorUserOptions[0]?.username }}</span>
         </div>
@@ -489,21 +473,12 @@ onMounted(() => fetchData())
 .btn-action.btn-del:hover { background: #fef2f2; border-color: #fca5a5; color: #b91c1c; }
 
 .pagination-wrap {
-  display: flex; justify-content: flex-end; margin-top: 16px;
+  display: flex; justify-content: center; margin-top: 16px;
 }
 
 /* 弹窗 */
 .add-dialog :deep(.el-dialog__header) { border-bottom: 1px solid #e8f2fc; padding: 20px 24px 16px; }
 .add-dialog :deep(.el-dialog__body) { padding: 20px 24px 4px; }
-.dialog-header { display: flex; align-items: center; gap: 12px; }
-.dialog-icon {
-  width: 36px; height: 36px;
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-}
-.dialog-icon.add { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
-.dialog-icon.edit { background: linear-gradient(135deg, #f59e0b, #d97706); }
-.dialog-icon .el-icon { color: #fff; }
 .dialog-title { font-size: 17px; font-weight: 700; color: #1e3a5f; }
 
 /* 分区标题 */
@@ -552,6 +527,7 @@ onMounted(() => fetchData())
   font-size: 12px; font-weight: 700;
   flex-shrink: 0;
   line-height: 1;
+  background: linear-gradient(135deg, #34d399, #059669);
 }
 .doc-name-sm { font-size: 13px; font-weight: 600; color: #1e3a5f; white-space: nowrap; }
 .doc-username-sm { font-size: 11px; color: #94a3b8; }

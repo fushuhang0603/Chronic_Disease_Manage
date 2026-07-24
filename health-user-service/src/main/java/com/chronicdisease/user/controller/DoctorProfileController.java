@@ -73,4 +73,11 @@ public class DoctorProfileController {
         List<User> result = doctorProfileService.getDoctorUserList();
         return Result.success(result);
     }
+
+    @GetMapping("/profile/list")
+    @Operation(summary = "患者端获取全部医生资历列表")
+    public Result<List<DoctorProfile>> getDoctorList() {
+        List<DoctorProfile> result = doctorProfileService.getDoctorList();
+        return Result.success(result);
+    }
 }

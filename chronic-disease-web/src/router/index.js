@@ -12,6 +12,7 @@ import ArchiveManage from '../views/ArchiveManage.vue'
 import PatientData from '../views/PatientData.vue'
 import PatientRemind from '../views/PatientRemind.vue'
 import PatientArticle from '../views/PatientArticle.vue'
+import PatientDoctors from '../views/PatientDoctors.vue'
 import AdminRemind from '../views/AdminRemind.vue'
 import AdminArticle from '../views/AdminArticle.vue'
 import AdminData from '../views/AdminData.vue'
@@ -46,6 +47,7 @@ const routes = [
       { path: 'data', name: 'PatientData', component: PatientData },
       { path: 'remind', name: 'PatientRemind', component: PatientRemind },
       { path: 'article', name: 'PatientArticle', component: PatientArticle },
+      { path: 'doctors', name: 'PatientDoctors', component: PatientDoctors },
     ],
   },
 ]

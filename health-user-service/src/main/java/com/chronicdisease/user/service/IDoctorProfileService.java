@@ -22,4 +22,6 @@ public interface IDoctorProfileService extends IService<DoctorProfile> {
     DoctorProfile queryById(Long id);
 
     void deleteById(Long id);
+
+    List<DoctorProfile> getDoctorList();
 }

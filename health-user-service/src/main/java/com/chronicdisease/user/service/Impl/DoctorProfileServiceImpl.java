@@ -84,6 +84,10 @@ public class DoctorProfileServiceImpl extends ServiceImpl<DoctorProfileMapper, D
 
     @Override
     public void deleteById(Long id) {
-
+        DoctorProfile profile = baseMapper.selectById(id);
+        if (profile == null) {
+            throw new BusinessException("医生资历不存在");
+        }
+        baseMapper.deleteById(id);
     }
 }

@@ -96,7 +96,7 @@ async function handleEdit(row) {
   dialogVisible.value = true
   editLoading.value = true
   try {
-    const profile = await getDoctorProfileById(row.id)
+    const profile = await getDoctorProfileById(row.doctorId)
     addForm.id = profile.id
     addForm.doctorId = profile.doctorId
     addForm.realName = profile.realName

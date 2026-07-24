@@ -2,6 +2,8 @@ package com.chronicdisease.user.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -21,6 +23,7 @@ public class DoctorProfile implements Serializable {
 
     @TableField("doctor_id")
     @Schema(description = "关联医生用户ID")
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long doctorId;
 
     @TableField("real_name")

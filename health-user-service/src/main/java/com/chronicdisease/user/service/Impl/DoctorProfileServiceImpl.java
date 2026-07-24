@@ -12,6 +12,7 @@ import com.chronicdisease.user.domain.entity.DoctorProfile;
 import com.chronicdisease.user.domain.entity.User;
 import com.chronicdisease.user.domain.query.DoctorProfileQuery;
 import com.chronicdisease.user.mapper.DoctorProfileMapper;
+import com.chronicdisease.user.mapper.UserMapper;
 import com.chronicdisease.user.service.IDoctorProfileService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,8 @@ import java.util.List;
 public class DoctorProfileServiceImpl extends ServiceImpl<DoctorProfileMapper, DoctorProfile> implements IDoctorProfileService {
     @Autowired
     private DoctorProfileMapper doctorProfileMapper;
+    @Autowired
+    private UserMapper userMapper;
 
     @Override
     public List<User> getDoctorUserList() {
@@ -31,7 +34,10 @@ public class DoctorProfileServiceImpl extends ServiceImpl<DoctorProfileMapper, D
 
     @Override
     public PageResult<DoctorProfile> getPage(DoctorProfileQuery query) {
-        return null;
+        Page<DoctorProfile> page = new Page<>(query.getPageNum(), query.getPageSize());
+        Page<DoctorProfile> result = doctorProfileMapper.selectPageWithUser(
+                page, query.getDoctorName(), query.getHospital(), query.getDepartment());
+        return new PageResult<>(result.getRecords(), result.getTotal());
     }
 
     @Override
@@ -63,7 +69,17 @@ public class DoctorProfileServiceImpl extends ServiceImpl<DoctorProfileMapper, D
 
     @Override
     public DoctorProfile queryById(Long id) {
-        return null;
+        LambdaQueryWrapper<DoctorProfile> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(DoctorProfile::getDoctorId, id);
+        DoctorProfile profile = baseMapper.selectOne(wrapper);
+        if (profile == null) {
+            throw new BusinessException("医生资历不存在");
+        }
+        User user = userMapper.selectById(profile.getDoctorId());
+        if (user != null) {
+            profile.setDoctorName(user.getUsername());
+        }
+        return profile;
     }
 
     @Override

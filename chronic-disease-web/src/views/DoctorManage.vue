@@ -46,7 +46,6 @@ const titleOptions = [
 ]
 
 const addRules = reactive({
-  doctorId: [{ required: true, message: '请选择医生账号', trigger: 'change' }],
   realName: [{ required: true, message: '请输入真实姓名', trigger: 'blur' }],
   title: [{ required: true, message: '请选择职称', trigger: 'change' }],
   hospital: [{ required: true, message: '请输入所属医院', trigger: 'blur' }],
@@ -123,6 +122,11 @@ async function handleEdit(row) {
 }
 
 async function handleSubmit() {
+  // 手动校验医生账号
+  if (!addForm.doctorId) {
+    ElMessage.warning('请选择医生账号')
+    return
+  }
   const valid = await formRef.value.validate().catch(() => false)
   if (!valid) return
   submitLoading.value = true
@@ -212,7 +216,7 @@ onMounted(() => fetchData())
       </div>
       <el-form :model="query" inline class="search-form">
         <el-form-item label="医生姓名">
-          <el-input v-model="query.doctorName" placeholder="姓名 / 账号模糊搜索" clearable @keyup.enter="handleSearch" />
+          <el-input v-model="query.doctorName" placeholder="输入真实姓名搜索" clearable @keyup.enter="handleSearch" />
         </el-form-item>
         <el-form-item label="所属医院">
           <el-input v-model="query.hospital" placeholder="医院名称" clearable @keyup.enter="handleSearch" />
@@ -317,10 +321,6 @@ onMounted(() => fetchData())
           <span class="doc-name-sm">{{ doctorUserOptions[0]?.nickname || doctorUserOptions[0]?.username }}</span>
           <span class="doc-username-sm">{{ doctorUserOptions[0]?.username }}</span>
         </div>
-        <!-- 隐藏的 form-item 用于校验 -->
-        <el-form-item prop="doctorId" style="display:none">
-          <el-input v-model="addForm.doctorId" />
-        </el-form-item>
       </div>
 
       <div class="divider"></div>

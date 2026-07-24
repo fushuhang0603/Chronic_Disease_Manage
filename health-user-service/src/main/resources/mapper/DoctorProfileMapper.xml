@@ -13,4 +13,21 @@
           AND d.doctor_id IS NULL
     </select>
 
+    <select id="selectPageWithUser" resultType="com.chronicdisease.user.domain.entity.DoctorProfile">
+        SELECT dp.*, u.username AS doctorName
+        FROM doctor_profile dp
+                 LEFT JOIN user u ON dp.doctor_id = u.id
+        WHERE 1 = 1
+        <if test="doctorName != null and doctorName != ''">
+            AND dp.real_name LIKE CONCAT('%', #{doctorName}, '%')
+        </if>
+        <if test="hospital != null and hospital != ''">
+            AND dp.hospital LIKE CONCAT('%', #{hospital}, '%')
+        </if>
+        <if test="department != null and department != ''">
+            AND dp.department LIKE CONCAT('%', #{department}, '%')
+        </if>
+        ORDER BY dp.create_time DESC
+    </select>
+
 </mapper>

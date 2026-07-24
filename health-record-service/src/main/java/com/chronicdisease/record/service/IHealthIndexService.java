@@ -1,4 +1,4 @@
-package com.chronicdisease.record.service.Impl;
+package com.chronicdisease.record.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.chronicdisease.record.domain.dto.HealthIndexDTO;

@@ -6,7 +6,7 @@ import com.chronicdisease.common.result.Result;
 import com.chronicdisease.record.domain.dto.MedicineRecordDTO;
 import com.chronicdisease.record.domain.dto.MedicineRecordPageDTO;
 import com.chronicdisease.record.domain.entity.MedicineRecord;
-import com.chronicdisease.record.service.Impl.IMedicineRecordService;
+import com.chronicdisease.record.service.IMedicineRecordService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

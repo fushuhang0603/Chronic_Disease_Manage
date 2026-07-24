@@ -1,4 +1,4 @@
-package com.chronicdisease.record.service.Impl.Impl;
+package com.chronicdisease.record.service.Impl;
 
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -18,7 +18,7 @@ import com.chronicdisease.record.domain.vo.PatientBriefVO;
 import com.chronicdisease.record.domain.vo.TrendPointVO;
 import com.chronicdisease.record.feign.UserServiceFeign;
 import com.chronicdisease.record.mapper.HealthIndexMapper;
-import com.chronicdisease.record.service.Impl.IHealthIndexService;
+import com.chronicdisease.record.service.IHealthIndexService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;

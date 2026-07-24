@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.chronicdisease.user.mapper.DoctorProfileMapper">
+
+    <select id="getDoctorUserList" resultType="com.chronicdisease.user.domain.entity.User">
+        SELECT u.*
+        FROM user u
+                 LEFT JOIN doctor_profile d ON u.id = d.doctor_id
+        WHERE u.role_type = 'doctor'
+          AND u.is_deleted = 0
+          AND d.doctor_id IS NULL
+    </select>
+
+</mapper>

@@ -17,7 +17,7 @@ spring:
         - id: user-service #微服务名称
           uri: lb://health-user-service #路由目标地址 lb代表负载均衡
           predicates: #路由判定规则
-            - Path=/user/**,/dict/**,/archive/**
+            - Path=/user/**,/dict/**,/archive/**,/doctor/**
         - id: health-record-service
           uri: lb://health-record-service
           predicates:

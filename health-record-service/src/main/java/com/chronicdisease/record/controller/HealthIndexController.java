@@ -7,7 +7,7 @@ import com.chronicdisease.record.domain.dto.HealthIndexPageDTO;
 import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.record.domain.entity.HealthIndexRecord;
 import com.chronicdisease.record.domain.vo.TrendPointVO;
-import com.chronicdisease.record.service.Impl.IHealthIndexService;
+import com.chronicdisease.record.service.IHealthIndexService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

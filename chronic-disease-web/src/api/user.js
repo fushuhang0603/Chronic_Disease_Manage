@@ -215,3 +215,28 @@ export function getMedicineRecords(params) {
 export function getRecheckRecords(params) {
   return request.get('/recheck/admin/records', { params })
 }
+
+// ====== 医生资历管理 ======
+export function getDoctorProfilePage(params) {
+  return request.post('/doctor/profile/page', params)
+}
+
+export function addDoctorProfile(data) {
+  return request.post('/doctor/profile/add', data)
+}
+
+export function editDoctorProfile(data) {
+  return request.post('/doctor/profile/edit', data)
+}
+
+export function getDoctorProfileById(id) {
+  return request.get('/doctor/profile/queryById', { params: { id } })
+}
+
+export function deleteDoctorProfile(id) {
+  return request.post('/doctor/profile/delete', null, { params: { id } })
+}
+
+export function getDoctorUserList() {
+  return request.get('/doctor/user/list')
+}

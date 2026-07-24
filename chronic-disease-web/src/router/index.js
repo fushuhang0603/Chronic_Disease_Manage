@@ -15,6 +15,7 @@ import PatientArticle from '../views/PatientArticle.vue'
 import AdminRemind from '../views/AdminRemind.vue'
 import AdminArticle from '../views/AdminArticle.vue'
 import AdminData from '../views/AdminData.vue'
+import DoctorManage from '../views/DoctorManage.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -32,6 +33,7 @@ const routes = [
       { path: 'remind', name: 'AdminRemind', component: AdminRemind },
       { path: 'article', name: 'AdminArticle', component: AdminArticle },
       { path: 'data', name: 'AdminData', component: AdminData },
+      { path: 'doctors', name: 'DoctorManage', component: DoctorManage },
     ],
   },
   {

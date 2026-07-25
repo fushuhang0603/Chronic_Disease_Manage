@@ -72,8 +72,8 @@ function resolveRecordTime(val) {
 }
 
 const cardColors = [
-  { bg: '#eff6ff', border: '#93c5fd', icon: '#3b82f6', iconBg: '#dbeafe' },
-  { bg: '#ecfdf5', border: '#6ee7b7', icon: '#10b981', iconBg: '#d1fae5' },
+  { bg: '#fff7ed', border: '#fb923c', icon: '#f97316', iconBg: '#fde68a' },
+  { bg: '#fffbeb', border: '#6ee7b7', icon: '#f59e0b', iconBg: '#fef3c7' },
   { bg: '#fefce8', border: '#fde047', icon: '#eab308', iconBg: '#fef9c3' },
   { bg: '#fef2f2', border: '#fca5a5', icon: '#ef4444', iconBg: '#fee2e2' },
   { bg: '#f5f3ff', border: '#c4b5fd', icon: '#8b5cf6', iconBg: '#ede9fe' },
@@ -204,21 +204,21 @@ function renderChart(code) {
         html += `最高: ${p.maxValue} &nbsp; 最低: ${p.minValue}<br/>`
         html += `测量次数: ${p.recordCount} 次`
         if (p.details && p.details.length > 0) {
-          html += '<br/><hr style="margin:4px 0;border-color:#e2e8f0"/>'
+          html += '<br/><hr style="margin:4px 0;border-color:#fef3c7"/>'
           p.details.forEach(d => {
-            html += `<span style="color:#94a3b8">${(d.recordTime || '').substring(11, 16)}</span> &nbsp; ${d.indexValue} ${d.unit || unit}<br/>`
+            html += `<span style="color:#a8a29e">${(d.recordTime || '').substring(11, 16)}</span> &nbsp; ${d.indexValue} ${d.unit || unit}<br/>`
           })
         }
         return html
       }
     },
     grid: { top: 20, right: 30, bottom: 30, left: 50 },
-    xAxis: { type: 'category', data: labels, axisLabel: { fontSize: 11, color: '#94a3b8' } },
-    yAxis: { type: 'value', name: unit, nameTextStyle: { fontSize: 11, color: '#94a3b8' }, axisLabel: { fontSize: 11, color: '#94a3b8' }, splitLine: { lineStyle: { color: '#f1f5f9' } } },
+    xAxis: { type: 'category', data: labels, axisLabel: { fontSize: 11, color: '#a8a29e' } },
+    yAxis: { type: 'value', name: unit, nameTextStyle: { fontSize: 11, color: '#a8a29e' }, axisLabel: { fontSize: 11, color: '#a8a29e' }, splitLine: { lineStyle: { color: '#fef3c7' } } },
     series: [{
       type: 'line', data: values, smooth: true, symbol: 'circle', symbolSize: 6,
-      lineStyle: { color: '#3b82f6', width: 2 }, itemStyle: { color: '#3b82f6' },
-      areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(59,130,246,0.2)' }, { offset: 1, color: 'rgba(59,130,246,0.02)' }]) },
+      lineStyle: { color: '#f97316', width: 2 }, itemStyle: { color: '#f97316' },
+      areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(249,115,22,0.2)' }, { offset: 1, color: 'rgba(249,115,22,0.02)' }]) },
     }],
   })
 }
@@ -423,7 +423,7 @@ onMounted(() => {
         </div>
         <div class="card-grid">
           <div v-for="(item, i) in filteredIndicators" :key="item.code" class="indicator-card" :class="{ selected: selectedIndex?.code === item.code }"
-            :style="selectedIndex?.code === item.code ? { background: cardStyle(i).iconBg, borderColor: cardStyle(i).icon } : { background: '#fff', borderColor: '#e2e8f0' }"
+            :style="selectedIndex?.code === item.code ? { background: cardStyle(i).iconBg, borderColor: cardStyle(i).icon } : { background: '#fff', borderColor: '#fef3c7' }"
             @click="selectIndex(item)">
             <span class="card-icon" :style="selectedIndex?.code === item.code ? { background: cardStyle(i).icon, color: '#fff' } : { background: cardStyle(i).iconBg, color: cardStyle(i).icon }">{{ firstChar(item.name) }}</span>
             <span class="card-name">{{ item.name }}</span>
@@ -477,7 +477,7 @@ onMounted(() => {
             <template #default="{ row }"><span>{{ row.recordTime || '—' }}</span></template>
           </el-table-column>
           <el-table-column label="备注" min-width="100">
-            <template #default="{ row }"><span style="color:#94a3b8">{{ row.remark || '—' }}</span></template>
+            <template #default="{ row }"><span style="color:#a8a29e">{{ row.remark || '—' }}</span></template>
           </el-table-column>
           <el-table-column label="操作" width="80" align="center" fixed="right">
             <template #default="{ row }"><el-button type="danger" link size="small" @click="handleIndexDelete(row)">删除</el-button></template>
@@ -575,10 +575,10 @@ onMounted(() => {
           <el-table-column prop="frequency" label="频次" width="140" align="center" />
           <el-table-column prop="startDate" label="开始日期" width="120" align="center" />
           <el-table-column label="停药日期" width="120" align="center">
-            <template #default="{ row }"><span :style="{ color: row.stopDate ? '#ef4444' : '#10b981' }">{{ row.stopDate || '服用中' }}</span></template>
+            <template #default="{ row }"><span :style="{ color: row.stopDate ? '#ef4444' : '#f59e0b' }">{{ row.stopDate || '服用中' }}</span></template>
           </el-table-column>
           <el-table-column label="备注" min-width="100">
-            <template #default="{ row }"><span style="color:#94a3b8">{{ row.remark || '—' }}</span></template>
+            <template #default="{ row }"><span style="color:#a8a29e">{{ row.remark || '—' }}</span></template>
           </el-table-column>
           <el-table-column label="操作" width="80" align="center" fixed="right">
             <template #default="{ row }"><el-button type="danger" link size="small" @click="handleMedDelete(row)">删除</el-button></template>
@@ -646,13 +646,13 @@ onMounted(() => {
           </el-table-column>
           <el-table-column prop="actualRecheckTime" label="复查日期" width="120" align="center" />
           <el-table-column label="下次复查" width="120" align="center">
-            <template #default="{ row }"><span :style="{ color: row.planNextTime ? '#3b82f6' : '#94a3b8' }">{{ row.planNextTime || '未计划' }}</span></template>
+            <template #default="{ row }"><span :style="{ color: row.planNextTime ? '#f97316' : '#a8a29e' }">{{ row.planNextTime || '未计划' }}</span></template>
           </el-table-column>
           <el-table-column label="检查结果" min-width="130">
-            <template #default="{ row }"><span style="color:#334155">{{ row.recheckResult || '—' }}</span></template>
+            <template #default="{ row }"><span style="color:#78716c">{{ row.recheckResult || '—' }}</span></template>
           </el-table-column>
           <el-table-column label="医嘱建议" min-width="130">
-            <template #default="{ row }"><span style="color:#64748b">{{ row.doctorAdvice || '—' }}</span></template>
+            <template #default="{ row }"><span style="color:#78716c">{{ row.doctorAdvice || '—' }}</span></template>
           </el-table-column>
           <el-table-column label="操作" width="80" align="center" fixed="right">
             <template #default="{ row }"><el-button type="danger" link size="small" @click="handleRecDelete(row)">删除</el-button></template>
@@ -672,104 +672,104 @@ onMounted(() => {
 
 /* ===== Tab 导航 ===== */
 .main-tabs {
-  display: flex; gap: 4px; background: #f1f5f9; border-radius: 12px; padding: 4px;
+  display: flex; gap: 4px; background: #fef3c7; border-radius: 12px; padding: 4px;
   width: fit-content;
 }
 .main-tab {
   display: flex; align-items: center; gap: 6px; padding: 10px 20px;
   border: none; background: transparent; font-size: 14px; font-weight: 500;
-  color: #64748b; cursor: pointer; border-radius: 10px; transition: all 0.2s;
+  color: #78716c; cursor: pointer; border-radius: 10px; transition: all 0.2s;
 }
-.main-tab:hover:not(.active) { color: #334155; }
-.main-tab.active { background: #fff; color: #1e293b; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.main-tab:hover:not(.active) { color: #78716c; }
+.main-tab.active { background: #fff; color: #431407; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 
 .tab-body { display: flex; flex-direction: column; gap: 20px; }
 
 /* ===== 卡片通用 ===== */
 .input-card, .list-card {
   background: #fff; border-radius: 20px; box-shadow: 0 2px 20px rgba(0,0,0,0.05);
-  padding: 28px 32px; border: 1px solid #f1f5f9;
+  padding: 28px 32px; border: 1px solid #fef3c7;
 }
 .card-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px; }
-.head-label { font-size: 17px; font-weight: 700; color: #1e293b; }
-.head-hint { font-size: 13px; color: #94a3b8; }
+.head-label { font-size: 17px; font-weight: 700; color: #431407; }
+.head-hint { font-size: 13px; color: #a8a29e; }
 
 /* ===== 搜索框 ===== */
 .search-box { position: relative; margin-bottom: 18px; }
-.search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #94a3b8; }
+.search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #a8a29e; }
 .search-input {
-  width: 100%; height: 44px; border-radius: 12px; border: 1.5px solid #e2e8f0;
-  padding: 0 44px; font-size: 14px; color: #1e293b; outline: none;
-  background: #f8fafc; transition: all 0.2s; box-sizing: border-box;
+  width: 100%; height: 44px; border-radius: 12px; border: 1.5px solid #fef3c7;
+  padding: 0 44px; font-size: 14px; color: #431407; outline: none;
+  background: #fffbeb; transition: all 0.2s; box-sizing: border-box;
 }
-.search-input:focus { border-color: #3b82f6; background: #fff; box-shadow: 0 0 0 3px rgba(59,130,246,0.08); }
-.search-input::placeholder { color: #94a3b8; }
+.search-input:focus { border-color: #f97316; background: #fff; box-shadow: 0 0 0 3px rgba(249,115,22,0.08); }
+.search-input::placeholder { color: #a8a29e; }
 
 /* ===== 指标卡片网格 ===== */
 .card-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-height: 260px; overflow-y: auto; }
 .card-grid::-webkit-scrollbar { width: 4px; }
-.card-grid::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 2px; }
+.card-grid::-webkit-scrollbar-thumb { background: #fef3c7; border-radius: 2px; }
 .indicator-card {
   display: flex; align-items: center; gap: 10px;
-  padding: 12px 14px; border-radius: 12px; border: 1.5px solid #e2e8f0;
+  padding: 12px 14px; border-radius: 12px; border: 1.5px solid #fef3c7;
   cursor: pointer; transition: all 0.2s; user-select: none;
 }
-.indicator-card:hover { border-color: #94a3b8; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.indicator-card:hover { border-color: #a8a29e; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 .indicator-card.selected { font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transform: translateY(-1px); }
 .card-icon {
   width: 34px; height: 34px; border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   font-size: 16px; font-weight: 700; flex-shrink: 0; transition: all 0.2s;
 }
-.card-name { font-size: 13px; color: #334155; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.no-match { grid-column: 1 / -1; text-align: center; padding: 32px 0; color: #94a3b8; font-size: 14px; }
+.card-name { font-size: 13px; color: #78716c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.no-match { grid-column: 1 / -1; text-align: center; padding: 32px 0; color: #a8a29e; font-size: 14px; }
 
 /* ===== 输入面板 ===== */
-.input-panel { margin-top: 18px; padding: 18px 22px; background: #f8fafc; border-radius: 14px; border: 1.5px solid #e2e8f0; }
+.input-panel { margin-top: 18px; padding: 18px 22px; background: #fffbeb; border-radius: 14px; border: 1.5px solid #fef3c7; }
 .panel-header { margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-.panel-label { font-size: 14px; font-weight: 600; color: #334155; }
-.panel-unit { font-size: 12px; color: #64748b; background: #e2e8f0; padding: 2px 8px; border-radius: 4px; }
+.panel-label { font-size: 14px; font-weight: 600; color: #78716c; }
+.panel-unit { font-size: 12px; color: #78716c; background: #fef3c7; padding: 2px 8px; border-radius: 4px; }
 .trend-quick-link {
   margin-left: auto; display: flex; align-items: center; gap: 4px;
-  padding: 4px 10px; border-radius: 8px; border: 1px solid #cbd5e1;
-  background: #fff; color: #3b82f6; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;
+  padding: 4px 10px; border-radius: 8px; border: 1px solid #a8a29e;
+  background: #fff; color: #f97316; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s;
 }
-.trend-quick-link:hover { background: #eff6ff; border-color: #3b82f6; }
+.trend-quick-link:hover { background: #fff7ed; border-color: #f97316; }
 .panel-fields { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
 .value-input-wrap { position: relative; display: flex; align-items: center; }
-.unit-suffix { position: absolute; right: 12px; font-size: 13px; color: #64748b; pointer-events: none; }
+.unit-suffix { position: absolute; right: 12px; font-size: 13px; color: #78716c; pointer-events: none; }
 .value-input {
-  width: 160px; height: 42px; border-radius: 10px; border: 1.5px solid #cbd5e1;
-  padding: 0 14px; font-size: 18px; font-weight: 600; color: #1e293b;
+  width: 160px; height: 42px; border-radius: 10px; border: 1.5px solid #a8a29e;
+  padding: 0 14px; font-size: 18px; font-weight: 600; color: #431407;
   outline: none; background: #fff; transition: border-color 0.2s;
 }
-.value-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-.value-input::placeholder { font-size: 14px; font-weight: 400; color: #94a3b8; }
+.value-input:focus { border-color: #f97316; box-shadow: 0 0 0 3px rgba(249,115,22,0.1); }
+.value-input::placeholder { font-size: 14px; font-weight: 400; color: #a8a29e; }
 .remark-input {
-  width: 180px; height: 42px; border-radius: 10px; border: 1.5px solid #cbd5e1;
-  padding: 0 14px; font-size: 14px; color: #1e293b; outline: none; background: #fff; transition: border-color 0.2s;
+  width: 180px; height: 42px; border-radius: 10px; border: 1.5px solid #a8a29e;
+  padding: 0 14px; font-size: 14px; color: #431407; outline: none; background: #fff; transition: border-color 0.2s;
 }
-.remark-input:focus { border-color: #3b82f6; }
-.remark-input::placeholder { color: #94a3b8; }
+.remark-input:focus { border-color: #f97316; }
+.remark-input::placeholder { color: #a8a29e; }
 
 .time-picker {
-  --el-border-radius-base: 10px; --el-input-border-color: #cbd5e1;
+  --el-border-radius-base: 10px; --el-input-border-color: #a8a29e;
 }
 .time-picker :deep(.el-input__wrapper) {
-  border-radius: 10px !important; border: 1.5px solid #cbd5e1 !important; box-shadow: none !important;
+  border-radius: 10px !important; border: 1.5px solid #a8a29e !important; box-shadow: none !important;
   padding: 0 14px; height: 42px;
 }
-.time-picker :deep(.el-input__wrapper):hover { border-color: #3b82f6 !important; }
-.time-picker :deep(.is-focus .el-input__wrapper) { border-color: #3b82f6 !important; box-shadow: 0 0 0 3px rgba(59,130,246,0.1) !important; }
+.time-picker :deep(.el-input__wrapper):hover { border-color: #f97316 !important; }
+.time-picker :deep(.is-focus .el-input__wrapper) { border-color: #f97316 !important; box-shadow: 0 0 0 3px rgba(249,115,22,0.1) !important; }
 
 .save-btn {
   height: 42px; padding: 0 28px; border-radius: 10px; font-size: 14px; font-weight: 600;
   border: none; cursor: pointer; transition: all 0.2s;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: #fff; box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+  background: linear-gradient(135deg, #f97316, #c2410c);
+  color: #fff; box-shadow: 0 4px 12px rgba(194,65,12,0.3);
 }
-.save-btn:hover { box-shadow: 0 6px 16px rgba(37,99,235,0.4); transform: translateY(-1px); }
+.save-btn:hover { box-shadow: 0 6px 16px rgba(194,65,12,0.4); transform: translateY(-1px); }
 .save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
 /* ===== 通用表单行（用药/复查） ===== */
@@ -785,7 +785,7 @@ onMounted(() => {
 }
 .form-grid .field-label {
   font-size: 13px;
-  color: #475569;
+  color: #78716c;
   font-weight: 500;
   white-space: nowrap;
   min-width: 60px;
@@ -800,7 +800,7 @@ onMounted(() => {
   grid-column: 1 / -1;
 }
 .form-grid :deep(.el-select) { flex: 1; }
-.form-grid :deep(.el-input__wrapper) { border-radius: 10px; box-shadow: 0 0 0 1.5px #e2e8f0; }
+.form-grid :deep(.el-input__wrapper) { border-radius: 10px; box-shadow: 0 0 0 1.5px #fef3c7; }
 
 /* ===== 动画 ===== */
 .slide-enter-active, .slide-leave-active { transition: all 0.3s ease; }
@@ -808,15 +808,15 @@ onMounted(() => {
 
 /* ===== 历史记录 ===== */
 .filter-row { display: flex; gap: 12px; margin-bottom: 16px; }
-.filter-row :deep(.el-input__wrapper) { border-radius: 10px; box-shadow: 0 0 0 1.5px #e2e8f0; }
+.filter-row :deep(.el-input__wrapper) { border-radius: 10px; box-shadow: 0 0 0 1.5px #fef3c7; }
 
-.index-tag { display: inline-block; padding: 2px 12px; border-radius: 6px; background: #eff6ff; color: #3b82f6; font-size: 13px; font-weight: 500; }
-.med-tag { display: inline-block; padding: 2px 12px; border-radius: 6px; background: #eff6ff; color: #2563eb; font-size: 13px; font-weight: 500; }
+.index-tag { display: inline-block; padding: 2px 12px; border-radius: 6px; background: #fff7ed; color: #f97316; font-size: 13px; font-weight: 500; }
+.med-tag { display: inline-block; padding: 2px 12px; border-radius: 6px; background: #fff7ed; color: #c2410c; font-size: 13px; font-weight: 500; }
 .rec-tag { display: inline-block; padding: 2px 12px; border-radius: 6px; background: #fdf2f8; color: #be185d; font-size: 13px; font-weight: 500; }
 
-.value-cell { font-size: 16px; font-weight: 700; color: #1e293b; }
-.value-unit { font-size: 12px; font-weight: 400; color: #64748b; margin-left: 4px; }
-.pagination-wrap { display: flex; justify-content: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9; }
+.value-cell { font-size: 16px; font-weight: 700; color: #431407; }
+.value-unit { font-size: 12px; font-weight: 400; color: #78716c; margin-left: 4px; }
+.pagination-wrap { display: flex; justify-content: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #fef3c7; }
 
 .value-input::-webkit-outer-spin-button,
 .value-input::-webkit-inner-spin-button { opacity: 1; }
@@ -824,7 +824,7 @@ onMounted(() => {
 /* ===== 趋势图 ===== */
 .trend-controls { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
 .chart-wrap { position: relative; min-height: 200px; }
-.chart-placeholder { display: flex; align-items: center; justify-content: center; height: 200px; color: #94a3b8; font-size: 14px; }
+.chart-placeholder { display: flex; align-items: center; justify-content: center; height: 200px; color: #a8a29e; font-size: 14px; }
 .chart-box { width: 100%; height: 300px; }
 .chart-wrap :deep(.el-loading-mask) { border-radius: 14px; }
 .trend-controls :deep(.el-input__wrapper),
@@ -835,8 +835,8 @@ onMounted(() => {
 <style>
 .pd-root .time-picker { display: inline-flex; align-items: center; vertical-align: middle; }
 .pd-root .time-picker .el-input__wrapper {
-  border-radius: 10px; border: 1.5px solid #cbd5e1; box-shadow: none;
+  border-radius: 10px; border: 1.5px solid #a8a29e; box-shadow: none;
   padding: 0 14px; height: 42px;
 }
-.pd-root .time-picker .el-input__wrapper:hover { border-color: #3b82f6; }
+.pd-root .time-picker .el-input__wrapper:hover { border-color: #f97316; }
 </style>

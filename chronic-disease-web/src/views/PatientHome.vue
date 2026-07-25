@@ -134,13 +134,13 @@ onMounted(() => { loadArticles(); loadMyDoctor() })
       <div class="hero-right">
         <div class="hero-decor">
           <svg viewBox="0 0 140 120" width="120" height="104" fill="none">
-            <circle cx="60" cy="44" r="38" fill="#dbeafe" opacity="0.6"/>
-            <circle cx="82" cy="68" r="30" fill="#bfdbfe" opacity="0.5"/>
-            <circle cx="100" cy="36" r="16" fill="#e0e7ff" opacity="0.6"/>
-            <path d="M32 82 Q60 32 88 82" stroke="#93c5fd" stroke-width="2.5" fill="none" opacity="0.4"/>
-            <path d="M40 90 Q60 52 80 90" stroke="#93c5fd" stroke-width="2" fill="none" opacity="0.35"/>
-            <rect x="90" y="70" width="28" height="6" rx="3" fill="#60a5fa" opacity="0.3" transform="rotate(-12 104 73)"/>
-            <rect x="96" y="80" width="20" height="4" rx="2" fill="#60a5fa" opacity="0.25" transform="rotate(-12 106 82)"/>
+            <circle cx="60" cy="44" r="38" fill="#fef3c7" opacity="0.7"/>
+            <circle cx="82" cy="68" r="30" fill="#fde68a" opacity="0.6"/>
+            <circle cx="100" cy="36" r="16" fill="#fef3c7" opacity="0.7"/>
+            <path d="M32 82 Q60 32 88 82" stroke="#fbbf24" stroke-width="2.5" fill="none" opacity="0.4"/>
+            <path d="M40 90 Q60 52 80 90" stroke="#fbbf24" stroke-width="2" fill="none" opacity="0.35"/>
+            <rect x="90" y="70" width="28" height="6" rx="3" fill="#f59e0b" opacity="0.3" transform="rotate(-12 104 73)"/>
+            <rect x="96" y="80" width="20" height="4" rx="2" fill="#f59e0b" opacity="0.25" transform="rotate(-12 106 82)"/>
           </svg>
         </div>
         <div class="hero-stats">
@@ -164,8 +164,8 @@ onMounted(() => { loadArticles(); loadMyDoctor() })
         <el-icon class="fc-arrow" :size="15"><ArrowRight /></el-icon>
       </div>
       <!-- 我的医生 -->
-      <div class="feature-card fc-doctor" :style="{ background: 'linear-gradient(135deg, #f0fdfa, #ccfbf1)' }" @click="goDoctors">
-        <span class="fc-label" style="color:#0d9488">{{ myDoctor ? myDoctor.realName : '我的医生' }}</span>
+      <div class="feature-card fc-doctor" :style="{ background: 'linear-gradient(135deg, #fffbeb, #fef3c7)' }" @click="goDoctors">
+        <span class="fc-label" style="color:#c2410c">{{ myDoctor ? myDoctor.realName : '我的医生' }}</span>
         <span class="fc-desc">{{ myDoctor ? (myDoctor.title + ' · ' + myDoctor.hospital) : '绑定专属医生' }}</span>
         <el-icon class="fc-arrow" :size="15"><ArrowRight /></el-icon>
       </div>
@@ -266,26 +266,26 @@ onMounted(() => { loadArticles(); loadMyDoctor() })
 .hero-banner {
   display: flex; align-items: center; justify-content: space-between;
   padding: 28px 32px; border-radius: 20px;
-  background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 40%, #faf5ff 100%);
-  border: 1px solid #e0e7ff; overflow: hidden; position: relative; gap: 20px;
+  background: linear-gradient(135deg, #fff7ed 0%, #fef3c7 40%, #fffbeb 100%);
+  border: 1px solid #fde68a; overflow: hidden; position: relative; gap: 20px;
 }
 .hero-left { position: relative; z-index: 1; flex: 1; }
 .hero-top-row { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
-.hero-greeting { font-size: 22px; font-weight: 800; color: #1e293b; line-height: 1.3; }
+.hero-greeting { font-size: 22px; font-weight: 800; color: #431407; line-height: 1.3; }
 .hero-badge {
   font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 10px;
-  background: linear-gradient(135deg, #dbeafe, #eff6ff); color: #2563eb;
-  border: 1px solid #bfdbfe;
+  background: linear-gradient(135deg, #fef3c7, #fde68a); color: #92400e;
+  border: 1px solid #fbbf24;
 }
-.hero-date { font-size: 13px; color: #64748b; margin: 0 0 6px 0; }
-.hero-quote { font-size: 13px; color: #3b82f6; margin: 0 0 12px 0; font-weight: 500; }
+.hero-date { font-size: 13px; color: #78716c; margin: 0 0 6px 0; }
+.hero-quote { font-size: 13px; color: #c2410c; margin: 0 0 12px 0; font-weight: 500; }
 .hero-tags { display: flex; gap: 8px; flex-wrap: wrap; }
 .hero-tag {
   font-size: 12px; padding: 4px 14px; border-radius: 14px; cursor: pointer;
-  background: rgba(255,255,255,0.7); color: #475569;
-  border: 1px solid #e2e8f0; transition: all 0.15s; font-weight: 500;
+  background: rgba(255,255,255,0.7); color: #78716c;
+  border: 1px solid #fde68a; transition: all 0.15s; font-weight: 500;
 }
-.hero-tag:hover { background: #fff; border-color: #3b82f6; color: #2563eb; }
+.hero-tag:hover { background: #fff; border-color: #f97316; color: #c2410c; }
 /* 右侧 */
 .hero-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; z-index: 1; }
 .hero-decor { opacity: 0.75; flex-shrink: 0; }
@@ -293,11 +293,11 @@ onMounted(() => { loadArticles(); loadMyDoctor() })
 .hero-stat {
   display: flex; align-items: center; gap: 8px;
   padding: 6px 12px; border-radius: 10px;
-  background: rgba(255,255,255,0.6); border: 1px solid #e2e8f0;
+  background: rgba(255,255,255,0.6); border: 1px solid #fde68a;
   white-space: nowrap;
 }
-.hs-num { font-size: 18px; font-weight: 800; color: #3b82f6; }
-.hs-label { font-size: 11px; color: #64748b; font-weight: 500; }
+.hs-num { font-size: 18px; font-weight: 800; color: #c2410c; }
+.hs-label { font-size: 11px; color: #78716c; font-weight: 500; }
 
 /* ====== 功能入口 ====== */
 .feature-section {
@@ -306,41 +306,42 @@ onMounted(() => { loadArticles(); loadMyDoctor() })
 .feature-card {
   display: flex; flex-direction: column; gap: 8px;
   padding: 20px 18px; border-radius: 14px; cursor: pointer;
-  border: 1px solid #e2e8f0; position: relative;
+  border: 1px solid #fef3c7; position: relative; background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
   transition: transform 0.2s, box-shadow 0.2s;
 }
-.feature-card:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.08); }
+.feature-card:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(249,115,22,0.1); }
 .fc-label { font-size: 15px; font-weight: 700; }
-.fc-desc { font-size: 12px; color: #94a3b8; line-height: 1.5; }
-.fc-arrow { position: absolute; right: 14px; top: 22px; color: #cbd5e1; }
-.feature-card:hover .fc-arrow { color: #64748b; }
+.fc-desc { font-size: 12px; color: #a8a29e; line-height: 1.5; }
+.fc-arrow { position: absolute; right: 14px; top: 22px; color: #d6d3d1; }
+.feature-card:hover .fc-arrow { color: #78716c; }
 
 /* ====== 分区标题 ====== */
 .section-hd {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 16px;
 }
-.shd-title { font-size: 16px; font-weight: 700; color: #1e293b; }
+.shd-title { font-size: 16px; font-weight: 700; color: #431407; }
 .shd-more {
-  font-size: 13px; color: #3b82f6; cursor: pointer; font-weight: 500;
+  font-size: 13px; color: #c2410c; cursor: pointer; font-weight: 500;
   display: flex; align-items: center; gap: 2px;
 }
-.shd-more:hover { color: #1d4ed8; }
+.shd-more:hover { color: #9a3412; }
 
 /* ====== 健康资讯卡片横排 ====== */
 .article-section {
-  background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
+  background: #fff; border: 1px solid #fef3c7; border-radius: 16px;
   padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 .article-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; }
 .article-card {
   flex: 1 0 180px; min-width: 160px;
-  border: 1px solid #f1f5f9; border-radius: 12px; padding: 14px;
+  border: 1px solid #fef3c7; border-radius: 12px; padding: 14px;
   cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column;
-  background: #fafcff;
+  background: #fffbeb;
 }
 .article-card:hover {
-  border-color: #bfdbfe; box-shadow: 0 4px 16px rgba(59,130,246,0.08);
+  border-color: #fbbf24; box-shadow: 0 4px 16px rgba(249,115,22,0.08);
   background: #fff;
 }
 .ac-top {
@@ -348,33 +349,33 @@ onMounted(() => { loadArticles(); loadMyDoctor() })
 }
 .ac-cat {
   font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 5px;
-  background: #eff6ff; color: #3b82f6;
+  background: #fef3c7; color: #c2410c;
 }
 .ac-fav {
-  font-size: 11px; color: #94a3b8; cursor: pointer; transition: color 0.15s;
+  font-size: 11px; color: #a8a29e; cursor: pointer; transition: color 0.15s;
 }
-.ac-fav:hover { color: #3b82f6; }
+.ac-fav:hover { color: #c2410c; }
 .ac-fav.on { color: #f59e0b; font-weight: 600; }
 .ac-title {
-  font-size: 14px; font-weight: 700; color: #1e293b; margin: 0 0 8px 0;
+  font-size: 14px; font-weight: 700; color: #431407; margin: 0 0 8px 0;
   overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
   -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.5;
 }
 .ac-desc {
-  font-size: 12px; color: #94a3b8; line-height: 1.6; margin: 0 0 auto 0;
+  font-size: 12px; color: #a8a29e; line-height: 1.6; margin: 0 0 auto 0;
   overflow: hidden; text-overflow: ellipsis;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
 }
 .ac-bottom {
   display: flex; justify-content: space-between; font-size: 11px;
-  color: #cbd5e1; margin-top: 12px; padding-top: 10px;
-  border-top: 1px solid #f1f5f9;
+  color: #d6d3d1; margin-top: 12px; padding-top: 10px;
+  border-top: 1px solid #fef3c7;
 }
 
 /* ====== 指标 + 贴士双栏 ====== */
 .dual-row { display: flex; gap: 20px; }
 .indicator-card, .tips-card {
-  flex: 1; background: #fff; border: 1px solid #e2e8f0;
+  flex: 1; background: #fff; border: 1px solid #fef3c7;
   border-radius: 16px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 
@@ -384,32 +385,33 @@ onMounted(() => { loadArticles(); loadMyDoctor() })
   display: flex; flex-direction: column; align-items: center;
   padding: 14px 10px; border-radius: 10px; border: 1px solid transparent;
 }
-.ind-label { font-size: 12px; color: #64748b; margin-bottom: 4px; }
+.ind-label { font-size: 12px; color: #78716c; margin-bottom: 4px; }
 .ind-value { font-size: 20px; font-weight: 800; line-height: 1.3; }
-.ind-unit { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+.ind-unit { font-size: 11px; color: #a8a29e; margin-top: 2px; }
 
 /* 每日提醒 */
 .tips-list { display: flex; flex-direction: column; gap: 10px; }
 .tip-item {
   display: flex; align-items: center; gap: 12px;
-  font-size: 13px; color: #475569; line-height: 1.6;
+  font-size: 13px; color: #44403c; line-height: 1.6;
   padding: 10px 14px; border-radius: 10px;
 }
 .tip-dot {
   width: 22px; height: 22px; border-radius: 50%;
-  background: #eff6ff; color: #3b82f6; font-size: 11px; font-weight: 700;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #fff; font-size: 11px; font-weight: 700;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 
 /* ====== 详情弹窗 ====== */
 .detail-wrap { padding: 4px 0; }
-.detail-meta { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; font-size: 12px; color: #94a3b8; }
+.detail-meta { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; font-size: 12px; color: #a8a29e; }
 .detail-tag {
   display: inline-block; padding: 2px 8px; border-radius: 5px;
-  background: #eff6ff; color: #1d4ed8; font-size: 12px; font-weight: 600;
+  background: #fef3c7; color: #c2410c; font-size: 12px; font-weight: 600;
 }
 .detail-content {
-  font-size: 15px; color: #334155; line-height: 2; white-space: pre-wrap;
+  font-size: 15px; color: #44403c; line-height: 2; white-space: pre-wrap;
   max-height: 480px; overflow-y: auto;
 }
 :deep(.el-dialog) { border-radius: 16px; }

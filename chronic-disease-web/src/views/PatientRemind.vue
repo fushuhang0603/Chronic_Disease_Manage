@@ -26,8 +26,8 @@ const form = reactive({
 
 // ====== 映射 ======
 const typeMap = {
-  medicine: { label: '用药', color: '#10b981', bg: '#ecfdf5' },
-  recheck: { label: '复查', color: '#3b82f6', bg: '#eff6ff' },
+  medicine: { label: '用药', color: '#f59e0b', bg: '#fffbeb' },
+  recheck: { label: '复查', color: '#f97316', bg: '#fff7ed' },
   custom: { label: '自定义', color: '#8b5cf6', bg: '#f5f3ff' },
 }
 const repeatMap = {
@@ -245,7 +245,7 @@ onMounted(() => fetchRecords())
           :class="{ closed: item.remindStatus === 4, expired: item.remindStatus === 5 }"
         >
           <div class="row-left">
-            <div class="row-type-dot" :style="{ background: typeMap[item.remindType]?.color || '#475569' }"></div>
+            <div class="row-type-dot" :style="{ background: typeMap[item.remindType]?.color || '#78716c' }"></div>
             <div class="row-info">
               <div class="row-title-row">
                 <span class="row-title">{{ item.title }}</span>
@@ -289,7 +289,7 @@ onMounted(() => fetchRecords())
 
         <!-- 空状态 -->
         <div v-if="!loading && records.length === 0" class="empty-box">
-          <el-icon :size="64" color="#cbd5e1"><AlarmClock /></el-icon>
+          <el-icon :size="64" color="#a8a29e"><AlarmClock /></el-icon>
           <p class="empty-text">暂无提醒</p>
           <p class="empty-sub">点击上方「新建提醒」添加用药或复查提醒</p>
         </div>
@@ -322,65 +322,65 @@ onMounted(() => fetchRecords())
 .input-card, .list-card {
   background: #fff; border-radius: 20px;
   box-shadow: 0 2px 20px rgba(0,0,0,0.05);
-  padding: 28px 32px; border: 1px solid #f1f5f9;
+  padding: 28px 32px; border: 1px solid #fef3c7;
 }
 .card-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px; }
-.head-label { font-size: 17px; font-weight: 700; color: #1e293b; }
-.head-hint { font-size: 13px; color: #94a3b8; flex: 1; }
+.head-label { font-size: 17px; font-weight: 700; color: #431407; }
+.head-hint { font-size: 13px; color: #a8a29e; flex: 1; }
 
 .add-btn {
   display: flex; align-items: center; gap: 6px;
   height: 38px; padding: 0 18px; border-radius: 10px;
-  border: 1.5px solid #cbd5e1; background: #fff;
-  color: #334155; font-size: 13px; font-weight: 600; cursor: pointer;
+  border: 1.5px solid #a8a29e; background: #fff;
+  color: #431407; font-size: 13px; font-weight: 600; cursor: pointer;
   transition: all 0.2s;
 }
-.add-btn:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
+.add-btn:hover { border-color: #f97316; color: #f97316; background: #fff7ed; }
 
 /* ===== 表单 ===== */
 .remind-form {
-  padding: 18px 22px; background: #f8fafc;
-  border-radius: 14px; border: 1.5px solid #e2e8f0;
+  padding: 18px 22px; background: #fffbeb;
+  border-radius: 14px; border: 1.5px solid #fef3c7;
 }
 .form-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .form-row :deep(.el-input__wrapper) {
-  border-radius: 10px; box-shadow: 0 0 0 1.5px #e2e8f0;
+  border-radius: 10px; box-shadow: 0 0 0 1.5px #fef3c7;
 }
 .form-row :deep(.el-select .el-input__wrapper) { height: 42px; }
 .form-row :deep(.el-date-editor .el-input__wrapper) { height: 42px; }
 
 .text-input {
-  height: 42px; border-radius: 10px; border: 1.5px solid #cbd5e1;
-  padding: 0 14px; font-size: 14px; color: #1e293b;
+  height: 42px; border-radius: 10px; border: 1.5px solid #a8a29e;
+  padding: 0 14px; font-size: 14px; color: #431407;
   outline: none; background: #fff; transition: border-color 0.2s;
   box-sizing: border-box;
 }
-.text-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-.text-input::placeholder { color: #94a3b8; }
+.text-input:focus { border-color: #f97316; box-shadow: 0 0 0 3px rgba(249,115,22,0.1); }
+.text-input::placeholder { color: #a8a29e; }
 
 .save-btn {
   height: 42px; padding: 0 28px; border-radius: 10px; font-size: 14px; font-weight: 600;
   border: none; cursor: pointer; transition: all 0.2s;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: #fff; box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+  background: linear-gradient(135deg, #f97316, #c2410c);
+  color: #fff; box-shadow: 0 4px 12px rgba(194,65,12,0.3);
   white-space: nowrap;
 }
-.save-btn:hover { box-shadow: 0 6px 16px rgba(37,99,235,0.4); transform: translateY(-1px); }
+.save-btn:hover { box-shadow: 0 6px 16px rgba(194,65,12,0.4); transform: translateY(-1px); }
 .save-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
 /* ===== 状态标签页 ===== */
 .status-tabs {
-  display: flex; gap: 4px; background: #f1f5f9;
+  display: flex; gap: 4px; background: #fef3c7;
   border-radius: 10px; padding: 3px; width: fit-content;
   margin-bottom: 18px;
 }
 .status-tab {
   padding: 6px 18px; border: none; background: transparent;
-  font-size: 13px; font-weight: 500; color: #64748b;
+  font-size: 13px; font-weight: 500; color: #78716c;
   cursor: pointer; border-radius: 8px; transition: all 0.2s;
 }
-.status-tab:hover:not(.active) { color: #334155; }
-.status-tab.active { background: #fff; color: #1e293b; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.status-tab:hover:not(.active) { color: #431407; }
+.status-tab.active { background: #fff; color: #431407; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 
 /* ===== 提醒列表（长条状） ===== */
 .remind-list {
@@ -391,14 +391,14 @@ onMounted(() => fetchRecords())
 .remind-row {
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
   padding: 14px 20px;
-  background: #eff6ff; border-radius: 10px;
-  border: 2px solid #93c5fd;
+  background: #fff7ed; border-radius: 10px;
+  border: 2px solid #fbbf24;
   transition: all 0.15s;
 }
 .remind-row:hover {
   background: #fff;
-  border-color: #1e40af;
-  box-shadow: 0 2px 12px rgba(30,64,175,0.15);
+  border-color: #9a3412;
+  box-shadow: 0 2px 12px rgba(194,65,12,0.15);
 }
 
 .row-left {
@@ -420,24 +420,24 @@ onMounted(() => fetchRecords())
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 }
 .row-title {
-  font-size: 14px; font-weight: 600; color: #1e293b;
+  font-size: 14px; font-weight: 600; color: #431407;
 }
 
 .row-type-label {
   display: inline-block; padding: 0 8px; border-radius: 5px;
-  font-size: 11px; font-weight: 600; color: #64748b; background: #f1f5f9;
+  font-size: 11px; font-weight: 600; color: #78716c; background: #fef3c7;
   line-height: 1.6;
 }
 .row-repeat-label {
   display: inline-block; padding: 0 6px; border-radius: 4px;
-  font-size: 11px; color: #64748b; background: #f8fafc; border: 1px solid #e2e8f0;
+  font-size: 11px; color: #78716c; background: #fffbeb; border: 1px solid #fef3c7;
   font-weight: 500;
 }
 .row-meta {
   display: flex; align-items: center; gap: 5px;
-  font-size: 12px; color: #94a3b8;
+  font-size: 12px; color: #a8a29e;
 }
-.row-meta-icon { color: #94a3b8; flex-shrink: 0; }
+.row-meta-icon { color: #a8a29e; flex-shrink: 0; }
 .row-desc {
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   max-width: 260px;
@@ -452,43 +452,43 @@ onMounted(() => fetchRecords())
   transition: all 0.15s; border: 1.5px solid transparent;
 }
 .row-btn-blue {
-  color: #1e40af; background: #eff6ff; border-color: #bfdbfe;
+  color: #9a3412; background: #fff7ed; border-color: #fde68a;
 }
-.row-btn-blue:hover { background: #dbeafe; }
+.row-btn-blue:hover { background: #fef3c7; }
 .row-btn-green {
-  color: #05854b; background: #ecfdf5; border-color: #a7f3d0;
+  color: #d97706; background: #fffbeb; border-color: #fde68a;
 }
-.row-btn-green:hover { background: #d1fae5; }
+.row-btn-green:hover { background: #fef3c7; }
 .row-btn-red {
   color: #dc2626; background: #fef2f2; border-color: #fecaca;
 }
 .row-btn-red:hover { background: #fee2e2; }
 .row-btn-gray {
-  color: #64748b; background: #f8fafc; border-color: #e2e8f0;
+  color: #78716c; background: #fffbeb; border-color: #fef3c7;
 }
-.row-btn-gray:hover { background: #f1f5f9; }
+.row-btn-gray:hover { background: #fef3c7; }
 
 /* ===== 已关闭状态 ===== */
 .remind-row.closed {
-  background: #f8fafc;
-  border-color: #e2e8f0;
+  background: #fffbeb;
+  border-color: #fef3c7;
   opacity: 0.7;
 }
 .remind-row.closed:hover {
   background: #fff;
-  border-color: #94a3b8;
+  border-color: #a8a29e;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   opacity: 1;
 }
 .remind-row.closed .row-type-dot {
-  background: #94a3b8 !important;
+  background: #a8a29e !important;
 }
 .remind-row.closed .row-title {
-  color: #94a3b8;
+  color: #a8a29e;
   text-decoration: line-through;
 }
 .remind-row.closed .row-meta {
-  color: #cbd5e1;
+  color: #a8a29e;
 }
 
 /* ===== 已过期状态 ===== */
@@ -513,18 +513,18 @@ onMounted(() => fetchRecords())
   display: flex; flex-direction: column; align-items: center;
   padding: 64px 0; gap: 12px;
 }
-.empty-text { font-size: 16px; color: #94a3b8; font-weight: 500; margin: 0; }
-.empty-sub { font-size: 13px; color: #cbd5e1; margin: 0; }
+.empty-text { font-size: 16px; color: #a8a29e; font-weight: 500; margin: 0; }
+.empty-sub { font-size: 13px; color: #a8a29e; margin: 0; }
 
 /* ===== 分页 ===== */
-.pagination-wrap { display: flex; justify-content: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9; }
+.pagination-wrap { display: flex; justify-content: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #fef3c7; }
 
 /* ===== 动画 ===== */
 .slide-enter-active, .slide-leave-active { transition: all 0.3s ease; }
 .slide-enter-from, .slide-leave-to { opacity: 0; transform: translateY(-10px); }
 
 ::deep(.el-pagination.is-background .el-pager li:not(.is-disabled).is-active) {
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  background: linear-gradient(135deg, #fb923c, #f97316);
   border-radius: 8px;
 }
 </style>

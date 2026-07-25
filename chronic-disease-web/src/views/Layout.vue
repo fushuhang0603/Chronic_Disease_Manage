@@ -80,13 +80,13 @@ function handleLogout() {
 </template>
 
 <style scoped>
-.admin-layout { display: flex; height: 100vh; background: #e8f2fc; }
+.admin-layout { display: flex; height: 100vh; background: #fff7ed; }
 
 /* === 侧边栏 === */
 .aside {
   width: 220px;
   background: #fff;
-  border-right: 1px solid #e2e8f0;
+  border-right: 1px solid #fde68a;
   display: flex;
   flex-direction: column;
   transition: width 0.2s;
@@ -101,19 +101,19 @@ function handleLogout() {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  border-bottom: 1px solid #e8f2fc;
+  border-bottom: 1px solid #fef3c7;
   padding: 0 16px;
   flex-shrink: 0;
 }
 .head-icon {
   width: 36px; height: 36px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #93c5fd, #60a5fa);
+  background: linear-gradient(135deg, #fb923c, #f97316);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
 .head-icon .el-icon { color: #fff; }
-.head-title { font-size: 16px; font-weight: 700; color: #1e3a5f; white-space: nowrap; letter-spacing: 1px; }
+.head-title { font-size: 16px; font-weight: 700; color: #7c2d12; white-space: nowrap; letter-spacing: 1px; }
 
 .nav-list { flex: 1; padding: 12px 8px; display: flex; flex-direction: column; gap: 2px; }
 
@@ -125,10 +125,10 @@ function handleLogout() {
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s;
-  color: #475569;
+  color: #78716c;
 }
-.nav-item:hover { background: #f1f5f9; color: #1e3a5f; }
-.nav-item.active { background: #eff6ff; color: #1d4ed8; font-weight: 600; }
+.nav-item:hover { background: #fef3c7; color: #7c2d12; }
+.nav-item.active { background: #fef3c7; color: #c2410c; font-weight: 600; }
 
 .nav-icon {
   width: 34px; height: 34px;
@@ -144,7 +144,7 @@ function handleLogout() {
 .top-bar {
   height: 56px;
   background: #fff;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #fde68a;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -153,10 +153,10 @@ function handleLogout() {
 }
 .top-right { display: flex; align-items: center; gap: 16px; }
 .role-badge {
-  background: #dbeafe; color: #1d4ed8;
+  background: #fef3c7; color: #c2410c;
   padding: 3px 14px; border-radius: 20px;
   font-size: 13px; font-weight: 600;
 }
 
-.main-content { flex: 1; padding: 24px; overflow-y: auto; }
+.main-content { flex: 1; padding: 24px; overflow-y: auto; background: #fff7ed; }
 </style>

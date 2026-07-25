@@ -73,14 +73,14 @@ function handleLogout() {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: #f5f7fa;
+  background: #fff7ed;
 }
 
 /* ---- 顶部导航 ---- */
 .top-nav {
   height: 56px;
   background: #fff;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #fde68a;
   display: flex;
   align-items: center;
   padding: 0 24px;
@@ -99,11 +99,11 @@ function handleLogout() {
 .brand-icon {
   width: 32px; height: 32px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  background: linear-gradient(135deg, #fb923c, #f97316);
   display: flex; align-items: center; justify-content: center;
 }
 .brand-icon .el-icon { color: #fff; }
-.brand-text { font-size: 16px; font-weight: 700; color: #1e3a5f; }
+.brand-text { font-size: 16px; font-weight: 700; color: #7c2d12; }
 
 .nav-links {
   display: flex;
@@ -118,13 +118,13 @@ function handleLogout() {
   padding: 8px 16px;
   border-radius: 8px;
   font-size: 14px;
-  color: #475569;
+  color: #78716c;
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
 }
-.nav-link:hover { background: #f1f5f9; color: #1e3a5f; }
-.nav-link.active { background: #eff6ff; color: #2563eb; font-weight: 600; }
+.nav-link:hover { background: #fef3c7; color: #7c2d12; }
+.nav-link.active { background: #fef3c7; color: #c2410c; font-weight: 600; }
 
 .nav-actions {
   display: flex;
@@ -133,7 +133,7 @@ function handleLogout() {
   flex-shrink: 0;
 }
 .user-tag {
-  background: #eff6ff; color: #2563eb;
+  background: #fef3c7; color: #c2410c;
   padding: 2px 12px; border-radius: 20px;
   font-size: 12px; font-weight: 600;
 }

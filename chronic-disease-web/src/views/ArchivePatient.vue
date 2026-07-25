@@ -332,7 +332,7 @@ onMounted(() => fetchArchive())
   border-radius: 16px;
   box-shadow: 0 2px 16px rgba(0,0,0,0.06);
   padding: 32px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #fef3c7;
 }
 
 .card-header {
@@ -342,24 +342,24 @@ onMounted(() => fetchArchive())
 .header-left { display: flex; align-items: center; gap: 16px; }
 .header-icon {
   width: 52px; height: 52px; border-radius: 14px;
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  background: linear-gradient(135deg, #fb923c, #f97316);
   display: flex; align-items: center; justify-content: center;
 }
 .header-icon .el-icon { color: #fff; }
 .header-info { display: flex; flex-direction: column; gap: 2px; }
-.patient-name { font-size: 20px; font-weight: 700; color: #1e293b; }
-.patient-meta { font-size: 13px; color: #64748b; }
+.patient-name { font-size: 20px; font-weight: 700; color: #431407; }
+.patient-meta { font-size: 13px; color: #78716c; }
 
 .edit-btn {
   height: 38px; border-radius: 10px; padding: 0 20px;
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
-  border: none; font-weight: 600; box-shadow: 0 2px 8px rgba(59,130,246,0.3);
+  background: linear-gradient(135deg, #fb923c, #f97316);
+  border: none; font-weight: 600; box-shadow: 0 2px 8px rgba(249,115,22,0.3);
 }
 
 .record-no {
-  font-size: 12px; color: #94a3b8;
+  font-size: 12px; color: #a8a29e;
   margin-bottom: 20px; padding-bottom: 16px;
-  border-bottom: 1px dashed #e2e8f0;
+  border-bottom: 1px dashed #fef3c7;
 }
 
 .info-grid {
@@ -370,28 +370,28 @@ onMounted(() => fetchArchive())
   display: flex; align-items: baseline; gap: 12px;
 }
 .info-label {
-  font-size: 13px; color: #64748b; white-space: nowrap;
+  font-size: 13px; color: #78716c; white-space: nowrap;
   min-width: 70px;
 }
 .info-value {
-  font-size: 14px; color: #1e293b; font-weight: 500;
+  font-size: 14px; color: #431407; font-weight: 500;
 }
 .info-value.highlight {
   color: #dc2626; font-weight: 600;
 }
 
 .divider {
-  height: 1px; background: #f1f5f9;
+  height: 1px; background: #fef3c7;
   margin: 16px 0;
 }
 
 .text-section { margin-bottom: 12px; }
 .text-title {
-  font-size: 13px; color: #64748b;
+  font-size: 13px; color: #78716c;
   margin-bottom: 4px;
 }
 .text-content {
-  font-size: 14px; color: #1e293b; line-height: 1.7;
+  font-size: 14px; color: #431407; line-height: 1.7;
   margin: 0; white-space: pre-wrap;
 }
 .text-content.warn { color: #dc2626; font-weight: 600; }
@@ -402,43 +402,43 @@ onMounted(() => fetchArchive())
   border-radius: 16px;
   box-shadow: 0 2px 16px rgba(0,0,0,0.06);
   padding: 32px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #fef3c7;
 }
 
 .form-title {
-  font-size: 18px; font-weight: 700; color: #1e293b;
+  font-size: 18px; font-weight: 700; color: #431407;
   display: flex; align-items: center; gap: 10px;
   margin-bottom: 28px;
 }
 .title-dot {
   width: 5px; height: 22px; border-radius: 3px;
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  background: linear-gradient(135deg, #fb923c, #f97316);
 }
 
 .form-section {
   font-size: 14px; font-weight: 700; color: #334155;
   margin: 24px 0 16px; padding: 8px 14px;
-  background: #eff6ff; border-left: 3px solid #3b82f6;
+  background: #fff7ed; border-left: 3px solid #f97316;
   border-radius: 0 6px 6px 0;
 }
 
 /* 填表样式：清晰的大输入框 */
 .hos-form :deep(.el-input__wrapper) {
   border-radius: 6px;
-  box-shadow: 0 0 0 1.5px #cbd5e1;
+  box-shadow: 0 0 0 1.5px #fde68a;
   background: #fff;
 }
-.hos-form :deep(.el-input__wrapper:hover) { box-shadow: 0 0 0 1.5px #60a5fa; }
+.hos-form :deep(.el-input__wrapper:hover) { box-shadow: 0 0 0 1.5px #fb923c; }
 .hos-form :deep(.el-input.is-focus .el-input__wrapper) {
-  box-shadow: 0 0 0 2px #3b82f6;
+  box-shadow: 0 0 0 2px #f97316;
 }
 .hos-form :deep(.el-textarea__inner) {
   border-radius: 6px;
-  box-shadow: 0 0 0 1.5px #cbd5e1;
+  box-shadow: 0 0 0 1.5px #fde68a;
   font-size: 14px; line-height: 1.8;
 }
-.hos-form :deep(.el-textarea__inner:hover) { box-shadow: 0 0 0 1.5px #60a5fa; }
-.hos-form :deep(.el-textarea__inner:focus) { box-shadow: 0 0 0 2px #3b82f6; }
+.hos-form :deep(.el-textarea__inner:hover) { box-shadow: 0 0 0 1.5px #fb923c; }
+.hos-form :deep(.el-textarea__inner:focus) { box-shadow: 0 0 0 2px #f97316; }
 .hos-form :deep(.el-select .el-input__wrapper) { border-radius: 6px; }
 .hos-form :deep(.el-form-item__label) {
   font-size: 14px; font-weight: 600; color: #334155;
@@ -449,16 +449,16 @@ onMounted(() => fetchArchive())
 
 .form-footer {
   display: flex; justify-content: flex-end; gap: 12px;
-  margin-top: 32px; padding-top: 20px; border-top: 1px solid #f1f5f9;
+  margin-top: 32px; padding-top: 20px; border-top: 1px solid #fef3c7;
 }
 .btn-cancel {
   height: 42px; border-radius: 8px; padding: 0 28px;
-  border: 1.5px solid #cbd5e1; color: #475569; font-size: 14px; font-weight: 600;
+  border: 1.5px solid #fde68a; color: #78716c; font-size: 14px; font-weight: 600;
 }
 .btn-submit {
   height: 42px; border-radius: 8px; padding: 0 32px; font-size: 14px; font-weight: 600;
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
-  border: none; box-shadow: 0 2px 8px rgba(59,130,246,0.3);
+  background: linear-gradient(135deg, #fb923c, #f97316);
+  border: none; box-shadow: 0 2px 8px rgba(249,115,22,0.3);
 }
 
 /* ===== 空状态 ===== */
@@ -469,13 +469,13 @@ onMounted(() => fetchArchive())
   padding: 60px 32px;
   display: flex; flex-direction: column; align-items: center;
   gap: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #fef3c7;
 }
 .empty-title { font-size: 18px; font-weight: 600; color: #334155; margin: 0; }
-.empty-desc { font-size: 14px; color: #94a3b8; margin: 0; }
+.empty-desc { font-size: 14px; color: #a8a29e; margin: 0; }
 .start-btn {
   margin-top: 12px; height: 44px; border-radius: 10px; padding: 0 32px; font-size: 15px;
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
-  border: none; box-shadow: 0 4px 14px rgba(59,130,246,0.3);
+  background: linear-gradient(135deg, #fb923c, #f97316);
+  border: none; box-shadow: 0 4px 14px rgba(249,115,22,0.3);
 }
 </style>

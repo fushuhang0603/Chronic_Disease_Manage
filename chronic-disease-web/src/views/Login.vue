@@ -24,7 +24,6 @@ async function handleLogin() {
     localStorage.setItem('token', token)
     localStorage.setItem('userInfo', JSON.stringify(userInfo))
     ElMessage.success('登录成功')
-    // 管理员跳转管理后台，患者/医生跳转患者端
     if (userInfo.roleType === 'admin') {
       router.push('/admin/users')
     } else {
@@ -36,319 +35,320 @@ async function handleLogin() {
     loading.value = false
   }
 }
-
-const features = {
-  monitor: {
-    title: '健康监测',
-    icon: 'TrendCharts',
-    color: '#3b82f6',
-    desc: '全方位健康数据追踪，支持血糖、血压、血脂、心率等多项指标录入与监测。自动生成健康趋势图表，异常指标智能预警，帮助您随时掌握身体状况变化。',
-    items: ['多维度指标录入', '健康趋势图表', '异常智能预警', '历史数据对比']
-  },
-  remind: {
-    title: '用药提醒',
-    icon: 'AlarmClock',
-    color: '#f59e0b',
-    desc: '智能用药提醒系统，支持自定义用药计划、剂量和频次。通过消息推送及时提醒服药，记录用药历史，避免漏服或重复用药，让慢病用药管理更省心。',
-    items: ['自定义用药计划', '准时消息推送', '用药记录追踪', '漏服智能提醒']
-  },
-  consult: {
-    title: '医生指导',
-    icon: 'ChatDotRound',
-    color: '#10b981',
-    desc: '在线连接专业医生团队，支持图文咨询与健康评估。医生可查看您的健康数据，提供个性化治疗建议和生活方式指导，让专业医疗触手可及。',
-    items: ['在线图文咨询', '健康数据共享', '个性化建议', '定期随访管理']
-  },
-  article: {
-    title: '健康资讯',
-    icon: 'Document',
-    color: '#8b5cf6',
-    desc: '汇聚权威慢病科普内容，涵盖饮食营养、运动康复、药物知识、心理调适等方面。根据您的病种和兴趣，精准推送个性化健康资讯，助力科学自我管理。',
-    items: ['权威科普文章', '饮食运动指导', '个性化推送', '疾病知识库']
-  }
-}
-
-const modalVisible = ref(false)
-const currentFeature = ref(features.monitor)
-
-function openFeature(key) {
-  currentFeature.value = features[key]
-  modalVisible.value = true
-}
 </script>
 
 <template>
-  <div class="page">
-    <!-- 左侧 -->
-    <div class="left-side">
-      <!-- 图片上方：品牌 + 功能 -->
-      <div class="top-intro">
-        <h1 class="title">慢病健康管理</h1>
-        <p class="subtitle">科学监测 · 专业守护 · 健康生活</p>
-        <div class="feat-grid">
-          <div class="feat-bar" @click="openFeature('monitor')">
-            <span class="feat-icon icon-blue"><el-icon :size="22"><TrendCharts /></el-icon></span>
-            <span class="feat-text">数据监测</span>
+  <div class="login-page">
+    <!-- 装饰层 -->
+    <div class="deco-layer">
+      <div class="glow g1"></div>
+      <div class="glow g2"></div>
+      <div class="glow g3"></div>
+    </div>
+
+    <!-- 左侧内容区 -->
+    <div class="left-area">
+      <div class="hero-text">
+        <h1 class="hero-title">慢病健康管理</h1>
+        <p class="hero-sub">科学监测 · 专业守护 · 健康生活</p>
+      </div>
+
+      <div class="data-cards">
+        <div class="data-card">
+          <div class="dc-icon dc-ic-blood">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
           </div>
-          <div class="feat-bar" @click="openFeature('remind')">
-            <span class="feat-icon icon-orange"><el-icon :size="22"><AlarmClock /></el-icon></span>
-            <span class="feat-text">用药提醒</span>
+          <div class="dc-info">
+            <span class="dc-val">128/82</span>
+            <span class="dc-label">血压 mmHg</span>
           </div>
-          <div class="feat-bar" @click="openFeature('consult')">
-            <span class="feat-icon icon-green"><el-icon :size="22"><ChatDotRound /></el-icon></span>
-            <span class="feat-text">医生指导</span>
+        </div>
+        <div class="data-card">
+          <div class="dc-icon dc-ic-sugar">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           </div>
-          <div class="feat-bar" @click="openFeature('article')">
-            <span class="feat-icon icon-purple"><el-icon :size="22"><Document /></el-icon></span>
-            <span class="feat-text">健康资讯</span>
+          <div class="dc-info">
+            <span class="dc-val">5.8</span>
+            <span class="dc-label">空腹血糖 mmol/L</span>
+          </div>
+        </div>
+        <div class="data-card">
+          <div class="dc-icon dc-ic-heart">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <div class="dc-info">
+            <span class="dc-val">76</span>
+            <span class="dc-label">静息心率 bpm</span>
+          </div>
+        </div>
+        <div class="data-card">
+          <div class="dc-icon dc-ic-pill">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="2" width="8" height="20" rx="4"/><line x1="12" y1="6" x2="12" y2="10"/><line x1="12" y1="14" x2="12" y2="16"/></svg>
+          </div>
+          <div class="dc-info">
+            <span class="dc-val">3次</span>
+            <span class="dc-label">今日用药提醒</span>
           </div>
         </div>
       </div>
 
-      <!-- 医生图片 -->
-      <div class="image-box">
-        <img src="/doctor.jpg" alt="doctor" />
-      </div>
-
-      <!-- 图片下方：描述 + 标签 -->
-      <div class="bottom-intro">
-        <p class="desc">
-          专注于慢性病全周期管理，提供血糖血压监测、用药智能提醒、在线医生指导、个性化健康资讯等一站式服务。
-        </p>
-        <div class="tag-row">
-          <span class="tag blue">高血压</span>
-          <span class="tag orange">糖尿病</span>
-          <span class="tag green">痛风</span>
-          <span class="tag-suffix">等常见慢病</span>
+      <div class="mini-chart">
+        <svg viewBox="0 0 320 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <line x1="0" y1="20" x2="320" y2="20" stroke="rgba(249,115,22,0.06)" stroke-width="1" />
+          <line x1="0" y1="40" x2="320" y2="40" stroke="rgba(249,115,22,0.06)" stroke-width="1" />
+          <line x1="0" y1="60" x2="320" y2="60" stroke="rgba(249,115,22,0.06)" stroke-width="1" />
+          <polyline points="0,55 30,50 60,42 90,44 120,38 150,35 180,32 210,34 240,28 270,26 300,22 320,24"
+            stroke="rgba(249,115,22,0.35)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+          <polyline points="0,62 30,58 60,55 90,56 120,52 150,48 180,50 210,46 240,44 270,40 300,38 320,36"
+            stroke="rgba(251,146,60,0.20)" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+          <circle cx="60" cy="42" r="3" fill="rgba(249,115,22,0.5)" />
+          <circle cx="150" cy="35" r="3" fill="rgba(249,115,22,0.5)" />
+          <circle cx="240" cy="28" r="3" fill="rgba(249,115,22,0.5)" />
+          <circle cx="300" cy="22" r="3" fill="rgba(249,115,22,0.5)" />
+        </svg>
+        <div class="chart-labels">
+          <span>周一</span><span>周二</span><span>周三</span><span>周四</span><span>周五</span><span>周六</span><span>周日</span>
+        </div>
+        <div class="chart-legend">
+          <span class="lg-item"><span class="lg-dot l1"></span>血糖趋势</span>
+          <span class="lg-item"><span class="lg-dot l2"></span>收缩压</span>
         </div>
       </div>
     </div>
 
-    <!-- 右侧：登录卡片 -->
-    <div class="right-side">
-      <div class="card">
-        <div class="card-head">
-          <span class="card-icon"><el-icon :size="20"><UserFilled /></el-icon></span>
-          <span class="card-title">用户登录</span>
-        </div>
-        <p class="card-sub">欢迎回来，请登录您的账号</p>
+    <!-- 右侧登录卡片 -->
+    <div class="login-card">
+      <h2 class="card-title">欢迎回来</h2>
+      <p class="card-sub">登录账号以继续使用</p>
 
-        <el-form ref="formRef" :model="form" :rules="rules" label-position="top">
-          <el-form-item label="用户名" prop="username">
-            <el-input v-model="form.username" placeholder="请输入用户名" size="large" clearable>
-              <template #prefix><el-icon><User /></el-icon></template>
-            </el-input>
-          </el-form-item>
-          <el-form-item label="密码" prop="password">
-            <el-input v-model="form.password" type="password" placeholder="请输入密码" size="large" show-password>
-              <template #prefix><el-icon><Lock /></el-icon></template>
-            </el-input>
-          </el-form-item>
-          <el-form-item>
-            <el-button :loading="loading" @click="handleLogin" class="btn" size="large">登 录</el-button>
-          </el-form-item>
-        </el-form>
+      <el-form ref="formRef" :model="form" :rules="rules" label-position="top" class="login-form">
+        <el-form-item label="用户名" prop="username">
+          <el-input v-model="form.username" placeholder="请输入用户名" size="large" clearable>
+            <template #prefix>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </template>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="密码" prop="password">
+          <el-input v-model="form.password" type="password" placeholder="请输入密码" size="large" show-password>
+            <template #prefix>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </template>
+          </el-input>
+        </el-form-item>
+        <el-form-item>
+          <button type="button" class="login-btn" :disabled="loading" @click="handleLogin">
+            <span v-if="!loading">登 录</span>
+            <span v-else class="btn-loading">
+              <svg class="spin" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+              登录中...
+            </span>
+          </button>
+        </el-form-item>
+      </el-form>
 
-        <div class="footer">
-          还没有账号？<router-link to="/register" class="link">立即注册</router-link>
-        </div>
+      <div class="card-footer">
+        <span>还没有账号？</span>
+        <router-link to="/register" class="footer-link">立即注册</router-link>
       </div>
     </div>
-
-    <!-- 功能介绍弹窗 -->
-    <el-dialog v-model="modalVisible" :title="currentFeature.title" width="460px" center>
-      <div class="modal-body">
-        <div class="modal-icon" :style="{ background: currentFeature.color + '15' }">
-          <el-icon :size="36" :color="currentFeature.color"><component :is="currentFeature.icon" /></el-icon>
-        </div>
-        <p class="modal-desc">{{ currentFeature.desc }}</p>
-        <div class="modal-items">
-          <div class="modal-item" v-for="item in currentFeature.items" :key="item">
-            <el-icon :size="16" :color="currentFeature.color"><Check /></el-icon>
-            <span>{{ item }}</span>
-          </div>
-        </div>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
 <style scoped>
-.page {
+.login-page {
   min-height: 100vh;
+  position: relative;
   display: flex;
-  background: #e8f2fc;
+  align-items: flex-start;
+  justify-content: space-between;
+  background: linear-gradient(160deg, #fef3c7 0%, #fffbeb 30%, #fff7ed 60%, #ffedd5 100%);
+  overflow: hidden;
+  padding: 40px 48px;
 }
 
-/* ====== 左侧 ====== */
-.left-side {
-  flex: 1;
+/* ========== 装饰层 ========== */
+.deco-layer {
+  position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+}
+
+.glow {
+  position: absolute; border-radius: 50%;
+}
+.g1 {
+  width: 600px; height: 600px;
+  top: -200px; left: -100px;
+  background: radial-gradient(circle, rgba(251,146,60,0.10) 0%, transparent 55%);
+}
+.g2 {
+  width: 400px; height: 400px;
+  bottom: -100px; left: 30%;
+  background: radial-gradient(circle, rgba(254,215,170,0.12) 0%, transparent 55%);
+}
+.g3 {
+  width: 300px; height: 300px;
+  top: 30%; right: 8%;
+  background: radial-gradient(circle, rgba(251,191,36,0.06) 0%, transparent 55%);
+}
+
+/* 左侧内容区 */
+.left-area {
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, #dce9fa 0%, #e8f2fc 30%, #e8f2fc 70%, #dce9fa 100%);
-}
-
-/* 图片上方 */
-.top-intro {
-  padding: 36px 40px 16px;
-  text-align: center;
-  flex-shrink: 0;
-}
-.title { font-size: 32px; font-weight: 700; color: #1e3a5f; margin: 0 0 4px; letter-spacing: 3px; }
-.subtitle { font-size: 14px; color: #4a6fa5; margin: 0 0 20px; }
-.feat-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-}
-.feat-bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  background: rgba(255,255,255,0.6);
-  border-radius: 12px;
-  transition: transform 0.2s, box-shadow 0.2s;
-  cursor: pointer;
-}
-.feat-bar:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59,130,246,0.1);
-}
-.feat-icon {
-  width: 40px; height: 40px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.icon-blue   .el-icon { color: #3b82f6; } .icon-blue   { background: rgba(59,130,246,0.1); }
-.icon-orange .el-icon { color: #f59e0b; } .icon-orange { background: rgba(245,158,11,0.1); }
-.icon-green  .el-icon { color: #10b981; } .icon-green  { background: rgba(16,185,129,0.1); }
-.icon-purple .el-icon { color: #8b5cf6; } .icon-purple { background: rgba(139,92,246,0.1); }
-.feat-text {
-  font-size: 15px;
-  font-weight: 600;
-  color: #334155;
-}
-
-/* 医生图片 */
-.image-box {
+  align-items: flex-start;
+  gap: 28px;
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 32px;
-  min-height: 0;
-}
-.image-box img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
+  max-width: 700px;
 }
 
-/* 图片下方 */
-.bottom-intro {
-  padding: 8px 40px 32px;
-  text-align: center;
-  flex-shrink: 0;
+.hero-text {
 }
-.desc {
-  font-size: 16px; color: #5b7a9e;
-  line-height: 1.8; margin: 0 0 16px;
+.hero-title {
+  font-size: 28px; font-weight: 800; color: #7c2d12;
+  margin: 0 0 6px; letter-spacing: 4px;
 }
-.tag-row {
+.hero-sub {
+  font-size: 14px; color: #a8a29e;
+  margin: 0; letter-spacing: 2px;
+}
+
+/* 数据卡片 */
+.data-cards {
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
+.data-card {
   display: flex; align-items: center; gap: 10px;
-  justify-content: center; flex-wrap: wrap;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.65);
+  backdrop-filter: blur(6px);
+  border-radius: 14px;
+  border: 1px solid rgba(249,115,22,0.08);
+  box-shadow: 0 2px 12px rgba(194,65,12,0.04);
 }
-.tag {
-  display: inline-block; padding: 5px 16px;
-  border-radius: 20px; font-size: 15px; font-weight: 600;
+.dc-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
 }
-.tag.blue   { background: rgba(59,130,246,0.12); color: #1d4ed8; }
-.tag.orange { background: rgba(245,158,11,0.12); color: #b45309; }
-.tag.green  { background: rgba(16,185,129,0.12); color: #065f46; }
-.tag-suffix { font-size: 15px; color: #5b7a9e; }
+.dc-ic-blood { background: rgba(239,68,68,0.10); color: #ef4444; }
+.dc-ic-sugar { background: rgba(249,115,22,0.10); color: #f97316; }
+.dc-ic-heart { background: rgba(236,72,153,0.10); color: #ec4899; }
+.dc-ic-pill  { background: rgba(34,197,94,0.10); color: #22c55e; }
 
-/* ====== 右侧卡片 ====== */
-.right-side {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 48px 40px 24px;
+.dc-info {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.dc-val {
+  font-size: 18px; font-weight: 800; color: #7c2d12;
+  line-height: 1;
+}
+.dc-label {
+  font-size: 11px; color: #a8a29e;
+  white-space: nowrap;
 }
 
-.card {
+/* 简易趋势图 */
+.mini-chart {
   width: 100%;
-  max-width: 440px;
+  padding: 24px 28px;
+  background: rgba(255,255,255,0.65);
+  backdrop-filter: blur(6px);
+  border-radius: 16px;
+  border: 1px solid rgba(249,115,22,0.08);
+  box-shadow: 0 2px 12px rgba(194,65,12,0.04);
+}
+.mini-chart svg {
+  width: 100%; height: 160px;
+}
+.chart-labels {
+  display: flex; justify-content: space-between;
+  padding: 0 4px; margin-top: 4px;
+}
+.chart-labels span {
+  font-size: 10px; color: #a8a29e;
+}
+.chart-legend {
+  display: flex; gap: 16px; margin-top: 6px;
+  justify-content: center;
+}
+.lg-item {
+  font-size: 11px; color: #78716c;
+  display: flex; align-items: center; gap: 5px;
+}
+.lg-dot {
+  width: 8px; height: 8px; border-radius: 2px; display: inline-block;
+}
+.l1 { background: rgba(249,115,22,0.5); }
+.l2 { background: rgba(251,146,60,0.4); }
+
+/* ========== 登录卡片 ========== */
+.login-card {
+  flex-shrink: 0;
+  width: 360px;
   background: #fff;
   border-radius: 20px;
-  box-shadow: 0 4px 24px rgba(59,130,246,0.06);
-  padding: 40px 44px;
+  box-shadow: 0 8px 40px rgba(194,65,12,0.10), 0 2px 8px rgba(194,65,12,0.06);
+  padding: 36px 32px 32px;
+  border: 1px solid #fef3c7;
+  margin-top: 160px;
+  margin-right: 120px;
 }
 
-.card-head {
-  display: flex; align-items: center; justify-content: center;
-  gap: 8px; margin-bottom: 4px;
+.card-title {
+  font-size: 22px; font-weight: 700; color: #431407;
+  text-align: center; margin: 0 0 6px;
 }
-.card-icon {
-  width: 36px; height: 36px; border-radius: 10px;
-  background: linear-gradient(135deg, #93c5fd, #60a5fa);
-  display: flex; align-items: center; justify-content: center;
+.card-sub {
+  font-size: 14px; color: #a8a29e;
+  text-align: center; margin: 0 0 32px;
 }
-.card-icon .el-icon { color: #fff; }
-.card-title { font-size: 20px; font-weight: 700; color: #1e3a5f; }
-.card-sub { text-align: center; color: #94a3b8; font-size: 13px; margin-bottom: 28px; }
 
-:deep(.el-form-item__label) { font-size: 13px; font-weight: 600; color: #475569; padding-bottom: 4px; }
-:deep(.el-input__wrapper) { border-radius: 10px; box-shadow: 0 0 0 1px #e2e8f0; background: #fff; }
-:deep(.el-input__wrapper:hover) { box-shadow: 0 0 0 1px #93c5fd; }
-:deep(.el-input.is-focus .el-input__wrapper) { box-shadow: 0 0 0 1px #60a5fa; }
-
-.btn {
-  width: 100%; height: 46px; font-size: 15px; letter-spacing: 6px;
+/* 表单 */
+.login-form :deep(.el-form-item) { margin-bottom: 20px; }
+.login-form :deep(.el-form-item__label) {
+  font-size: 13px; font-weight: 600; color: #78716c; padding-bottom: 6px;
+}
+.login-form :deep(.el-input__wrapper) {
   border-radius: 12px;
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
-  border: none; color: #fff; margin-top: 4px;
-  box-shadow: 0 4px 16px rgba(59,130,246,0.25);
-  transition: all 0.3s ease;
+  box-shadow: 0 0 0 1.5px #fde68a; background: #fffbeb;
+  padding: 4px 12px; transition: all 0.25s;
 }
-.btn:hover {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  box-shadow: 0 6px 24px rgba(59,130,246,0.35);
+.login-form :deep(.el-input__wrapper:hover) { box-shadow: 0 0 0 1.5px #fbbf24; }
+.login-form :deep(.el-input.is-focus .el-input__wrapper) {
+  box-shadow: 0 0 0 2px rgba(249,115,22,0.20); background: #fff;
+}
+.login-form :deep(.el-input__prefix) { color: #a8a29e; margin-right: 6px; }
+.login-form :deep(.el-input.is-focus .el-input__prefix) { color: #f97316; }
+
+/* 按钮 */
+.login-btn {
+  width: 100%; height: 48px; border-radius: 14px; border: none;
+  font-size: 16px; font-weight: 700; letter-spacing: 8px;
+  color: #fff; cursor: pointer;
+  background: linear-gradient(135deg, #fb923c, #f97316);
+  box-shadow: 0 4px 20px rgba(249,115,22,0.25);
+  transition: all 0.3s ease; margin-top: 6px;
+}
+.login-btn:hover {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  box-shadow: 0 6px 28px rgba(249,115,22,0.35);
   transform: translateY(-2px);
 }
-.btn:active { transform: translateY(0); }
+.login-btn:active { transform: translateY(0); }
+.login-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
 
-.footer { text-align: center; font-size: 13px; color: #94a3b8; margin-top: 10px; }
-.link { color: #3b82f6; text-decoration: none; font-weight: 600; margin-left: 4px; }
-.link:hover { text-decoration: underline; }
+.btn-loading { display: inline-flex; align-items: center; gap: 8px; letter-spacing: 2px; }
+.spin { animation: rotate 1s linear infinite; }
+@keyframes rotate { to { transform: rotate(360deg); } }
 
-/* ====== 弹窗 ====== */
-.modal-body { text-align: center; padding: 8px 0 16px; }
-.modal-icon {
-  width: 72px; height: 72px; border-radius: 20px;
-  display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 20px;
-}
-.modal-desc {
-  font-size: 15px; color: #475569;
-  line-height: 1.8; margin: 0 0 24px;
-}
-.modal-items { text-align: left; }
-.modal-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 16px; margin-bottom: 8px;
-  background: #f8fafc; border-radius: 10px;
-  font-size: 14px; color: #334155;
-}
+.card-footer { text-align: center; margin-top: 6px; font-size: 14px; color: #a8a29e; }
+.footer-link { color: #f97316; text-decoration: none; font-weight: 700; margin-left: 4px; }
+.footer-link:hover { color: #c2410c; text-decoration: underline; }
 
+/* ========== 响应式 ========== */
 @media (max-width: 768px) {
-  .page { flex-direction: column; }
-  .left-side { display: none; }
-  .right-side { padding: 24px 16px; }
-  .card { padding: 32px 28px; }
+  .login-page { justify-content: center; padding: 24px 20px; }
+  .left-area { display: none; }
+  .login-card { width: 100%; max-width: 400px; padding: 32px 28px; }
 }
 </style>

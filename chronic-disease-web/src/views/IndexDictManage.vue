@@ -316,7 +316,7 @@ onMounted(() => fetchData())
 .um-card {
   background: #fff;
   border-radius: 20px;
-  box-shadow: 0 4px 24px rgba(59,130,246,0.06);
+  box-shadow: 0 4px 24px rgba(249,115,22,0.06);
   padding: 24px 28px;
 }
 
@@ -329,59 +329,59 @@ onMounted(() => fetchData())
 .card-icon {
   width: 34px; height: 34px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  background: linear-gradient(135deg, #fb923c, #f97316);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
 .card-icon .el-icon { color: #fff; }
-.card-label { font-size: 16px; font-weight: 700; color: #1e3a5f; }
-.card-tip { font-size: 13px; color: #94a3b8; margin-left: auto; }
+.card-label { font-size: 16px; font-weight: 700; color: #7c2d12; }
+.card-tip { font-size: 13px; color: #a8a29e; margin-left: auto; }
 
 .search-form { margin-bottom: 0; }
 .search-form :deep(.el-form-item) { margin-bottom: 16px; }
-.search-form :deep(.el-form-item__label) { font-size: 13px; font-weight: 600; color: #475569; }
+.search-form :deep(.el-form-item__label) { font-size: 13px; font-weight: 600; color: #78716c; }
 .search-form :deep(.el-input) { width: 170px; }
 .search-form :deep(.el-select) { width: 140px; }
 .search-form :deep(.el-input__wrapper) {
   border-radius: 10px;
-  box-shadow: 0 0 0 1px #e2e8f0;
-  background: #fff;
+  box-shadow: 0 0 0 1px #fde68a;
+  background: #fffbeb;
 }
-.search-form :deep(.el-input__wrapper:hover) { box-shadow: 0 0 0 1px #93c5fd; }
-.search-form :deep(.el-input.is-focus .el-input__wrapper) { box-shadow: 0 0 0 1px #60a5fa; }
+.search-form :deep(.el-input__wrapper:hover) { box-shadow: 0 0 0 1px #f97316; }
+.search-form :deep(.el-input.is-focus .el-input__wrapper) { box-shadow: 0 0 0 1px #f97316; }
 
 .btn-search {
   height: 38px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  background: linear-gradient(135deg, #f97316, #ea580c);
   border: none;
-  box-shadow: 0 2px 10px rgba(59,130,246,0.2);
+  box-shadow: 0 2px 10px rgba(194,65,12,0.2);
   transition: all 0.3s;
 }
 .btn-search:hover {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  box-shadow: 0 4px 16px rgba(59,130,246,0.3);
+  background: linear-gradient(135deg, #ea580c, #c2410c);
+  box-shadow: 0 4px 16px rgba(194,65,12,0.3);
   transform: translateY(-1px);
 }
 .btn-reset {
   height: 38px; border-radius: 10px;
-  border: 1px solid #e2e8f0; color: #475569;
+  border: 1px solid #fde68a; color: #78716c;
 }
 
 .btn-add {
   height: 34px; border-radius: 10px; margin-left: auto;
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
-  border: none; box-shadow: 0 2px 8px rgba(59,130,246,0.2);
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  border: none; box-shadow: 0 2px 8px rgba(194,65,12,0.2);
 }
 
 .um-table { margin-bottom: 0; }
 .um-table :deep(th) {
-  background: #f8fafc;
-  color: #475569;
+  background: #fffbeb;
+  color: #78716c;
   font-weight: 600;
   font-size: 13px;
 }
-.um-table :deep(td) { font-size: 13px; color: #334155; }
+.um-table :deep(td) { font-size: 13px; color: #431407; }
 .um-table :deep(.el-table__cell) {
   border-right-color: #d0d7de;
   border-bottom-color: #d0d7de;
@@ -413,7 +413,7 @@ onMounted(() => fetchData())
 .status-dot.on  { color: #059669; } .status-dot.on::before  { background: #10b981; }
 .status-dot.off { color: #dc2626; } .status-dot.off::before { background: #ef4444; }
 
-.pagination-wrap { display: flex; justify-content: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9; }
+.pagination-wrap { display: flex; justify-content: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #fef3c7; }
 
 .action-cell { display: flex; gap: 8px; justify-content: center; }
 .btn-action {
@@ -422,8 +422,8 @@ onMounted(() => fetchData())
   border: none; color: #fff;
   transition: all 0.2s;
 }
-.btn-action { background: #3b82f6; }
-.btn-action:hover { background: #2563eb; }
+.btn-action { background: #f97316; }
+.btn-action:hover { background: #ea580c; }
 .btn-action.btn-on { background: #16a34a; }
 .btn-action.btn-on:hover { background: #15803d; }
 .btn-action.btn-off { background: #dc2626; }
@@ -432,7 +432,7 @@ onMounted(() => fetchData())
 .btn-action.btn-del:hover { background: #dc2626; }
 
 :deep(.el-pagination.is-background .el-pager li:not(.is-disabled).is-active) {
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  background: linear-gradient(135deg, #f97316, #ea580c);
   border-radius: 8px;
 }
 
@@ -444,12 +444,13 @@ onMounted(() => fetchData())
 .add-dialog :deep(.el-dialog__header) {
   padding: 24px 28px 0;
   margin: 0;
+  border-bottom: 1px solid #fef3c7;
 }
 .add-dialog :deep(.el-dialog__headerbtn) {
   top: 22px; right: 24px;
   width: 32px; height: 32px; border-radius: 8px;
 }
-.add-dialog :deep(.el-dialog__headerbtn:hover) { background: #f1f5f9; }
+.add-dialog :deep(.el-dialog__headerbtn:hover) { background: #fef3c7; }
 .add-dialog :deep(.el-dialog__body) {
   padding: 20px 28px 4px;
 }
@@ -458,7 +459,7 @@ onMounted(() => fetchData())
 }
 
 .dialog-title {
-  font-size: 17px; font-weight: 600; color: #1e293b; letter-spacing: -0.2px;
+  font-size: 17px; font-weight: 600; color: #7c2d12; letter-spacing: -0.2px;
 }
 
 /* ---- 分段选择器 ---- */
@@ -494,17 +495,17 @@ onMounted(() => fetchData())
   margin-bottom: 18px;
 }
 .add-form :deep(.el-form-item__label) {
-  font-size: 13px; font-weight: 600; color: #334155;
+  font-size: 13px; font-weight: 600; color: #78716c;
   margin-bottom: 6px;
 }
 .add-form :deep(.el-input__wrapper) {
   border-radius: 10px;
-  box-shadow: 0 0 0 1px #e2e8f0;
-  background: #fff;
+  box-shadow: 0 0 0 1px #fde68a;
+  background: #fffbeb;
   transition: all 0.2s;
 }
-.add-form :deep(.el-input__wrapper:hover) { box-shadow: 0 0 0 1px #cbd5e1; }
-.add-form :deep(.el-input.is-focus .el-input__wrapper) { box-shadow: 0 0 0 2px rgba(59,130,246,0.25); }
+.add-form :deep(.el-input__wrapper:hover) { box-shadow: 0 0 0 1px #f97316; }
+.add-form :deep(.el-input.is-focus .el-input__wrapper) { box-shadow: 0 0 0 2px rgba(249,115,22,0.25); }
 .add-form :deep(.el-input-number .el-input__wrapper) { border-radius: 10px; }
 .add-form :deep(.el-select .el-input__wrapper) { border-radius: 10px; }
 
@@ -514,13 +515,13 @@ onMounted(() => fetchData())
 }
 .btn-cancel {
   height: 40px; border-radius: 10px; padding: 0 24px;
-  border: 1px solid #e2e8f0; color: #475569; font-size: 14px; background: #fff;
+  border: 1px solid #fde68a; color: #78716c; font-size: 14px; background: #fff;
   font-weight: 500;
 }
-.btn-cancel:hover { border-color: #cbd5e1; background: #f8fafc; }
+.btn-cancel:hover { border-color: #f97316; background: #fff7ed; }
 .btn-submit {
   height: 40px; border-radius: 10px; padding: 0 28px; font-size: 14px; font-weight: 500;
-  background: #3b82f6; border: none; color: #fff;
+  background: linear-gradient(135deg, #f97316, #ea580c); border: none; color: #fff;
 }
-.btn-submit:hover { background: #2563eb; }
+.btn-submit:hover { background: linear-gradient(135deg, #ea580c, #c2410c); }
 </style>

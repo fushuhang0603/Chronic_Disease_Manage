@@ -18,7 +18,6 @@ const query = reactive({
   pageSize: 20,
 })
 
-// 新增/编辑弹窗
 const dialogVisible = ref(false)
 const dialogMode = ref('add')
 const formRef = ref(null)
@@ -98,7 +97,6 @@ async function handleEdit(row) {
     addForm.department = profile.department
     addForm.specialty = profile.specialty
     addForm.introduction = profile.introduction || ''
-    // 编辑时不需要下拉列表
     doctorUserOptions.value = [{
       id: profile.doctorId,
       username: row.doctorName || '',
@@ -115,7 +113,6 @@ async function handleEdit(row) {
 }
 
 async function handleSubmit() {
-  // 手动校验医生账号
   if (!addForm.doctorId) {
     ElMessage.warning('请选择医生账号')
     return
@@ -270,100 +267,99 @@ onMounted(() => fetchData())
         />
       </div>
     </div>
+
+    <!-- 新增/编辑弹窗 -->
+    <el-dialog v-model="dialogVisible" :close-on-click-modal="false" width="560px" class="add-dialog">
+      <template #header>
+        <span class="dialog-title">{{ dialogMode === 'add' ? '新增医生资历' : '编辑医生资历' }}</span>
+      </template>
+
+      <el-form ref="formRef" :model="addForm" :rules="addRules" label-position="top" class="add-form" v-loading="editLoading">
+        <div class="form-section">
+          <div class="section-label">选择医生账号</div>
+          <div class="doctor-card-grid" v-if="dialogMode === 'add'">
+            <div
+              v-for="doc in doctorUserOptions"
+              :key="doc.id"
+              :class="['doctor-card', { selected: addForm.doctorId === doc.id }]"
+              @click="addForm.doctorId = doc.id"
+            >
+              <div class="doc-avatar-sm">{{ (doc.nickname || doc.username || '医')[0] }}</div>
+              <span class="doc-name-sm">{{ doc.nickname || doc.username }}</span>
+              <span class="doc-username-sm">{{ doc.username }}</span>
+              <span class="doc-phone-sm" v-if="doc.phone">{{ doc.phone }}</span>
+              <el-icon v-if="addForm.doctorId === doc.id" class="doc-check-sm" :size="16"><CircleCheckFilled /></el-icon>
+            </div>
+            <div v-if="doctorUserOptions.length === 0" class="doctor-empty">
+              <el-icon :size="24"><User /></el-icon>
+              <span>暂无可选的医生账号</span>
+            </div>
+          </div>
+          <div v-if="dialogMode === 'edit'" class="doctor-card readonly">
+            <div class="doc-avatar-sm">{{ (doctorUserOptions[0]?.nickname || doctorUserOptions[0]?.username || '医')[0] }}</div>
+            <span class="doc-name-sm">{{ doctorUserOptions[0]?.nickname || doctorUserOptions[0]?.username }}</span>
+            <span class="doc-username-sm">{{ doctorUserOptions[0]?.username }}</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="form-section">
+          <div class="section-label">基本信息</div>
+          <el-row :gutter="16">
+            <el-col :span="12">
+              <el-form-item label="真实姓名" prop="realName">
+                <el-input v-model="addForm.realName" placeholder="请输入真实姓名" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="职称" prop="title">
+                <el-select v-model="addForm.title" placeholder="请选择职称" style="width:100%">
+                  <el-option v-for="o in titleOptions" :key="o.value" :label="o.label" :value="o.value" />
+                </el-select>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </div>
+
+        <div class="form-section">
+          <div class="section-label">执业信息</div>
+          <el-row :gutter="16">
+            <el-col :span="12">
+              <el-form-item label="所属医院" prop="hospital">
+                <el-input v-model="addForm.hospital" placeholder="如 北京协和医院" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="科室" prop="department">
+                <el-input v-model="addForm.department" placeholder="如 内分泌科" />
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-form-item label="擅长领域" prop="specialty">
+            <el-input v-model="addForm.specialty" placeholder="如 糖尿病、高血压、甲状腺疾病" />
+          </el-form-item>
+          <el-form-item label="简介">
+            <el-input
+              v-model="addForm.introduction"
+              type="textarea"
+              :rows="3"
+              placeholder="医生简介（选填）"
+              maxlength="500"
+              show-word-limit
+            />
+          </el-form-item>
+        </div>
+      </el-form>
+
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button class="btn-cancel" @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" class="btn-submit" :loading="submitLoading" @click="handleSubmit">确认</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
-
-  <!-- 新增/编辑弹窗 -->
-  <el-dialog v-model="dialogVisible" :close-on-click-modal="false" width="560px" class="add-dialog">
-    <template #header>
-      <span class="dialog-title">{{ dialogMode === 'add' ? '新增医生资历' : '编辑医生资历' }}</span>
-    </template>
-
-    <el-form ref="formRef" :model="addForm" :rules="addRules" label-position="top" class="add-form" v-loading="editLoading">
-      <!-- 选择医生（卡片选择） -->
-      <div class="form-section">
-        <div class="section-label">选择医生账号</div>
-        <div class="doctor-card-grid" v-if="dialogMode === 'add'">
-          <div
-            v-for="doc in doctorUserOptions"
-            :key="doc.id"
-            :class="['doctor-card', { selected: addForm.doctorId === doc.id }]"
-            @click="addForm.doctorId = doc.id"
-          >
-            <div class="doc-avatar-sm">{{ (doc.nickname || doc.username || '医')[0] }}</div>
-            <span class="doc-name-sm">{{ doc.nickname || doc.username }}</span>
-            <span class="doc-username-sm">{{ doc.username }}</span>
-            <span class="doc-phone-sm" v-if="doc.phone">{{ doc.phone }}</span>
-            <el-icon v-if="addForm.doctorId === doc.id" class="doc-check-sm" :size="16"><CircleCheckFilled /></el-icon>
-          </div>
-          <div v-if="doctorUserOptions.length === 0" class="doctor-empty">
-            <el-icon :size="24"><User /></el-icon>
-            <span>暂无可选的医生账号</span>
-          </div>
-        </div>
-        <div v-if="dialogMode === 'edit'" class="doctor-card readonly">
-          <div class="doc-avatar-sm">{{ (doctorUserOptions[0]?.nickname || doctorUserOptions[0]?.username || '医')[0] }}</div>
-          <span class="doc-name-sm">{{ doctorUserOptions[0]?.nickname || doctorUserOptions[0]?.username }}</span>
-          <span class="doc-username-sm">{{ doctorUserOptions[0]?.username }}</span>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="form-section">
-        <div class="section-label">基本信息</div>
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="真实姓名" prop="realName">
-              <el-input v-model="addForm.realName" placeholder="请输入真实姓名" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="职称" prop="title">
-              <el-select v-model="addForm.title" placeholder="请选择职称" style="width:100%">
-                <el-option v-for="o in titleOptions" :key="o.value" :label="o.label" :value="o.value" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-      </div>
-
-      <div class="form-section">
-        <div class="section-label">执业信息</div>
-        <el-row :gutter="16">
-          <el-col :span="12">
-            <el-form-item label="所属医院" prop="hospital">
-              <el-input v-model="addForm.hospital" placeholder="如 北京协和医院" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="科室" prop="department">
-              <el-input v-model="addForm.department" placeholder="如 内分泌科" />
-            </el-form-item>
-          </el-col>
-        </el-row>
-        <el-form-item label="擅长领域" prop="specialty">
-          <el-input v-model="addForm.specialty" placeholder="如 糖尿病、高血压、甲状腺疾病" />
-        </el-form-item>
-        <el-form-item label="简介">
-          <el-input
-            v-model="addForm.introduction"
-            type="textarea"
-            :rows="3"
-            placeholder="医生简介（选填）"
-            maxlength="500"
-            show-word-limit
-          />
-        </el-form-item>
-      </div>
-    </el-form>
-
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button class="btn-cancel" @click="dialogVisible = false">取消</el-button>
-        <el-button type="primary" class="btn-submit" :loading="submitLoading" @click="handleSubmit">确认</el-button>
-      </div>
-    </template>
-  </el-dialog>
 </template>
 
 <style scoped>
@@ -372,7 +368,7 @@ onMounted(() => fetchData())
 .um-card {
   background: #fff;
   border-radius: 20px;
-  box-shadow: 0 4px 24px rgba(59,130,246,0.06);
+  box-shadow: 0 4px 24px rgba(249,115,22,0.06);
   padding: 24px 28px;
 }
 
@@ -385,79 +381,80 @@ onMounted(() => fetchData())
 .card-icon {
   width: 34px; height: 34px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  background: linear-gradient(135deg, #fb923c, #f97316);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
 .card-icon .el-icon { color: #fff; }
-.card-label { font-size: 16px; font-weight: 700; color: #1e3a5f; }
-.card-tip { font-size: 13px; color: #94a3b8; margin-left: auto; }
+.card-label { font-size: 16px; font-weight: 700; color: #7c2d12; }
+.card-tip { font-size: 13px; color: #a8a29e; margin-left: auto; }
 
 .search-form { margin-bottom: 0; }
 .search-form :deep(.el-form-item) { margin-bottom: 16px; }
-.search-form :deep(.el-form-item__label) { font-size: 13px; font-weight: 600; color: #475569; }
+.search-form :deep(.el-form-item__label) { font-size: 13px; font-weight: 600; color: #78716c; }
 .search-form :deep(.el-input) { width: 180px; }
 .search-form :deep(.el-select) { width: 160px; }
 .search-form :deep(.el-input__wrapper) {
   border-radius: 10px;
-  box-shadow: 0 0 0 1px #e2e8f0;
-  background: #fff;
+  box-shadow: 0 0 0 1px #fde68a;
+  background: #fffbeb;
 }
-.search-form :deep(.el-input__wrapper:hover) { box-shadow: 0 0 0 1px #93c5fd; }
-.search-form :deep(.el-input.is-focus .el-input__wrapper) { box-shadow: 0 0 0 1px #60a5fa; }
+.search-form :deep(.el-input__wrapper:hover) { box-shadow: 0 0 0 1px #fbbf24; }
+.search-form :deep(.el-input.is-focus .el-input__wrapper) { box-shadow: 0 0 0 1px #f97316; }
 
 .btn-search {
   height: 38px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  background: linear-gradient(135deg, #f97316, #ea580c);
   border: none;
-  box-shadow: 0 2px 10px rgba(59,130,246,0.2);
+  box-shadow: 0 2px 10px rgba(234,88,12,0.25);
   transition: all 0.3s;
 }
 .btn-search:hover {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  box-shadow: 0 4px 16px rgba(59,130,246,0.3);
+  background: linear-gradient(135deg, #ea580c, #c2410c);
+  box-shadow: 0 4px 16px rgba(234,88,12,0.35);
   transform: translateY(-1px);
 }
 .btn-reset {
   height: 38px; border-radius: 10px;
-  border: 1px solid #e2e8f0; color: #475569;
+  border: 1px solid #fde68a; color: #78716c;
 }
 
 .btn-add {
   height: 34px; border-radius: 10px; margin-left: auto;
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
-  border: none; box-shadow: 0 2px 8px rgba(59,130,246,0.2);
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  border: none; box-shadow: 0 2px 8px rgba(234,88,12,0.25);
+}
+.btn-add:hover {
+  background: linear-gradient(135deg, #ea580c, #c2410c);
 }
 
 .um-table { margin-bottom: 0; }
 .um-table :deep(th) {
-  background: #f8fafc;
-  color: #475569;
+  background: #fffbeb;
+  color: #78716c;
   font-weight: 600;
   font-size: 13px;
 }
-.um-table :deep(td) { font-size: 13px; color: #334155; }
+.um-table :deep(td) { font-size: 13px; color: #44403c; }
 .um-table :deep(.el-table__cell) {
-  border-right-color: #d0d7de;
-  border-bottom-color: #d0d7de;
+  border-right-color: #fef3c7;
+  border-bottom-color: #fef3c7;
 }
 .um-table :deep(.el-table__header-wrapper th) {
-  border-right-color: #d0d7de;
-  border-bottom-color: #c0c8d0;
+  border-right-color: #fef3c7;
+  border-bottom-color: #fde68a;
 }
 
-/* 职称标签 */
 .title-tag {
   display: inline-block;
   padding: 2px 10px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
-  background: rgba(16,185,129,0.12); color: #059669;
+  background: rgba(249,115,22,0.12); color: #c2410c;
 }
 
-/* 操作按钮 */
 .action-cell {
   display: flex;
   align-items: center;
@@ -466,34 +463,31 @@ onMounted(() => fetchData())
 }
 .btn-action {
   height: 28px; border-radius: 8px; font-size: 12px; padding: 0 10px;
-  border: 1px solid #e2e8f0; color: #475569; background: #fff;
+  border: 1px solid #fde68a; color: #78716c; background: #fff;
 }
-.btn-action:hover { border-color: #60a5fa; color: #2563eb; background: #eff6ff; }
-.btn-action.btn-del { color: #dc2626; }
-.btn-action.btn-del:hover { background: #fef2f2; border-color: #fca5a5; color: #b91c1c; }
+.btn-action:hover { border-color: #f97316; color: #c2410c; background: #fff7ed; }
+.btn-action.btn-del { color: #dc2626; border-color: #fca5a5; }
+.btn-action.btn-del:hover { background: #fef2f2; border-color: #f87171; color: #b91c1c; }
 
 .pagination-wrap {
   display: flex; justify-content: center; margin-top: 16px;
 }
 
-/* 弹窗 */
-.add-dialog :deep(.el-dialog__header) { border-bottom: 1px solid #e8f2fc; padding: 20px 24px 16px; }
+.add-dialog :deep(.el-dialog__header) { border-bottom: 1px solid #fef3c7; padding: 20px 24px 16px; }
 .add-dialog :deep(.el-dialog__body) { padding: 20px 24px 4px; }
-.dialog-title { font-size: 17px; font-weight: 700; color: #1e3a5f; }
+.dialog-title { font-size: 17px; font-weight: 700; color: #7c2d12; }
 
-/* 分区标题 */
 .form-section { margin-bottom: 4px; }
 .section-label {
-  font-size: 12px; font-weight: 700; color: #94a3b8;
+  font-size: 12px; font-weight: 700; color: #a8a29e;
   text-transform: uppercase; letter-spacing: 1px;
   margin-bottom: 12px;
 }
 .divider {
-  height: 1px; background: #f1f5f9;
+  height: 1px; background: #fef3c7;
   margin: 8px 0 16px;
 }
 
-/* 医生卡片网格 + 紧凑卡片 */
 .doctor-card-grid {
   display: flex; flex-direction: column; gap: 4px;
   max-height: 200px; overflow-y: auto;
@@ -501,23 +495,23 @@ onMounted(() => fetchData())
 }
 .doctor-card-grid::-webkit-scrollbar { width: 4px; }
 .doctor-card-grid::-webkit-scrollbar-track { background: transparent; }
-.doctor-card-grid::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.doctor-card-grid::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 4px; }
 
 .doctor-card {
   display: flex; align-items: center; gap: 8px;
   padding: 5px 10px;
   border-radius: 8px;
-  border: 1.5px solid #e8ecf1;
+  border: 1.5px solid #fef3c7;
   background: #fff;
   cursor: pointer;
   transition: all 0.15s;
 }
-.doctor-card:hover { border-color: #93c5fd; background: #f8faff; }
+.doctor-card:hover { border-color: #fbbf24; background: #fffdf7; }
 .doctor-card.selected {
-  border-color: #3b82f6;
-  background: #eff6ff;
+  border-color: #f97316;
+  background: #fff7ed;
 }
-.doctor-card.readonly { cursor: default; pointer-events: none; border-color: #dbeafe; background: #f8faff; }
+.doctor-card.readonly { cursor: default; pointer-events: none; border-color: #fef3c7; background: #fffbeb; }
 
 .doc-avatar-sm {
   width: 26px; height: 26px;
@@ -527,39 +521,42 @@ onMounted(() => fetchData())
   font-size: 12px; font-weight: 700;
   flex-shrink: 0;
   line-height: 1;
-  background: linear-gradient(135deg, #34d399, #059669);
+  background: linear-gradient(135deg, #fb923c, #f97316);
 }
-.doc-name-sm { font-size: 13px; font-weight: 600; color: #1e3a5f; white-space: nowrap; }
-.doc-username-sm { font-size: 11px; color: #94a3b8; }
+.doc-name-sm { font-size: 13px; font-weight: 600; color: #7c2d12; white-space: nowrap; }
+.doc-username-sm { font-size: 11px; color: #a8a29e; }
 .doc-phone-sm {
-  font-size: 10px; color: #3b82f6; font-weight: 500;
-  background: rgba(59,130,246,0.07);
+  font-size: 10px; color: #c2410c; font-weight: 500;
+  background: rgba(249,115,22,0.08);
   padding: 1px 5px; border-radius: 5px;
 }
-.doc-check-sm { color: #3b82f6; flex-shrink: 0; margin-left: auto; }
+.doc-check-sm { color: #f97316; flex-shrink: 0; margin-left: auto; }
 .doctor-empty {
   display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: 20px 0; color: #94a3b8; font-size: 13px;
+  padding: 20px 0; color: #a8a29e; font-size: 13px;
 }
 
 .add-form { margin-top: 8px; }
-.add-form :deep(.el-form-item__label) { font-size: 13px; font-weight: 600; color: #475569; }
+.add-form :deep(.el-form-item__label) { font-size: 13px; font-weight: 600; color: #78716c; }
 .add-form :deep(.el-input__wrapper) {
   border-radius: 10px;
-  box-shadow: 0 0 0 1px #e2e8f0;
+  box-shadow: 0 0 0 1px #fde68a;
 }
-.add-form :deep(.el-input__wrapper:hover) { box-shadow: 0 0 0 1px #93c5fd; }
+.add-form :deep(.el-input__wrapper:hover) { box-shadow: 0 0 0 1px #fbbf24; }
 .add-form :deep(.el-textarea__inner) {
   border-radius: 10px;
-  box-shadow: 0 0 0 1px #e2e8f0;
+  box-shadow: 0 0 0 1px #fde68a;
 }
-.add-form :deep(.el-textarea__inner:hover) { box-shadow: 0 0 0 1px #93c5fd; }
+.add-form :deep(.el-textarea__inner:hover) { box-shadow: 0 0 0 1px #fbbf24; }
 
 .dialog-footer { display: flex; gap: 10px; justify-content: flex-end; padding-top: 8px; }
 .btn-cancel { height: 38px; border-radius: 10px; }
 .btn-submit {
   height: 38px; border-radius: 10px;
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
-  border: none; box-shadow: 0 2px 8px rgba(59,130,246,0.2);
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  border: none; box-shadow: 0 2px 8px rgba(234,88,12,0.25);
+}
+.btn-submit:hover {
+  background: linear-gradient(135deg, #ea580c, #c2410c);
 }
 </style>

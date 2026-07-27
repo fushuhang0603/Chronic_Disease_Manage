@@ -13,9 +13,13 @@ public class UserInfoInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         //获取用户信息
         String userId = request.getHeader("user-info");
+        String role = request.getHeader("user-role");
         //存入ThreadLocal
         if (StringUtils.isNotBlank(userId)) {
             UserInfoContext.setUserId(Long.valueOf(userId));
+        }
+        if (StringUtils.isNotBlank(role)) {
+            UserInfoContext.setRole(role);
         }
         return true;
     }

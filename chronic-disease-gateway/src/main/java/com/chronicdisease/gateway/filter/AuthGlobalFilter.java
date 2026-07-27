@@ -52,12 +52,19 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
             return response.setComplete();
         }
-        //TODO对身份校验做处理
-        //往下游过滤器传递用户信息,将用户id存到请求头
-        String userInfo = String.valueOf(userId);
+        //往下游过滤器传递用户信息,将用户id和角色存到请求头
+        Long finalUserId = userId;
+        String finalRole = role;
         ServerWebExchange newExchange = exchange
                 .mutate()
-                .request(builder -> builder.header("user-info", userInfo))
+                .request(builder -> {
+                    if (finalUserId != null) {
+                        builder.header("user-info", String.valueOf(finalUserId));
+                    }
+                    if (finalRole != null) {
+                        builder.header("user-role", finalRole);
+                    }
+                })
                 .build();
 
         //放行

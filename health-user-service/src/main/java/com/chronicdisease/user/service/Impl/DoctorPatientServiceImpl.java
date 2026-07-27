@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class DoctorPatientServiceImpl extends ServiceImpl<DoctorPatientMapper, DoctorPatient> implements IDoctorPatientService {
@@ -99,5 +100,17 @@ public class DoctorPatientServiceImpl extends ServiceImpl<DoctorPatientMapper, D
                .eq(DoctorPatient::getIsDeleted, 0)
                .set(DoctorPatient::getIsDeleted, 1);
         baseMapper.update(null, wrapper);
+    }
+
+    @Override
+    public List<Long> getMyPatients() {
+        Long doctorId = UserInfoContext.getUserId();
+        LambdaQueryWrapper<DoctorPatient> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(DoctorPatient::getDoctorId, doctorId)
+               .eq(DoctorPatient::getIsDeleted, 0)
+               .select(DoctorPatient::getPatientId);
+        return baseMapper.selectList(wrapper).stream()
+                .map(DoctorPatient::getPatientId)
+                .collect(Collectors.toList());
     }
 }

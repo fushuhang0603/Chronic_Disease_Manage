@@ -19,4 +19,7 @@ public interface IDoctorPatientService extends IService<DoctorPatient> {
 
     /** 患者解绑医生 */
     void unbindDoctor();
+
+    /** 医生查询自己绑定的所有患者ID列表 */
+    List<Long> getMyPatients();
 }

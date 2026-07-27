@@ -44,4 +44,11 @@ public class DoctorPatientController {
         doctorPatientService.unbindDoctor();
         return Result.success();
     }
+
+    @OperationLog(module = "医生绑定", description = "医生查询自己绑定的所有患者")
+    @GetMapping("/myPatients")
+    @Operation(summary = "医生端：获取我的所有绑定患者ID列表")
+    public Result<List<Long>> myPatients() {
+        return Result.success(doctorPatientService.getMyPatients());
+    }
 }

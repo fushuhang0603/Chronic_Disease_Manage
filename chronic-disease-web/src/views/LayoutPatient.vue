@@ -24,8 +24,8 @@ function goPage(path) {
 function handleLogout() {
   ElMessageBox.confirm('确定要退出登录吗？', '提示', { type: 'warning' })
     .then(() => {
-      localStorage.removeItem('token')
-      localStorage.removeItem('userInfo')
+      sessionStorage.removeItem('token')
+      sessionStorage.removeItem('userInfo')
       router.push('/login')
     })
     .catch(() => {})

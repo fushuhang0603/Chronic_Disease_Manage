@@ -103,10 +103,10 @@ async function markRead() {
   } catch {}
 }
 
-// 获取医生ID（从 localStorage）
+// 获取医生ID（从 sessionStorage）
 function getDoctorId() {
   try {
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
+    const userInfo = JSON.parse(sessionStorage.getItem('userInfo') || '{}')
     return userInfo.id
   } catch { return 0 }
 }
@@ -195,6 +195,7 @@ onUnmounted(() => {
           v-else
           :class="['msg-row', item.senderRole === 'DOCTOR' ? 'msg-right' : 'msg-left']"
         >
+          <span v-if="item.senderRole !== 'DOCTOR'" class="msg-sender">{{ patientName }}</span>
           <div class="msg-bubble">
             <div class="msg-content">{{ item.content }}</div>
           </div>
@@ -274,6 +275,10 @@ onUnmounted(() => {
   padding: 10px 14px; border-radius: 14px;
   font-size: 14px; line-height: 1.6;
   word-break: break-word;
+}
+.msg-sender {
+  font-size: 11px; color: #a8a29e;
+  margin-bottom: 2px; padding: 0 4px;
 }
 .msg-left .msg-bubble {
   background: #fff; border: 1px solid #fef3c7;

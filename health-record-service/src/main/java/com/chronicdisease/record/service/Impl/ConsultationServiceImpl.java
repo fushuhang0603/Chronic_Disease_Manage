@@ -1,12 +1,12 @@
 package com.chronicdisease.record.service.Impl;
 
-import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.chronicdisease.common.constant.BusinessConstant;
 import com.chronicdisease.common.exception.BusinessException;
 import com.chronicdisease.common.result.Result;
+import com.chronicdisease.common.util.UserInfoContext;
 import com.chronicdisease.record.domain.dto.ConsultationMessageDTO;
 import com.chronicdisease.record.domain.dto.ConsultationPageDTO;
 import com.chronicdisease.record.domain.entity.ConsultationRecord;
@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -76,26 +75,9 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationRecordMappe
         String senderIdKey = String.valueOf(senderId);
         redisTemplate.opsForHash().increment(unreadKey, senderIdKey, 1);
 
-        // WebSocket 推送（接收方在线才推）
-        if (ChatWebSocketHandler.isOnline(receiverId)) {
-            try {
-                WebSocketSession session = ChatWebSocketHandler.getOnlineSession(receiverId);
-                if (session != null && session.isOpen()) {
-                    Map<String, Object> pushMsg = new LinkedHashMap<>();
-                    pushMsg.put("type", "new_message");
-                    pushMsg.put("senderId", String.valueOf(senderId));
-                    pushMsg.put("senderRole", senderRole);
-                    pushMsg.put("content", dto.getContent());
-                    pushMsg.put("patientId", String.valueOf(dto.getPatientId()));
-                    pushMsg.put("doctorId", String.valueOf(dto.getDoctorId()));
-                    pushMsg.put("createTime", record.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-                    session.sendMessage(new TextMessage(objectMapper.writeValueAsString(pushMsg)));
-                    log.info("WebSocket 推送成功: senderId={}, receiverId={}", senderId, receiverId);
-                }
-            } catch (Exception e) {
-                log.error("WebSocket 推送失败: senderId={}, receiverId={}", senderId, receiverId, e);
-            }
-        }
+        // WebSocket 推送（接收方 + 发送方都推，双方实时看到消息）
+        pushToUser(receiverId, senderId, senderRole, dto, record);
+        pushToUser(senderId, senderId, senderRole, dto, record);
 
         return record;
     }
@@ -128,11 +110,20 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationRecordMappe
     }
 
     @Override
-    public void markRead(Long readerId, Long patientId, Long doctorId) {
-        // 确定当前用户的角色（判断读者是患者还是医生）
-        String readerRole = readerId.equals(patientId) ? "PATIENT" : "DOCTOR";
+    public void markRead(Long targetId) {
+        Long userId = UserInfoContext.getUserId();
+        String role = UserInfoContext.getRole();
+        // 根据角色确定患者和医生
+        Long patientId, doctorId;
+        if ("PATIENT".equalsIgnoreCase(role)) {
+            patientId = userId;
+            doctorId = targetId;
+        } else {
+            patientId = targetId;
+            doctorId = userId;
+        }
         // 对方角色
-        String otherRole = "PATIENT".equals(readerRole) ? "DOCTOR" : "PATIENT";
+        String otherRole = "PATIENT".equalsIgnoreCase(role) ? "DOCTOR" : "PATIENT";
 
         // 更新 MySQL：把对方发给我的未读消息标记为已读
         LambdaUpdateWrapper<ConsultationRecord> wrapper = new LambdaUpdateWrapper<>();
@@ -144,62 +135,90 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationRecordMappe
         consultationRecordMapper.update(null, wrapper);
 
         // 清 Redis 未读计数
-        String unreadKey = "unread:" + readerId;
-        Long otherId = "PATIENT".equals(readerRole) ? doctorId : patientId;
-        redisTemplate.opsForHash().delete(unreadKey, String.valueOf(otherId));
+        redisTemplate.opsForHash().delete("unread:" + userId, String.valueOf(targetId));
 
-        log.info("标记已读完成: readerId={}, patientId={}, doctorId={}", readerId, patientId, doctorId);
+        log.info("标记已读完成: userId={}, role={}, targetId={}", userId, role, targetId);
     }
 
     @Override
-    public List<DoctorPatientVO> getDoctorPatients(Long doctorId) {
-        // Feign 获取该医生的所有绑定患者ID
-        List<Long> patientIds;
-        try {
-            patientIds = userServiceFeign.getMyPatients(doctorId).getData();
-        } catch (Exception e) {
-            log.error("Feign 获取医生患者列表失败: doctorId={}", doctorId, e);
-            return Collections.emptyList();
+    public LinkedHashMap<String, DoctorPatientVO> getDoctorPatients(Long doctorId) {
+        //查询与医生绑定的患者信息
+        List<Long> patientIds = userServiceFeign.getMyPatients(doctorId).getData();
+        if (patientIds == null || patientIds.isEmpty()){
+            log.info("医生{}没有任何所绑定的患者", doctorId);
+            return new LinkedHashMap<>();
         }
-        if (CollUtil.isEmpty(patientIds)) {
-            return Collections.emptyList();
+        //查询该医生和绑定患者的最新交流记录
+        List<ConsultationRecord> data = consultationRecordMapper.getRecords(doctorId,patientIds);
+        if (data == null || data.isEmpty()){
+            log.info("医生{}和患者之间没有任何咨询记录", doctorId);
+            return new LinkedHashMap<>();
         }
-
-        // 查 Redis 未读数
-        String unreadKey = "unread:" + doctorId;
-        Map<Object, Object> unreadMap = redisTemplate.opsForHash().entries(unreadKey);
-
-        // 组装结果
-        return patientIds.stream().map(patientId -> {
+        //处理交流记录
+        Map<Object, Object> unreadMap = redisTemplate.opsForHash()
+                .entries("unread:" + doctorId);
+        LinkedHashMap<String, DoctorPatientVO> resultMap = new LinkedHashMap<>();
+        Map<Long, List<ConsultationRecord>> map = data.stream().collect(Collectors.groupingBy(ConsultationRecord::getPatientId));
+        map.forEach((patientId, records) -> {
             DoctorPatientVO vo = new DoctorPatientVO();
             vo.setPatientId(patientId);
-            vo.setPatientName(fetchNickname(patientId));
+            vo.setPatientName(records.get(0).getPatientName());
             vo.setOnline(ChatWebSocketHandler.isOnline(patientId));
-
-            // 未读数
+            // 未读数（Redis）
             Object unreadObj = unreadMap.get(String.valueOf(patientId));
             vo.setUnreadCount(unreadObj != null ? Integer.parseInt(unreadObj.toString()) : 0);
-
-            // 最新一条消息
-            LambdaQueryWrapper<ConsultationRecord> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(ConsultationRecord::getPatientId, patientId)
-                    .eq(ConsultationRecord::getDoctorId, doctorId)
-                    .eq(ConsultationRecord::getIsDeleted, BusinessConstant.isNotDelete)
-                    .orderByDesc(ConsultationRecord::getCreateTime)
-                    .last("LIMIT 1");
-            ConsultationRecord latest = consultationRecordMapper.selectOne(wrapper);
-            if (latest != null) {
-                // 内容过长截断
-                String content = latest.getContent();
-                vo.setLatestContent(content.length() > 30 ? content.substring(0, 30) + "..." : content);
-                vo.setLatestTime(latest.getCreateTime() != null
-                        ? latest.getCreateTime().format(DateTimeFormatter.ofPattern("MM-dd HH:mm"))
-                        : "");
-            }
-            return vo;
-        }).collect(Collectors.toList());
+            // 最新消息（SQL 已按时间 desc，第一条最新）
+            ConsultationRecord latest = records.get(0);
+            String content = latest.getContent();
+            vo.setLatestContent(content.length() > 30 ? content.substring(0, 30) + "..." : content);
+            vo.setLatestTime(latest.getCreateTime().format(DateTimeFormatter.ofPattern("MM-dd HH:mm")));
+            resultMap.put(String.valueOf(patientId), vo);
+        });
+        // 兜底：绑定了但没有聊天记录的患者也展示
+        for (Long patientId : patientIds) {
+            resultMap.putIfAbsent(String.valueOf(patientId), emptyVO(patientId, unreadMap));
+        }
+        return resultMap;
     }
-    
+
+    private DoctorPatientVO emptyVO(Long patientId, Map<Object, Object> unreadMap) {
+        DoctorPatientVO vo = new DoctorPatientVO();
+        vo.setPatientId(patientId);
+        vo.setPatientName(fetchNickname(patientId));
+        vo.setOnline(ChatWebSocketHandler.isOnline(patientId));
+        Object unreadObj = unreadMap.get(String.valueOf(patientId));
+        vo.setUnreadCount(unreadObj != null ? Integer.parseInt(unreadObj.toString()) : 0);
+        return vo;
+    }
+
+
+
+    /**
+     * WebSocket 推送消息给指定用户
+     */
+    private void pushToUser(Long targetUserId, Long senderId, String senderRole,
+                            ConsultationMessageDTO dto, ConsultationRecord record) {
+        if (!ChatWebSocketHandler.isOnline(targetUserId)) {
+            return;
+        }
+        try {
+            WebSocketSession session = ChatWebSocketHandler.getOnlineSession(targetUserId);
+            if (session != null && session.isOpen()) {
+                Map<String, Object> pushMsg = new LinkedHashMap<>();
+                pushMsg.put("type", "new_message");
+                pushMsg.put("senderId", String.valueOf(senderId));
+                pushMsg.put("senderRole", senderRole);
+                pushMsg.put("content", dto.getContent());
+                pushMsg.put("patientId", String.valueOf(dto.getPatientId()));
+                pushMsg.put("doctorId", String.valueOf(dto.getDoctorId()));
+                pushMsg.put("createTime", record.getCreateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                session.sendMessage(new TextMessage(objectMapper.writeValueAsString(pushMsg)));
+                log.info("WebSocket 推送成功: targetUserId={}, senderId={}", targetUserId, senderId);
+            }
+        } catch (Exception e) {
+            log.error("WebSocket 推送失败: targetUserId={}, senderId={}", targetUserId, senderId, e);
+        }
+    }
 
     /**
      * 校验发送者身份合法性

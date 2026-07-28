@@ -9,6 +9,7 @@ import com.chronicdisease.record.domain.vo.DoctorPatientVO;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public interface IConsultationService extends IService<ConsultationRecord> {
 
@@ -28,15 +29,9 @@ public interface IConsultationService extends IService<ConsultationRecord> {
 
     /**
      * 标记已读：将对方发给当前用户的消息全部标记为已读，并清Redis未读计数
-     * @param readerId 当前用户ID
-     * @param patientId 患者ID
-     * @param doctorId 医生ID
+     * @param targetId 对方ID
      */
-    void markRead(Long readerId, Long patientId, Long doctorId);
+    void markRead(Long targetId);
 
-    /**
-     * 医生端：获取我的患者列表（含最新消息预览、未读数、在线状态）
-     * @param doctorId 医生ID
-     */
-    List<DoctorPatientVO> getDoctorPatients(Long doctorId);
+    LinkedHashMap<String, DoctorPatientVO> getDoctorPatients(Long doctorId);
 }

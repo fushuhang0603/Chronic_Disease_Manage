@@ -24,8 +24,8 @@ async function fetchData() {
   loading.value = true
   try {
     const data = await getDoctorPatients()
-    patients.value = data || []
-    total.value = patients.value.length
+    patients.value = data || {}
+    total.value = Object.keys(patients.value).length
   } catch (e) {
     ElMessage.error(e.message || '加载失败')
   } finally {
@@ -63,8 +63,8 @@ onMounted(fetchData)
     <!-- 患者列表 -->
     <div class="patient-list" v-loading="loading">
       <div
-        v-for="p in patients"
-        :key="p.patientId"
+        v-for="(p, patientId) in patients"
+        :key="patientId"
         class="patient-card"
         @click="goChat(p)"
       >
@@ -87,7 +87,7 @@ onMounted(fetchData)
         </div>
       </div>
 
-      <div v-if="patients.length === 0 && !loading" class="empty-state">
+      <div v-if="Object.keys(patients).length === 0 && !loading" class="empty-state">
         <div class="empty-icon">
           <el-icon :size="40"><UserFilled /></el-icon>
         </div>

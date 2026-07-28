@@ -10,7 +10,7 @@ const router = useRouter()
 // ====== 患者信息 ======
 const userName = ref('')
 try {
-  const raw = localStorage.getItem('userInfo')
+  const raw = sessionStorage.getItem('userInfo')
   if (raw) {
     const info = JSON.parse(raw)
     userName.value = info.name || info.userName || info.realName || ''

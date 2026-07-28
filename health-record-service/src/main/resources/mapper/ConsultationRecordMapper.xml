@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.chronicdisease.record.mapper.ConsultationRecordMapper">
+
+    <select id="getRecords" resultType="com.chronicdisease.record.domain.entity.ConsultationRecord">
+        select * from consultation_record
+        where doctor_id = #{doctorId}
+        and patient_id in
+        <foreach item="patientId" collection="patientIds" open="(" close=")" separator=",">
+            #{patientId}
+        </foreach>
+        and is_read = 0 and is_deleted = 0
+        order by create_time desc
+    </select>
+
+</mapper>

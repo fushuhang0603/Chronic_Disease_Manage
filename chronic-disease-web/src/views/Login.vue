@@ -21,8 +21,8 @@ async function handleLogin() {
   try {
     const data = await login(form)
     const { token, userInfo } = data
-    localStorage.setItem('token', token)
-    localStorage.setItem('userInfo', JSON.stringify(userInfo))
+    sessionStorage.setItem('token', token)
+    sessionStorage.setItem('userInfo', JSON.stringify(userInfo))
     ElMessage.success('登录成功')
     if (userInfo.roleType === 'admin') {
       router.push('/admin/users')

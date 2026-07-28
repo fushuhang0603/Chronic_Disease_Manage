@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/consultation")
@@ -37,24 +38,14 @@ public class ConsultationController {
     @PutMapping("/read")
     @Operation(summary = "标记当前用户与指定对象的未读消息为已读")
     public Result<Void> read(@RequestParam("targetId") Long targetId) {
-        Long userId = UserInfoContext.getUserId();
-        String role = UserInfoContext.getRole();
-        Long patientId, doctorId;
-        if ("PATIENT".equalsIgnoreCase(role)) {
-            patientId = userId;
-            doctorId = targetId;
-        } else {
-            patientId = targetId;
-            doctorId = userId;
-        }
-        consultationService.markRead(userId, patientId, doctorId);
+        consultationService.markRead(targetId);
         return Result.success();
     }
 
     @OperationLog(module = "医患沟通", description = "医生查看患者列表")
     @GetMapping("/doctor/patients")
     @Operation(summary = "医生端：获取我的患者列表（含最新消息、未读数、在线状态）")
-    public Result<List<DoctorPatientVO>> doctorPatients() {
+    public Result<Map<String, DoctorPatientVO>> doctorPatients() {
         Long doctorId = UserInfoContext.getUserId();
         return Result.success(consultationService.getDoctorPatients(doctorId));
     }

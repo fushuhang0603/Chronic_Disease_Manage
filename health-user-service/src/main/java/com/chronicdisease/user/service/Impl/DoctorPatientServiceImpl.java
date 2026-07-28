@@ -25,6 +25,8 @@ public class DoctorPatientServiceImpl extends ServiceImpl<DoctorPatientMapper, D
     private DoctorProfileMapper doctorProfileMapper;
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private DoctorPatientMapper doctorPatientMapper;
 
     @Override
     public List<DoctorProfile> getDoctorList() {
@@ -104,12 +106,7 @@ public class DoctorPatientServiceImpl extends ServiceImpl<DoctorPatientMapper, D
 
     @Override
     public List<Long> getMyPatients(Long doctorId) {
-        LambdaQueryWrapper<DoctorPatient> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(DoctorPatient::getDoctorId, doctorId)
-               .eq(DoctorPatient::getIsDeleted, 0)
-               .select(DoctorPatient::getPatientId);
-        return baseMapper.selectList(wrapper).stream()
-                .map(DoctorPatient::getPatientId)
-                .collect(Collectors.toList());
+      List<Long> ids = doctorPatientMapper.getMyPatients(doctorId);
+      return ids;
     }
 }

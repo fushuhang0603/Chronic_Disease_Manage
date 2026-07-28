@@ -103,8 +103,7 @@ public class DoctorPatientServiceImpl extends ServiceImpl<DoctorPatientMapper, D
     }
 
     @Override
-    public List<Long> getMyPatients() {
-        Long doctorId = UserInfoContext.getUserId();
+    public List<Long> getMyPatients(Long doctorId) {
         LambdaQueryWrapper<DoctorPatient> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(DoctorPatient::getDoctorId, doctorId)
                .eq(DoctorPatient::getIsDeleted, 0)

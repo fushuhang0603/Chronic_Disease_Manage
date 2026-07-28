@@ -10,11 +10,11 @@ public class ConsultationPageDTO {
 
     @NotNull(message = "患者ID不能为空")
     @Schema(description = "患者用户ID")
-    private Long patientId;
+    private String patientId;
 
     @NotNull(message = "医生ID不能为空")
     @Schema(description = "医生用户ID")
-    private Long doctorId;
+    private String doctorId;
 
     @Schema(description = "页码", example = "1")
     private Integer pageNum = 1;

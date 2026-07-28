@@ -14,8 +14,7 @@ import com.chronicdisease.record.domain.dto.ConsultationPageDTO;
 import com.chronicdisease.record.domain.entity.ConsultationRecord;
 import com.chronicdisease.record.domain.vo.DoctorPatientVO;
 import com.chronicdisease.record.domain.vo.UserBriefVO;
-import com.chronicdisease.record.feign.DoctorPatientFeign;
-import com.chronicdisease.record.feign.UserFeign;
+import com.chronicdisease.record.feign.UserServiceFeign;
 import com.chronicdisease.record.mapper.ConsultationRecordMapper;
 import com.chronicdisease.record.service.IConsultationService;
 import com.chronicdisease.record.websocket.ChatWebSocketHandler;
@@ -41,10 +40,7 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationRecordMappe
     private ConsultationRecordMapper consultationRecordMapper;
 
     @Autowired
-    private UserFeign userFeign;
-
-    @Autowired
-    private DoctorPatientFeign doctorPatientFeign;
+    private UserServiceFeign userServiceFeign;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -53,17 +49,17 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationRecordMappe
 
     @Override
     public ConsultationRecord sendMessage(Long senderId, String senderRole, ConsultationMessageDTO dto) {
-        // ① 校验发送者身份：患者只能以自己身份发，医生只能以自己身份发
+        // 校验发送者身份：患者只能以自己身份发，医生只能以自己身份发
         validateSender(senderId, senderRole, dto);
 
-        // ② 通过 Feign 查姓名
+        // 通过 Feign 查姓名
         String patientName = fetchNickname(dto.getPatientId());
         String doctorName = fetchNickname(dto.getDoctorId());
 
-        // ③ 确定接收方
+        // 确定接收方
         Long receiverId = senderRole.equals("PATIENT") ? dto.getDoctorId() : dto.getPatientId();
 
-        // ④ 存 MySQL
+        // 存 MySQL
         ConsultationRecord record = new ConsultationRecord();
         record.setPatientId(dto.getPatientId());
         record.setPatientName(patientName);
@@ -76,12 +72,12 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationRecordMappe
         record.setIsDeleted(BusinessConstant.isNotDelete);
         consultationRecordMapper.insert(record);
 
-        // ⑤ Redis 未读计数 +1
+        // Redis 未读计数 +1
         String unreadKey = "unread:" + receiverId;
         String senderIdKey = String.valueOf(senderId);
         redisTemplate.opsForHash().increment(unreadKey, senderIdKey, 1);
 
-        // ⑥ WebSocket 推送（接收方在线才推）
+        // WebSocket 推送（接收方在线才推）
         if (ChatWebSocketHandler.isOnline(receiverId)) {
             try {
                 WebSocketSession session = ChatWebSocketHandler.getOnlineSession(receiverId);
@@ -108,8 +104,8 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationRecordMappe
     @Override
     public PageResult<ConsultationRecord> pageHistory(ConsultationPageDTO dto) {
         LambdaQueryWrapper<ConsultationRecord> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(ConsultationRecord::getPatientId, dto.getPatientId())
-                .eq(ConsultationRecord::getDoctorId, dto.getDoctorId())
+        wrapper.eq(ConsultationRecord::getPatientId, Long.valueOf(dto.getPatientId()))
+                .eq(ConsultationRecord::getDoctorId, Long.valueOf(dto.getDoctorId()))
                 .eq(ConsultationRecord::getIsDeleted, BusinessConstant.isNotDelete)
                 .orderByAsc(ConsultationRecord::getCreateTime);
 
@@ -144,10 +140,10 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationRecordMappe
 
     @Override
     public List<DoctorPatientVO> getDoctorPatients(Long doctorId) {
-        // ① Feign 获取该医生的所有绑定患者ID
+        // Feign 获取该医生的所有绑定患者ID
         List<Long> patientIds;
         try {
-            patientIds = doctorPatientFeign.getMyPatients().getData();
+            patientIds = userServiceFeign.getMyPatients(doctorId).getData();
         } catch (Exception e) {
             log.error("Feign 获取医生患者列表失败: doctorId={}", doctorId, e);
             return Collections.emptyList();
@@ -156,11 +152,11 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationRecordMappe
             return Collections.emptyList();
         }
 
-        // ② 查 Redis 未读数
+        // 查 Redis 未读数
         String unreadKey = "unread:" + doctorId;
         Map<Object, Object> unreadMap = redisTemplate.opsForHash().entries(unreadKey);
 
-        // ③ 组装结果
+        // 组装结果
         return patientIds.stream().map(patientId -> {
             DoctorPatientVO vo = new DoctorPatientVO();
             vo.setPatientId(patientId);
@@ -190,23 +186,22 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationRecordMappe
             return vo;
         }).collect(Collectors.toList());
     }
-
-    // ======================== 私有方法 ========================
+    
 
     /**
      * 校验发送者身份合法性
      */
     private void validateSender(Long senderId, String senderRole, ConsultationMessageDTO dto) {
-        if ("PATIENT".equals(senderRole)) {
+        if ("PATIENT".equalsIgnoreCase(senderRole)) {
             if (!senderId.equals(dto.getPatientId())) {
                 throw new BusinessException("只能以自己的身份发送消息");
             }
-        } else if ("DOCTOR".equals(senderRole)) {
+        } else if ("DOCTOR".equalsIgnoreCase(senderRole)) {
             if (!senderId.equals(dto.getDoctorId())) {
                 throw new BusinessException("只能以自己的身份发送消息");
             }
         } else {
-            throw new BusinessException("无效的用户角色");
+            throw new BusinessException("无效的用户角色: " + senderRole);
         }
     }
 
@@ -215,7 +210,7 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationRecordMappe
      */
     private String fetchNickname(Long userId) {
         try {
-            Result<UserBriefVO> result = userFeign.queryById(userId);
+            Result<UserBriefVO> result = userServiceFeign.queryById(userId);
             if (result != null && result.getData() != null) {
                 return result.getData().getNickname();
             }

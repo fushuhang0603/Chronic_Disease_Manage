@@ -26,6 +26,8 @@ async function handleLogin() {
     ElMessage.success('登录成功')
     if (userInfo.roleType === 'admin') {
       router.push('/admin/users')
+    } else if (userInfo.roleType === 'doctor') {
+      router.push('/admin/patients')
     } else {
       router.push('/patient/home')
     }

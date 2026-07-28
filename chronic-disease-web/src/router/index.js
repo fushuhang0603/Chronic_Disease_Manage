@@ -17,9 +17,6 @@ import AdminRemind from '../views/AdminRemind.vue'
 import AdminArticle from '../views/AdminArticle.vue'
 import AdminData from '../views/AdminData.vue'
 import DoctorManage from '../views/DoctorManage.vue'
-import DoctorPatients from '../views/DoctorPatients.vue'
-import DoctorConsultation from '../views/DoctorConsultation.vue'
-import PatientConsultation from '../views/PatientConsultation.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -38,8 +35,6 @@ const routes = [
       { path: 'article', name: 'AdminArticle', component: AdminArticle },
       { path: 'data', name: 'AdminData', component: AdminData },
       { path: 'doctors', name: 'DoctorManage', component: DoctorManage },
-      { path: 'patients', name: 'DoctorPatients', component: DoctorPatients },
-      { path: 'consultation/:patientId', name: 'DoctorConsultation', component: DoctorConsultation },
     ],
   },
   {
@@ -53,7 +48,6 @@ const routes = [
       { path: 'remind', name: 'PatientRemind', component: PatientRemind },
       { path: 'article', name: 'PatientArticle', component: PatientArticle },
       { path: 'doctors', name: 'PatientDoctors', component: PatientDoctors },
-      { path: 'consultation/:doctorId', name: 'PatientConsultation', component: PatientConsultation },
     ],
   },
 ]

@@ -21,8 +21,7 @@ public class AuthGlobalFilter implements GlobalFilter, Ordered {
      */
     private static final List<String> WHITELIST = List.of(
             "/user/login",
-            "/user/register",
-            "/consultation-ws"
+            "/user/register"
     );
 
     @Override

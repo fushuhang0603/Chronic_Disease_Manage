@@ -257,16 +257,3 @@ export function bindDoctor(doctorId) {
 export function unbindDoctor() {
   return request.post('/doctor/patient/unbind')
 }
-
-// ====== 医患在线聊天 ======
-export function getConsultationPage(data) {
-  return request.post('/consultation/page', data)
-}
-
-export function markConsultationRead(targetId) {
-  return request.put('/consultation/read', null, { params: { targetId } })
-}
-
-export function getDoctorPatients() {
-  return request.get('/consultation/doctor/patients')
-}

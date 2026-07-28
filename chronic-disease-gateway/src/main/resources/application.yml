@@ -21,7 +21,7 @@ spring:
         - id: health-record-service
           uri: lb://health-record-service
           predicates:
-            - Path=/index/**,/medicine/**,/recheck/**,/consultation/**,/consultation-ws/**
+            - Path=/index/**,/medicine/**,/recheck/**
         - id: health-remind-service
           uri: lb://health-remind-service
           predicates:

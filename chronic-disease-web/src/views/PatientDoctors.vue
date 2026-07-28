@@ -104,15 +104,6 @@ async function handleBind() {
   }
 }
 
-function goConsultation(doc) {
-  showDetail.value = false
-  router.push({
-    name: 'PatientConsultation',
-    params: { doctorId: doc.doctorId },
-    query: { doctorName: doc.realName }
-  })
-}
-
 async function handleUnbind() {
   try {
     await ElMessageBox.confirm('确定要解除绑定吗？', '确认解绑', {
@@ -288,10 +279,6 @@ async function handleUnbind() {
           <template v-else>
             <el-button class="btn-dlg-danger" @click="handleUnbind">解除绑定</el-button>
             <el-button class="btn-dlg-cancel" @click="showDetail = false">关闭</el-button>
-            <el-button type="primary" class="btn-dlg-chat" @click="goConsultation(detailDoc)">
-              <el-icon :size="14" style="margin-right:4px"><ChatDotRound /></el-icon>
-              在线咨询
-            </el-button>
           </template>
         </div>
       </template>
@@ -555,15 +542,6 @@ async function handleUnbind() {
   border: 1px solid #fca5a5; color: #dc2626; background: #fff;
 }
 .btn-dlg-danger:hover { background: #fef2f2; }
-.btn-dlg-chat {
-  height: 38px; border-radius: 10px; padding: 0 18px;
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-  border: none; font-weight: 600; color: #fff;
-  box-shadow: 0 2px 8px rgba(22,163,74,0.25);
-}
-.btn-dlg-chat:hover {
-  background: linear-gradient(135deg, #16a34a, #15803d);
-}
 
 /* ==================== 响应式 ==================== */
 @media (max-width: 960px) {

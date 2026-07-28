@@ -73,8 +73,13 @@ async function loadHistory() {
       pageNum: 1,
       pageSize: 50
     })
-    messages.value = (res.records || []).reverse()
-    totalMsg.value = res.total || 0
+    // res 是 Map 格式: { "2026.07.29": [...], "2026.07.28": [...] }
+    const list = []
+    Object.entries(res).forEach(([date, msgs]) => {
+      list.push({ type: 'date', date })
+      msgs.forEach(msg => list.push(msg))
+    })
+    messages.value = list
     await nextTick()
     scrollBottom()
   } catch (e) {
@@ -84,7 +89,7 @@ async function loadHistory() {
 
 async function markRead() {
   try {
-    await markConsultationRead(getPatientId(), doctorId)
+    await markConsultationRead(doctorId)
   } catch {}
 }
 
@@ -128,13 +133,10 @@ function handleKeydown(e) {
 
 function fmtTime(t) {
   if (!t) return ''
+  // 已经是 HH:mm 格式，直接返回
+  if (t.length <= 5) return t
   const d = new Date(t.replace(' ', 'T'))
-  const now = new Date()
-  const isToday = d.toDateString() === now.toDateString()
-  if (isToday) {
-    return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-  }
-  return d.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
 }
 
 onMounted(async () => {
@@ -162,16 +164,18 @@ onUnmounted(() => {
 
     <!-- 消息区 -->
     <div class="pc-msg-list" ref="listRef">
-      <div
-        v-for="(msg, idx) in messages"
-        :key="idx"
-        :class="['msg-row', msg.senderRole === 'PATIENT' ? 'msg-right' : 'msg-left']"
-      >
-        <div class="msg-bubble">
-          <div class="msg-content">{{ msg.content }}</div>
+      <template v-for="(item, idx) in messages" :key="idx">
+        <div v-if="item.type === 'date'" class="msg-date-sep">{{ item.date }}</div>
+        <div
+          v-else
+          :class="['msg-row', item.senderRole === 'PATIENT' ? 'msg-right' : 'msg-left']"
+        >
+          <div class="msg-bubble">
+            <div class="msg-content">{{ item.content }}</div>
+          </div>
+          <div class="msg-time">{{ fmtTime(item.createTime) }}</div>
         </div>
-        <div class="msg-time">{{ fmtTime(msg.createTime) }}</div>
-      </div>
+      </template>
 
       <div v-if="messages.length === 0" class="msg-empty">
         <p class="msg-empty-text">暂无消息，向您的医生咨询吧</p>
@@ -256,6 +260,19 @@ onUnmounted(() => {
   font-size: 11px; color: #a8a29e;
   margin-top: 4px; padding: 0 4px;
 }
+
+.msg-date-sep {
+  text-align: center; font-size: 12px; color: #a8a29e;
+  padding: 8px 0;
+  position: relative;
+}
+.msg-date-sep::before,
+.msg-date-sep::after {
+  content: ''; position: absolute; top: 50%;
+  width: 35%; height: 1px; background: #e7e5e4;
+}
+.msg-date-sep::before { left: 0; }
+.msg-date-sep::after { right: 0; }
 
 .msg-empty {
   flex: 1; display: flex; align-items: center; justify-content: center;

@@ -1,12 +1,13 @@
 package com.chronicdisease.record.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.record.domain.dto.ConsultationMessageDTO;
 import com.chronicdisease.record.domain.dto.ConsultationPageDTO;
 import com.chronicdisease.record.domain.entity.ConsultationRecord;
+import com.chronicdisease.record.domain.vo.ConsultationMessageVO;
 import com.chronicdisease.record.domain.vo.DoctorPatientVO;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 
 public interface IConsultationService extends IService<ConsultationRecord> {
@@ -21,9 +22,9 @@ public interface IConsultationService extends IService<ConsultationRecord> {
     ConsultationRecord sendMessage(Long senderId, String senderRole, ConsultationMessageDTO dto);
 
     /**
-     * 分页查询聊天历史（按时间正序）
+     * 查询聊天历史（按天分组，时间正序）
      */
-    PageResult<ConsultationRecord> pageHistory(ConsultationPageDTO dto);
+    LinkedHashMap<String, List<ConsultationMessageVO>> pageHistory(ConsultationPageDTO dto);
 
     /**
      * 标记已读：将对方发给当前用户的消息全部标记为已读，并清Redis未读计数

@@ -263,8 +263,8 @@ export function getConsultationPage(data) {
   return request.post('/consultation/page', data)
 }
 
-export function markConsultationRead(patientId, doctorId) {
-  return request.put('/consultation/read', null, { params: { patientId, doctorId } })
+export function markConsultationRead(targetId) {
+  return request.put('/consultation/read', null, { params: { targetId } })
 }
 
 export function getDoctorPatients() {

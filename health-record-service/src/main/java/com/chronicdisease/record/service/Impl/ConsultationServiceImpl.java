@@ -3,15 +3,14 @@ package com.chronicdisease.record.service.Impl;
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.chronicdisease.common.constant.BusinessConstant;
 import com.chronicdisease.common.exception.BusinessException;
-import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.common.result.Result;
 import com.chronicdisease.record.domain.dto.ConsultationMessageDTO;
 import com.chronicdisease.record.domain.dto.ConsultationPageDTO;
 import com.chronicdisease.record.domain.entity.ConsultationRecord;
+import com.chronicdisease.record.domain.vo.ConsultationMessageVO;
 import com.chronicdisease.record.domain.vo.DoctorPatientVO;
 import com.chronicdisease.record.domain.vo.UserBriefVO;
 import com.chronicdisease.record.feign.UserServiceFeign;
@@ -102,16 +101,30 @@ public class ConsultationServiceImpl extends ServiceImpl<ConsultationRecordMappe
     }
 
     @Override
-    public PageResult<ConsultationRecord> pageHistory(ConsultationPageDTO dto) {
+    public LinkedHashMap<String, List<ConsultationMessageVO>> pageHistory(ConsultationPageDTO dto) {
         LambdaQueryWrapper<ConsultationRecord> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(ConsultationRecord::getPatientId, Long.valueOf(dto.getPatientId()))
-                .eq(ConsultationRecord::getDoctorId, Long.valueOf(dto.getDoctorId()))
+        wrapper.eq(ConsultationRecord::getPatientId, dto.getPatientId())
+                .eq(ConsultationRecord::getDoctorId, dto.getDoctorId())
                 .eq(ConsultationRecord::getIsDeleted, BusinessConstant.isNotDelete)
                 .orderByAsc(ConsultationRecord::getCreateTime);
 
-        Page<ConsultationRecord> page = new Page<>(dto.getPageNum(), dto.getPageSize());
-        Page<ConsultationRecord> result = consultationRecordMapper.selectPage(page, wrapper);
-        return new PageResult<>(result.getRecords(), result.getTotal());
+        List<ConsultationRecord> records = consultationRecordMapper.selectList(wrapper);
+
+        DateTimeFormatter dayFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+
+        LinkedHashMap<String, List<ConsultationMessageVO>> result = new LinkedHashMap<>();
+        for (ConsultationRecord record : records) {
+            String dayKey = record.getCreateTime().format(dayFormatter);
+            ConsultationMessageVO vo = new ConsultationMessageVO();
+            vo.setSenderId(record.getSenderId());
+            vo.setSenderRole(record.getSenderRole());
+            vo.setContent(record.getContent());
+            vo.setCreateTime(record.getCreateTime().format(timeFormatter));
+            //用创建时间具体到某一天创建key,再new一个集合出来,把符合时间的记录加入到集合
+            result.computeIfAbsent(dayKey, k -> new ArrayList<>()).add(vo);
+        }
+        return result;
     }
 
     @Override

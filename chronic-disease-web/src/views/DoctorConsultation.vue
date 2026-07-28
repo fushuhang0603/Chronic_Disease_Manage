@@ -1,5 +1,5 @@
 <script setup>
-import { ref, nextTick, onMounted, onUnmounted, watch } from 'vue'
+import { ref, nextTick, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { ArrowLeft } from '@element-plus/icons-vue'
@@ -17,9 +17,6 @@ const messages = ref([])
 const listRef = ref(null)
 const inputText = ref('')
 const sending = ref(false)
-const pageNum = ref(1)
-const totalMsg = ref(0)
-const pageSize = 20
 
 // WebSocket
 let ws = null
@@ -82,17 +79,18 @@ async function loadHistory() {
     const res = await getConsultationPage({
       patientId: patientId,
       doctorId: getDoctorId(),
-      pageNum: pageNum.value,
-      pageSize
+      pageNum: 1,
+      pageSize: 50
     })
-    const list = (res.records || []).reverse()
-    // 倒序插入（历史消息在前面）
-    messages.value = [...list, ...messages.value]
-    totalMsg.value = res.total || 0
-    if (pageNum.value === 1) {
-      await nextTick()
-      scrollBottom()
-    }
+    // res 是 Map 格式: { "2026.07.29": [...], "2026.07.28": [...] }
+    const list = []
+    Object.entries(res).forEach(([date, msgs]) => {
+      list.push({ type: 'date', date })
+      msgs.forEach(msg => list.push(msg))
+    })
+    messages.value = list
+    await nextTick()
+    scrollBottom()
   } catch (e) {
     ElMessage.error('加载历史消息失败')
   }
@@ -101,7 +99,7 @@ async function loadHistory() {
 // 标记已读
 async function markRead() {
   try {
-    await markConsultationRead(patientId, getDoctorId())
+    await markConsultationRead(patientId)
   } catch {}
 }
 
@@ -159,13 +157,9 @@ function handleKeydown(e) {
 // 格式化时间
 function fmtTime(t) {
   if (!t) return ''
+  if (t.length <= 5) return t
   const d = new Date(t.replace(' ', 'T'))
-  const now = new Date()
-  const isToday = d.toDateString() === now.toDateString()
-  if (isToday) {
-    return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-  }
-  return d.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
 }
 
 onMounted(async () => {
@@ -195,16 +189,18 @@ onUnmounted(() => {
 
     <!-- 消息区 -->
     <div class="dc-msg-list" ref="listRef">
-      <div
-        v-for="(msg, idx) in messages"
-        :key="idx"
-        :class="['msg-row', msg.senderRole === 'DOCTOR' ? 'msg-right' : 'msg-left']"
-      >
-        <div class="msg-bubble">
-          <div class="msg-content">{{ msg.content }}</div>
+      <template v-for="(item, idx) in messages" :key="idx">
+        <div v-if="item.type === 'date'" class="msg-date-sep">{{ item.date }}</div>
+        <div
+          v-else
+          :class="['msg-row', item.senderRole === 'DOCTOR' ? 'msg-right' : 'msg-left']"
+        >
+          <div class="msg-bubble">
+            <div class="msg-content">{{ item.content }}</div>
+          </div>
+          <div class="msg-time">{{ fmtTime(item.createTime) }}</div>
         </div>
-        <div class="msg-time">{{ fmtTime(msg.createTime) }}</div>
-      </div>
+      </template>
 
       <div v-if="messages.length === 0" class="msg-empty">
         <p class="msg-empty-text">暂无消息，开始沟通吧</p>
@@ -293,6 +289,19 @@ onUnmounted(() => {
   font-size: 11px; color: #a8a29e;
   margin-top: 4px; padding: 0 4px;
 }
+
+.msg-date-sep {
+  text-align: center; font-size: 12px; color: #a8a29e;
+  padding: 8px 0;
+  position: relative;
+}
+.msg-date-sep::before,
+.msg-date-sep::after {
+  content: ''; position: absolute; top: 50%;
+  width: 35%; height: 1px; background: #e7e5e4;
+}
+.msg-date-sep::before { left: 0; }
+.msg-date-sep::after { right: 0; }
 
 .msg-empty {
   flex: 1; display: flex; align-items: center; justify-content: center;

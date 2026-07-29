@@ -47,7 +47,7 @@
       </div>
       <template #footer>
         <el-button @click="showDetail = false">关闭</el-button>
-        <el-button class="fav-dialog-btn" v-if="detailItem" @click="handleFavorite(detailItem); detailItem.isFavorited = !detailItem.isFavorited">
+        <el-button class="fav-dialog-btn" v-if="detailItem" @click="handleFavorite(detailItem)">
           {{ detailItem.isFavorited ? '取消收藏' : '加入收藏' }}
         </el-button>
       </template>

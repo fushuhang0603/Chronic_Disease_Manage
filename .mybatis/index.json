@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "timestamp": 1785266859791,
+  "timestamp": 1785316859167,
   "projectRoot": "d:\\Code\\Chronic_Disease_Manage",
   "entries": [
     {
@@ -90,17 +90,6 @@
       "size": 805
     },
     {
-      "path": "health-user-service\\target\\classes\\com\\chronicdisease\\user\\UserServiceApplication.class",
-      "mtime": 1785141229854.364,
-      "size": 965,
-      "mapperScan": {
-        "basePackages": [
-          "com.chronicdisease.user.**.mapper"
-        ],
-        "sourceFile": "d:\\Code\\Chronic_Disease_Manage\\health-user-service\\target\\classes\\com\\chronicdisease\\user\\UserServiceApplication.class"
-      }
-    },
-    {
       "path": "chronic-disease-common\\target\\classes\\com\\chronicdisease\\common\\config\\MvcConfig.class",
       "mtime": 1785144732013.0757,
       "size": 2670
@@ -125,6 +114,17 @@
       "path": "health-record-service\\target\\classes\\com\\chronicdisease\\record\\config\\WebSocketConfig.class",
       "mtime": 1785266838224.3535,
       "size": 738
+    },
+    {
+      "path": "health-user-service\\target\\classes\\com\\chronicdisease\\user\\UserServiceApplication.class",
+      "mtime": 1785316856240.9648,
+      "size": 965,
+      "mapperScan": {
+        "basePackages": [
+          "com.chronicdisease.user.**.mapper"
+        ],
+        "sourceFile": "d:\\Code\\Chronic_Disease_Manage\\health-user-service\\target\\classes\\com\\chronicdisease\\user\\UserServiceApplication.class"
+      }
     }
   ]
 }

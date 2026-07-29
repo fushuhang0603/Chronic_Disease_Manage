@@ -14,6 +14,7 @@ import com.chronicdisease.user.domain.query.HealthArchiveQuery;
 import com.chronicdisease.user.domain.vo.PatientBriefVO;
 import com.chronicdisease.user.mapper.HealthArchiveMapper;
 import com.chronicdisease.user.service.IHealthArchiveService;
+import cn.hutool.core.util.IdcardUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,11 @@ public class HealthArchiveServiceImpl extends ServiceImpl<HealthArchiveMapper, H
         Long userId = UserInfoContext.getUserId();
         LambdaQueryWrapper<HealthArchive> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(HealthArchive::getUserId, userId).eq(HealthArchive::getIsDeleted, 0);
-        return baseMapper.selectOne(wrapper);
+        HealthArchive archive = baseMapper.selectOne(wrapper);
+        if (archive != null) {
+            archive.setAge(IdcardUtil.getAgeByIdCard(archive.getIdCard()));
+        }
+        return archive;
     }
 
     @Override
@@ -75,6 +80,9 @@ public class HealthArchiveServiceImpl extends ServiceImpl<HealthArchiveMapper, H
         wrapper.orderByDesc(HealthArchive::getCreateTime);
         Page<HealthArchive> page = new Page<>(query.getPageNum(), query.getPageSize());
         Page<HealthArchive> dbResult = baseMapper.selectPage(page, wrapper);
+        dbResult.getRecords().stream()
+                .peek(r -> r.setAge(IdcardUtil.getAgeByIdCard(r.getIdCard())))
+                .toList();
         return new PageResult<>(dbResult.getRecords(), dbResult.getTotal());
     }
 
@@ -136,4 +144,5 @@ public class HealthArchiveServiceImpl extends ServiceImpl<HealthArchiveMapper, H
         archive.setEmergencyName(dto.getEmergencyName());
         archive.setEmergencyPhone(dto.getEmergencyPhone());
     }
+
 }

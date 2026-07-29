@@ -12,6 +12,7 @@ const form = reactive({
   id: null,
   patientName: '',
   idCard: '',
+  age: null,
   birthDate: '',
   gender: 1,
   phone: '',
@@ -51,6 +52,7 @@ async function fetchArchive() {
         id: data.id,
         patientName: data.patientName || '',
         idCard: data.idCard || '',
+        age: data.age ?? null,
         birthDate: data.birthDate || '',
         gender: data.gender || 1,
         phone: data.phone || '',
@@ -121,7 +123,7 @@ onMounted(() => fetchArchive())
               <span class="patient-name">{{ form.patientName || '未填写' }}</span>
               <span class="patient-meta">
                 {{ genderMap[form.gender] || '未知' }} &nbsp;·&nbsp;
-                {{ form.age || '—' }}岁 &nbsp;·&nbsp;
+                {{ form.age != null ? form.age + '岁' : '—岁' }} &nbsp;·&nbsp;
                 {{ form.bloodType || '血型未知' }}
               </span>
             </div>

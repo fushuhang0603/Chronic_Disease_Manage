@@ -100,4 +100,8 @@ public class HealthArchive implements Serializable {
     @TableField("is_deleted")
     @Schema(description = "是否删除 1-删除 0-未删除")
     private Integer isDeleted;
+
+    @TableField(exist = false)
+    @Schema(description = "年龄（根据身份证号计算，非数据库字段）")
+    private Integer age;
 }

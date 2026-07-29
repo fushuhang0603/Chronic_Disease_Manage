@@ -52,7 +52,7 @@ async function fetchArchive() {
         id: data.id,
         patientName: data.patientName || '',
         idCard: data.idCard || '',
-        age: data.age ?? null,
+        age: data.age,
         birthDate: data.birthDate || '',
         gender: data.gender || 1,
         phone: data.phone || '',

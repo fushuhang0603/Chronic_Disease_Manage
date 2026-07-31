@@ -2,6 +2,8 @@ package com.chronicdisease.record.websocket;
 
 import com.alibaba.fastjson2.JSON;
 import com.chronicdisease.record.domain.entity.ChatMessage;
+import com.chronicdisease.record.util.SpringContextUtil;
+import com.chronicdisease.record.service.IConsultationRecordService;
 import jakarta.websocket.*;
 import jakarta.websocket.server.ServerEndpoint;
 import lombok.extern.slf4j.Slf4j;
@@ -23,12 +25,14 @@ public class ChatWebSocketEndpoint {
 
     private Session session;
     private Long userId;
+    private String role;
 
     @OnOpen
     public void onOpen(Session session, EndpointConfig config) {
         this.session = session;
         Map<String, Object> attr = config.getUserProperties();
         this.userId = Long.valueOf(attr.get("userId").toString());
+        this.role = (String) attr.get("role");
         ONLINE_USER_SESSION.put(userId, session);
         log.info("用户上线: userId={}, 当前在线人数={}", userId, ONLINE_USER_SESSION.size());
     }
@@ -61,6 +65,14 @@ public class ChatWebSocketEndpoint {
             if (targetSession != null && targetSession.isOpen()) {
                 targetSession.getBasicRemote().sendText(outgoingJson);
             }
+
+            // 异步入库
+            IConsultationRecordService service = SpringContextUtil.getBean(IConsultationRecordService.class);
+            Long patientId = "DOCTOR".equals(role) ? toUserId : this.userId;
+            Long doctorId = "PATIENT".equals(role) ? toUserId : this.userId;
+            service.saveMessage(patientId, incoming.getPatientName(),
+                    doctorId, incoming.getDoctorName(),
+                    this.userId, this.role, content.trim());
 
         } catch (Exception e) {
             log.error("消息处理失败: userId={}, msg={}", this.userId, message, e);

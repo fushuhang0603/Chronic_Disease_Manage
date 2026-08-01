@@ -72,6 +72,12 @@ async function loadMyDoctor() {
 
 function goDoctors() { router.push('/patient/doctors') }
 
+function goChat() {
+  if (myDoctor.value) {
+    router.push({ path: '/patient/chat', query: { doctorId: myDoctor.value.doctorId, doctorName: myDoctor.value.realName } })
+  }
+}
+
 // ====== 资讯 ======
 const articles = ref([])
 
@@ -168,6 +174,37 @@ onMounted(() => { loadArticles(); loadMyDoctor() })
         <span class="fc-label" style="color:#c2410c">{{ myDoctor ? myDoctor.realName : '我的医生' }}</span>
         <span class="fc-desc">{{ myDoctor ? (myDoctor.title + ' · ' + myDoctor.hospital) : '绑定专属医生' }}</span>
         <el-icon class="fc-arrow" :size="15"><ArrowRight /></el-icon>
+      </div>
+    </div>
+
+    <!-- ====== 在线问诊 ====== -->
+    <div class="consult-section" v-if="myDoctor">
+      <div class="consult-card">
+        <!-- 左侧：医生头像 -->
+        <div class="consult-avatar">
+          <span class="consult-avatar-text">{{ (myDoctor.realName || '医')[0] }}</span>
+          <div class="consult-avatar-dot"></div>
+        </div>
+        <!-- 中间：信息区 -->
+        <div class="consult-body">
+          <div class="consult-head">
+            <h3 class="consult-title">在线问诊</h3>
+            <span class="consult-tag">专属医生</span>
+          </div>
+          <p class="consult-desc">随时向您的主治医生发起在线咨询，获得专业健康指导</p>
+          <div class="consult-doctor-row">
+            <span class="cdr-name">{{ myDoctor.realName }}</span>
+            <span class="cdr-sep"></span>
+            <span class="cdr-meta">{{ myDoctor.title }}</span>
+            <span class="cdr-sep"></span>
+            <span class="cdr-meta">{{ myDoctor.hospital }}</span>
+          </div>
+        </div>
+        <!-- 右侧：操作按钮 -->
+        <button class="consult-btn" @click="goChat">
+          <el-icon :size="18"><ChatDotRound /></el-icon>
+          <span>开始问诊</span>
+        </button>
       </div>
     </div>
 
@@ -401,6 +438,103 @@ onMounted(() => { loadArticles(); loadMyDoctor() })
   background: linear-gradient(135deg, #f97316, #ea580c);
   color: #fff; font-size: 11px; font-weight: 700;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+
+/* ====== 在线问诊 ====== */
+.consult-card {
+  display: flex; align-items: center; gap: 24px;
+  padding: 28px 32px; border-radius: 20px;
+  background: linear-gradient(135deg, #fff7ed 0%, #fff1e6 30%, #fef9f0 65%, #fffdf7 100%);
+  border: 1px solid #fed7aa;
+  box-shadow: 0 2px 20px rgba(249,115,22,0.06);
+  position: relative; overflow: hidden;
+}
+/* 背景装饰 */
+.consult-card::before {
+  content: '';
+  position: absolute; right: -40px; top: -40px;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(251,191,36,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* 头像 */
+.consult-avatar {
+  position: relative; flex-shrink: 0;
+  width: 64px; height: 64px; border-radius: 20px;
+  background: linear-gradient(135deg, #fb923c, #ea580c);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 6px 20px rgba(249,115,22,0.3);
+}
+.consult-avatar-text {
+  color: #fff; font-size: 24px; font-weight: 800; line-height: 1;
+}
+.consult-avatar-dot {
+  position: absolute; bottom: -2px; right: -2px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: #22c55e; border: 3px solid #fff;
+  box-shadow: 0 0 0 3px rgba(34,197,94,0.2);
+}
+
+/* 信息区 */
+.consult-body { flex: 1; min-width: 0; z-index: 1; }
+.consult-head {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+}
+.consult-title {
+  font-size: 20px; font-weight: 800; color: #7c2d12; margin: 0;
+  letter-spacing: -0.3px;
+}
+.consult-tag {
+  font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #92400e; border: 1px solid #fbbf24;
+}
+.consult-desc {
+  font-size: 13px; color: #78350f; margin: 0 0 10px 0; line-height: 1.6;
+}
+.consult-doctor-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.cdr-name {
+  font-size: 14px; font-weight: 700; color: #7c2d12;
+  background: rgba(249,115,22,0.08); padding: 3px 12px; border-radius: 8px;
+}
+.cdr-sep {
+  width: 3px; height: 3px; border-radius: 50%; background: #fbbf24; flex-shrink: 0;
+}
+.cdr-meta {
+  font-size: 12px; color: #92400e; font-weight: 500;
+}
+
+/* 按钮 */
+.consult-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 14px 28px; border-radius: 16px; border: none;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #fff; font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: all 0.25s; flex-shrink: 0; z-index: 1;
+  box-shadow: 0 4px 18px rgba(234,88,12,0.35);
+  position: relative; overflow: hidden;
+}
+.consult-btn::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.12), transparent);
+  pointer-events: none;
+}
+.consult-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(234,88,12,0.45);
+}
+.consult-btn:active { transform: translateY(0); }
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .consult-card { flex-direction: column; text-align: center; padding: 24px; }
+  .consult-body { text-align: center; }
+  .consult-head { justify-content: center; }
+  .consult-doctor-row { justify-content: center; }
 }
 
 /* ====== 详情弹窗 ====== */

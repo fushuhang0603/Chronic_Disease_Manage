@@ -257,3 +257,7 @@ export function bindDoctor(doctorId) {
 export function unbindDoctor() {
   return request.post('/doctor/patient/unbind')
 }
+
+export function getAllPatientBriefs(patientName) {
+  return request.get('/archive/allPatientBriefs', { params: { patientName } })
+}

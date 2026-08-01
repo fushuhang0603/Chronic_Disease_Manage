@@ -13,10 +13,13 @@ import PatientData from '../views/PatientData.vue'
 import PatientRemind from '../views/PatientRemind.vue'
 import PatientArticle from '../views/PatientArticle.vue'
 import PatientDoctors from '../views/PatientDoctors.vue'
+import PatientChat from '../views/PatientChat.vue'
 import AdminRemind from '../views/AdminRemind.vue'
 import AdminArticle from '../views/AdminArticle.vue'
 import AdminData from '../views/AdminData.vue'
 import DoctorManage from '../views/DoctorManage.vue'
+import AdminPatients from '../views/AdminPatients.vue'
+import DoctorChat from '../views/DoctorChat.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -35,6 +38,8 @@ const routes = [
       { path: 'article', name: 'AdminArticle', component: AdminArticle },
       { path: 'data', name: 'AdminData', component: AdminData },
       { path: 'doctors', name: 'DoctorManage', component: DoctorManage },
+      { path: 'patients', name: 'AdminPatients', component: AdminPatients },
+      { path: 'patients/chat', name: 'DoctorChat', component: DoctorChat },
     ],
   },
   {
@@ -48,6 +53,7 @@ const routes = [
       { path: 'remind', name: 'PatientRemind', component: PatientRemind },
       { path: 'article', name: 'PatientArticle', component: PatientArticle },
       { path: 'doctors', name: 'PatientDoctors', component: PatientDoctors },
+      { path: 'chat', name: 'PatientChat', component: PatientChat },
     ],
   },
 ]

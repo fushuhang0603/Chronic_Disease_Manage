@@ -7,6 +7,7 @@ import com.chronicdisease.record.service.IConsultationRecordService;
 import jakarta.websocket.*;
 import jakarta.websocket.server.ServerEndpoint;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -15,10 +16,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
+@Component
 @ServerEndpoint(value = "/ws/chat", configurator = ChatHandshakeConfigurator.class)
 public class ChatWebSocketEndpoint {
 
-    /** 在线用户会话池：userId -> Session */
+    //在线用户会话池
     private static final ConcurrentHashMap<Long, Session> ONLINE_USER_SESSION = new ConcurrentHashMap<>();
 
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -41,7 +43,7 @@ public class ChatWebSocketEndpoint {
     public void onMessage(String message) {
         try {
             ChatMessage incoming = JSON.parseObject(message, ChatMessage.class);
-            Long toUserId = incoming.getToUserId();
+            Long toUserId = Long.valueOf(incoming.getToUserId());
             String content = incoming.getContent();
 
             if (toUserId == null || content == null || content.trim().isEmpty()) {
@@ -51,8 +53,8 @@ public class ChatWebSocketEndpoint {
 
             // 构建消息：发送人信息由服务端填充，客户端不可信
             ChatMessage outgoing = new ChatMessage();
-            outgoing.setFromUserId(this.userId);
-            outgoing.setToUserId(toUserId);
+            outgoing.setFromUserId(String.valueOf(this.userId));
+            outgoing.setToUserId(String.valueOf(toUserId));
             outgoing.setContent(content.trim());
             outgoing.setTime(LocalDateTime.now().format(TIME_FMT));
             outgoing.setSenderName(incoming.getSenderName());
@@ -64,12 +66,15 @@ public class ChatWebSocketEndpoint {
             Session targetSession = ONLINE_USER_SESSION.get(toUserId);
             if (targetSession != null && targetSession.isOpen()) {
                 targetSession.getBasicRemote().sendText(outgoingJson);
+                log.info("消息已推送: from={} to={}", this.userId, toUserId);
+            } else {
+                log.warn("目标用户不在线: toUserId={}", toUserId);
             }
 
             // 异步入库
             IConsultationRecordService service = SpringContextUtil.getBean(IConsultationRecordService.class);
-            Long patientId = "DOCTOR".equals(role) ? toUserId : this.userId;
-            Long doctorId = "PATIENT".equals(role) ? toUserId : this.userId;
+            Long patientId = "DOCTOR".equalsIgnoreCase(role) ? toUserId : this.userId;
+            Long doctorId = "PATIENT".equalsIgnoreCase(role) ? toUserId : this.userId;
             service.saveMessage(patientId, incoming.getPatientName(),
                     doctorId, incoming.getDoctorName(),
                     this.userId, this.role, content.trim());

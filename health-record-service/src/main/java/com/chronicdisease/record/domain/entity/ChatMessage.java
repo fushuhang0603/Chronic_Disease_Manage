@@ -8,10 +8,10 @@ import lombok.Data;
 public class ChatMessage {
 
     /** 发送人用户ID（服务端根据session填充，客户端不可信） */
-    private Long fromUserId;
+    private String fromUserId;
 
     /** 接收人用户ID */
-    private Long toUserId;
+    private String toUserId;
 
     /** 消息内容 */
     private String content;
@@ -20,13 +20,13 @@ public class ChatMessage {
     private String time;
 
     /** 患者用户ID */
-    private Long patientId;
+    private String patientId;
 
     /** 患者姓名 */
     private String patientName;
 
     /** 医生用户ID */
-    private Long doctorId;
+    private String doctorId;
 
     /** 医生姓名 */
     private String doctorName;

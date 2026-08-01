@@ -3,6 +3,7 @@ package com.chronicdisease.record.feign;
 import com.chronicdisease.common.result.Result;
 import com.chronicdisease.record.domain.vo.PatientBriefVO;
 import com.chronicdisease.record.domain.vo.UserBriefVO;
+import com.chronicdisease.record.domain.vo.UserInfoVO;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.stereotype.Component;
@@ -24,7 +25,7 @@ public interface UserServiceFeign {
     Result<UserBriefVO> queryById(@RequestParam("id") Long id);
 
     @GetMapping("/doctor/patient/myPatients")
-    @Operation(summary = "医生端：获取我的所有绑定患者ID列表")
-    Result<List<Long>> getMyPatients(@RequestParam("doctorId") Long doctorId);
+    @Operation(summary = "医生端：获取我的所有绑定患者列表")
+    Result<List<UserInfoVO>> getMyPatients(@RequestParam("doctorId") Long doctorId);
 
 }

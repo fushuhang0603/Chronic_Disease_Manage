@@ -261,3 +261,8 @@ export function unbindDoctor() {
 export function getAllPatientBriefs(patientName) {
   return request.get('/archive/allPatientBriefs', { params: { patientName } })
 }
+
+// 医生端：获取自己绑定的患者列表
+export function getMyPatients(doctorId) {
+  return request.get('/doctor/patient/myPatients', { params: { doctorId } })
+}

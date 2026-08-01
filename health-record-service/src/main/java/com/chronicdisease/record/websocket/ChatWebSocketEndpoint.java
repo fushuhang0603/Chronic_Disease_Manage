@@ -2,11 +2,11 @@ package com.chronicdisease.record.websocket;
 
 import com.alibaba.fastjson2.JSON;
 import com.chronicdisease.record.domain.entity.ChatMessage;
-import com.chronicdisease.record.util.SpringContextUtil;
 import com.chronicdisease.record.service.IConsultationRecordService;
 import jakarta.websocket.*;
 import jakarta.websocket.server.ServerEndpoint;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -20,14 +20,22 @@ import java.util.concurrent.ConcurrentHashMap;
 @ServerEndpoint(value = "/ws/chat", configurator = ChatHandshakeConfigurator.class)
 public class ChatWebSocketEndpoint {
 
-    //在线用户会话池
+    // 在线用户会话池
     private static final ConcurrentHashMap<Long, Session> ONLINE_USER_SESSION = new ConcurrentHashMap<>();
 
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
+    /** 通过静态字段桥接 Spring Bean 注入，供 Jakarta 容器创建的实例使用 */
+    private static IConsultationRecordService consultationRecordService;
+
     private Session session;
     private Long userId;
     private String role;
+
+    @Autowired
+    public void setConsultationRecordService(IConsultationRecordService service) {
+        ChatWebSocketEndpoint.consultationRecordService = service;
+    }
 
     @OnOpen
     public void onOpen(Session session, EndpointConfig config) {
@@ -72,10 +80,9 @@ public class ChatWebSocketEndpoint {
             }
 
             // 异步入库
-            IConsultationRecordService service = SpringContextUtil.getBean(IConsultationRecordService.class);
             Long patientId = "DOCTOR".equalsIgnoreCase(role) ? toUserId : this.userId;
             Long doctorId = "PATIENT".equalsIgnoreCase(role) ? toUserId : this.userId;
-            service.saveMessage(patientId, incoming.getPatientName(),
+            consultationRecordService.saveMessage(patientId, incoming.getPatientName(),
                     doctorId, incoming.getDoctorName(),
                     this.userId, this.role, content.trim());
 

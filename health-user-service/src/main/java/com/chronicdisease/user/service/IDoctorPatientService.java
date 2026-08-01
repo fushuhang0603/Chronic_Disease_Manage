@@ -3,6 +3,7 @@ package com.chronicdisease.user.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.chronicdisease.user.domain.entity.DoctorPatient;
 import com.chronicdisease.user.domain.entity.DoctorProfile;
+import com.chronicdisease.user.domain.vo.UserInfoVO;
 
 import java.util.List;
 
@@ -21,5 +22,5 @@ public interface IDoctorPatientService extends IService<DoctorPatient> {
     void unbindDoctor();
 
     /** 医生查询自己绑定的所有患者ID列表 */
-    List<Long> getMyPatients(Long doctorId);
+    List<UserInfoVO> getMyPatients(Long doctorId);
 }

@@ -8,6 +8,7 @@ import com.chronicdisease.common.util.UserInfoContext;
 import com.chronicdisease.user.domain.entity.DoctorPatient;
 import com.chronicdisease.user.domain.entity.DoctorProfile;
 import com.chronicdisease.user.domain.entity.User;
+import com.chronicdisease.user.domain.vo.UserInfoVO;
 import com.chronicdisease.user.mapper.DoctorPatientMapper;
 import com.chronicdisease.user.mapper.DoctorProfileMapper;
 import com.chronicdisease.user.mapper.UserMapper;
@@ -16,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class DoctorPatientServiceImpl extends ServiceImpl<DoctorPatientMapper, DoctorPatient> implements IDoctorPatientService {
@@ -105,8 +105,7 @@ public class DoctorPatientServiceImpl extends ServiceImpl<DoctorPatientMapper, D
     }
 
     @Override
-    public List<Long> getMyPatients(Long doctorId) {
-      List<Long> ids = doctorPatientMapper.getMyPatients(doctorId);
-      return ids;
+    public List<UserInfoVO> getMyPatients(Long doctorId) {
+        return doctorPatientMapper.getMyPatients(doctorId);
     }
 }

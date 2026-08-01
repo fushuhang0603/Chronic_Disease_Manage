@@ -1,21 +1,44 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { getAllPatientBriefs } from '../api/user.js'
+import { getMyPatients } from '../api/user.js'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const loading = ref(false)
-const patients = ref([])
+const allPatients = ref([])
 const searchName = ref('')
+
+// 获取当前医生ID
+const doctorId = (() => {
+  try {
+    const raw = sessionStorage.getItem('userInfo')
+    if (raw) return JSON.parse(raw).id
+  } catch {}
+  return null
+})()
+
+// 客户端搜索过滤
+const patients = computed(() => {
+  if (!searchName.value) return allPatients.value
+  const kw = searchName.value.toLowerCase()
+  return allPatients.value.filter(p =>
+    (p.nickname || '').toLowerCase().includes(kw) ||
+    (p.username || '').toLowerCase().includes(kw)
+  )
+})
 
 onMounted(() => fetchPatients())
 
 async function fetchPatients() {
+  if (!doctorId) {
+    ElMessage.error('获取医生信息失败')
+    return
+  }
   loading.value = true
   try {
-    const data = await getAllPatientBriefs(searchName.value || undefined)
-    patients.value = data || []
+    const data = await getMyPatients(doctorId)
+    allPatients.value = data || []
   } catch (e) {
     ElMessage.error('加载患者列表失败')
   } finally {
@@ -26,12 +49,12 @@ async function fetchPatients() {
 function goChat(p) {
   router.push({
     path: '/admin/patients/chat',
-    query: { userId: p.userId, userName: p.patientName },
+    query: { userId: p.id, userName: p.nickname || p.username },
   })
 }
 
 function handleSearch() {
-  fetchPatients()
+  // computed 自动响应，无需额外操作
 }
 </script>
 
@@ -49,10 +72,10 @@ function handleSearch() {
     </div>
 
     <div v-loading="loading" class="ap-list">
-      <div v-for="p in patients" :key="p.userId" class="ap-card" @click="goChat(p)">
-        <div class="ap-avatar">{{ (p.patientName || '患')[0] }}</div>
+      <div v-for="p in patients" :key="p.id" class="ap-card" @click="goChat(p)">
+        <div class="ap-avatar">{{ (p.nickname || p.username || '患')[0] }}</div>
         <div class="ap-info">
-          <span class="ap-name">{{ p.patientName }}</span>
+          <span class="ap-name">{{ p.nickname || p.username }}</span>
           <span class="ap-tip">点击开始沟通</span>
         </div>
         <el-icon :size="16" color="#a8a29e"><ChatDotRound /></el-icon>

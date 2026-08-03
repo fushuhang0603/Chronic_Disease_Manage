@@ -15,6 +15,7 @@ import PatientArticle from '../views/PatientArticle.vue'
 import PatientDoctors from '../views/PatientDoctors.vue'
 import PatientChat from '../views/PatientChat.vue'
 import AdminRemind from '../views/AdminRemind.vue'
+import AdminNotice from '../views/AdminNotice.vue'
 import AdminArticle from '../views/AdminArticle.vue'
 import AdminData from '../views/AdminData.vue'
 import DoctorManage from '../views/DoctorManage.vue'
@@ -35,6 +36,7 @@ const routes = [
       { path: 'dicts', name: 'IndexDictManage', component: IndexDictManage },
       { path: 'archives', name: 'ArchiveManage', component: ArchiveManage },
       { path: 'remind', name: 'AdminRemind', component: AdminRemind },
+      { path: 'notice', name: 'AdminNotice', component: AdminNotice },
       { path: 'article', name: 'AdminArticle', component: AdminArticle },
       { path: 'data', name: 'AdminData', component: AdminData },
       { path: 'doctors', name: 'DoctorManage', component: DoctorManage },

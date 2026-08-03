@@ -277,3 +277,25 @@ export function getChatRecords(data) {
 export function markChatRead(otherUserId) {
   return request.post('/consultation/read', null, { params: { otherUserId } })
 }
+
+// ====== 系统公告 ======
+// 新增公告（默认草稿状态）
+export function addNotice(data) {
+  return request.post('/notice/add', data)
+}
+// 管理端分页查询公告
+export function getNoticePage(params) {
+  return request.post('/notice/page', params)
+}
+// 发布 / 下线公告（status: 1发布 2下线）
+export function updateNoticeStatus(id, status) {
+  return request.post('/notice/updateStatus', null, { params: { id, status } })
+}
+// 删除公告
+export function deleteNotice(id) {
+  return request.post('/notice/delete', null, { params: { id } })
+}
+// 患者端首页最新公告（取已发布最新 N 条）
+export function getHomeNotices() {
+  return request.post('/notice/home')
+}

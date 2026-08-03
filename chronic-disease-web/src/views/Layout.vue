@@ -15,6 +15,7 @@ const menuItems = [
   { path: '/admin/data', label: '健康监测', icon: 'DataAnalysis', color: '#f59e0b' },
   { path: '/admin/remind', label: '用药提醒', icon: 'AlarmClock', color: '#8b5cf6' },
   { path: '/admin/article', label: '健康资讯', icon: 'Document', color: '#ef4444' },
+  { path: '/admin/notice', label: '公告管理', icon: 'Bell', color: '#f59e0b' },
   { path: '/admin/patients', label: '医患沟通', icon: 'ChatDotRound', color: '#06b6d4' },
 ]
 

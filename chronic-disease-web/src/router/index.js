@@ -11,6 +11,7 @@ import ArchivePatient from '../views/ArchivePatient.vue'
 import ArchiveManage from '../views/ArchiveManage.vue'
 import PatientData from '../views/PatientData.vue'
 import PatientRemind from '../views/PatientRemind.vue'
+import PatientNotice from '../views/PatientNotice.vue'
 import PatientArticle from '../views/PatientArticle.vue'
 import PatientDoctors from '../views/PatientDoctors.vue'
 import PatientChat from '../views/PatientChat.vue'
@@ -53,6 +54,7 @@ const routes = [
       { path: 'archive', name: 'ArchivePatient', component: ArchivePatient },
       { path: 'data', name: 'PatientData', component: PatientData },
       { path: 'remind', name: 'PatientRemind', component: PatientRemind },
+      { path: 'notice', name: 'PatientNotice', component: PatientNotice },
       { path: 'article', name: 'PatientArticle', component: PatientArticle },
       { path: 'doctors', name: 'PatientDoctors', component: PatientDoctors },
       { path: 'chat', name: 'PatientChat', component: PatientChat },

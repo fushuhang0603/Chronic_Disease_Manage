@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getTopArticles, updateFavoriteStatus, getMyDoctor } from '../api/user'
+import { getTopArticles, updateFavoriteStatus, getMyDoctor, getHomeNotices } from '../api/user'
 import { ArrowRight } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
@@ -87,6 +87,24 @@ async function loadArticles() {
   } catch { /* 无数据不报错 */ }
 }
 
+// ====== 平台公告 ======
+const notices = ref([])
+const showNoticeDetail = ref(false)
+const noticeDetail = ref(null)
+
+async function loadNotices() {
+  try {
+    notices.value = await getHomeNotices() || []
+  } catch { /* 无公告不报错 */ }
+}
+
+function openNotice(item) {
+  noticeDetail.value = item
+  showNoticeDetail.value = true
+}
+
+function goNotice() { router.push('/patient/notice') }
+
 function getSummary(content) {
   if (!content) return ''
   return content.replace(/\s+/g, ' ').substring(0, 60) + (content.length > 60 ? '...' : '')
@@ -117,7 +135,7 @@ async function handleFavorite(item) {
 function goPage(path) { router.push(path) }
 function goArticle() { router.push('/patient/article') }
 
-onMounted(() => { loadArticles(); loadMyDoctor() })
+onMounted(() => { loadArticles(); loadMyDoctor(); loadNotices() })
 </script>
 
 <template>
@@ -158,6 +176,21 @@ onMounted(() => { loadArticles(); loadMyDoctor() })
             <span class="hs-num">{{ indicators.length }}</span>
             <span class="hs-label">项关键指标</span>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 平台公告 ====== -->
+    <div class="notice-section" v-if="notices.length > 0">
+      <div class="section-hd">
+        <span class="shd-title">平台公告</span>
+        <span class="shd-more" @click="goNotice">查看全部 <el-icon :size="14"><ArrowRight /></el-icon></span>
+      </div>
+      <div class="notice-list">
+        <div v-for="n in notices" :key="n.id" class="notice-item" @click="openNotice(n)">
+          <span class="notice-badge">公告</span>
+          <span class="notice-title">{{ n.title }}</span>
+          <span class="notice-time">{{ fmtTime(n.publishTime) }}</span>
         </div>
       </div>
     </div>
@@ -279,6 +312,21 @@ onMounted(() => { loadArticles(); loadMyDoctor() })
         </el-button>
       </template>
     </el-dialog>
+
+    <!-- ====== 公告详情弹窗 ====== -->
+    <el-dialog v-model="showNoticeDetail" :title="noticeDetail?.title" width="700px" :close-on-click-modal="false" destroy-on-close>
+      <div class="detail-wrap" v-if="noticeDetail">
+        <div class="detail-meta">
+          <span class="detail-tag">公告</span>
+          <span>发布人：{{ noticeDetail.publisherName || '管理员' }}</span>
+          <span>{{ fmtTime(noticeDetail.publishTime) }}</span>
+        </div>
+        <div class="detail-content">{{ noticeDetail.content }}</div>
+      </div>
+      <template #footer>
+        <el-button @click="showNoticeDetail = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -364,6 +412,29 @@ onMounted(() => { loadArticles(); loadMyDoctor() })
   display: flex; align-items: center; gap: 2px;
 }
 .shd-more:hover { color: #9a3412; }
+
+/* ====== 平台公告 ====== */
+.notice-section {
+  background: #fff; border: 1px solid #fef3c7; border-radius: 16px;
+  padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.notice-list { display: flex; flex-direction: column; gap: 2px; }
+.notice-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-radius: 10px; cursor: pointer;
+  transition: background 0.15s;
+}
+.notice-item:hover { background: #fff7ed; }
+.notice-badge {
+  flex-shrink: 0; font-size: 11px; font-weight: 700;
+  padding: 2px 8px; border-radius: 5px;
+  background: linear-gradient(135deg, #f97316, #ea580c); color: #fff;
+}
+.notice-title {
+  flex: 1; min-width: 0; font-size: 14px; font-weight: 600; color: #431407;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.notice-time { flex-shrink: 0; font-size: 12px; color: #a8a29e; }
 
 /* ====== 健康资讯卡片横排 ====== */
 .article-section {

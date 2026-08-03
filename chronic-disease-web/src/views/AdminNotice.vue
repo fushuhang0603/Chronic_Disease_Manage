@@ -31,22 +31,27 @@
         <thead>
           <tr>
             <th>标题</th>
+            <th>内容</th>
             <th class="col-sm">范围</th>
-            <th class="col-sm">发布人</th>
             <th class="col-sm">状态</th>
+            <th class="col-sm">发布人ID</th>
             <th class="col-md">发布时间</th>
+            <th class="col-md">创建时间</th>
             <th class="col-lg">操作</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="item in records" :key="item.id" @click="viewDetail(item)">
             <td><span class="link-title">{{ item.title }}</span></td>
+            <td><span class="content-cell">{{ getSummary(item.content) }}</span></td>
             <td><span class="cat-badge">{{ scopeText(item.scope) }}</span></td>
-            <td class="num-cell">{{ item.publisherName || '-' }}</td>
             <td><span class="status-badge" :class="statusClass(item.status)">{{ statusText(item.status) }}</span></td>
+            <td class="num-cell">{{ item.publisherId || '-' }}</td>
             <td class="time-cell">{{ fmtTime(item.publishTime) }}</td>
+            <td class="time-cell">{{ fmtTime(item.createTime) }}</td>
             <td @click.stop>
               <div class="row-actions">
+                <button class="btn-row" @click="handleEdit(item)">编辑</button>
                 <button v-if="item.status === 0" class="btn-row success" @click="handleToggleStatus(item)">发布</button>
                 <button v-if="item.status === 1" class="btn-row warn" @click="handleToggleStatus(item)">下线</button>
                 <button v-if="item.status === 2" class="btn-row success" @click="handleToggleStatus(item)">重新发布</button>
@@ -66,11 +71,11 @@
     </div>
 
     <!-- 详情弹窗 -->
-    <el-dialog v-model="showDetail" :title="detailItem?.title" width="700px" :close-on-click-modal="false">
+    <el-dialog v-model="showDetail" :title="detailItem?.title" width="700px" :close-on-click-modal="false" v-loading="detailLoading">
       <div class="detail-wrap" v-if="detailItem">
         <div class="detail-meta">
           <span class="cat-badge">{{ scopeText(detailItem.scope) }}</span>
-          <span class="detail-meta-item">发布人：{{ detailItem.publisherName || '-' }}</span>
+          <span class="detail-meta-item">发布人ID：{{ detailItem.publisherId || '-' }}</span>
           <span class="detail-meta-item">{{ fmtTime(detailItem.publishTime) }}</span>
           <span class="status-badge" :class="statusClass(detailItem.status)">{{ statusText(detailItem.status) }}</span>
         </div>
@@ -81,8 +86,8 @@
       </template>
     </el-dialog>
 
-    <!-- 新增弹窗 -->
-    <el-dialog v-model="showDialog" title="新建公告" width="700px" :close-on-click-modal="false" destroy-on-close>
+    <!-- 新增/编辑弹窗 -->
+    <el-dialog v-model="showDialog" :title="form.id ? '编辑公告' : '新建公告'" width="700px" :close-on-click-modal="false" destroy-on-close>
       <div class="form-wrap">
         <div class="form-item">
           <label>公告标题</label>
@@ -103,7 +108,7 @@
       </div>
       <template #footer>
         <el-button @click="showDialog = false">取消</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSave">保存（草稿）</el-button>
+        <el-button type="primary" :loading="submitting" @click="handleSave">{{ form.id ? '保存' : '保存（草稿）' }}</el-button>
       </template>
     </el-dialog>
   </div>
@@ -111,7 +116,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { getNoticePage, addNotice, updateNoticeStatus, deleteNotice } from '../api/user'
+import { getNoticePage, addNotice, getNoticeById, updateNotice, updateNoticeStatus, deleteNotice } from '../api/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const loading = ref(false)
@@ -125,13 +130,19 @@ const filterStatus = ref('')
 const showDialog = ref(false)
 const showDetail = ref(false)
 const detailItem = ref(null)
+const detailLoading = ref(false)
 
 const form = reactive({
-  title: '', scope: 'all', content: ''
+  id: undefined, title: '', scope: 'all', content: ''
 })
 
 function fmtTime(t) {
   return t ? t.replace('T', ' ').substring(0, 16) : '-'
+}
+
+function getSummary(content) {
+  if (!content) return ''
+  return content.replace(/\s+/g, ' ').substring(0, 40) + (content.length > 40 ? '...' : '')
 }
 
 function scopeText(scope) {
@@ -148,9 +159,15 @@ function statusClass(status) {
   return 'draft'
 }
 
-function viewDetail(item) {
-  detailItem.value = item
+async function viewDetail(item) {
   showDetail.value = true
+  detailLoading.value = true
+  try {
+    detailItem.value = await getNoticeById(item.id)
+  } catch {
+    // 接口失败时退回列表行数据展示
+    detailItem.value = item
+  } finally { detailLoading.value = false }
 }
 
 async function fetchRecords() {
@@ -170,7 +187,15 @@ function handleSearch() { pageNum.value = 1; fetchRecords() }
 function handlePageChange(p) { pageNum.value = p; fetchRecords() }
 
 function openDialog() {
-  form.title = ''; form.scope = 'all'; form.content = ''
+  form.id = undefined; form.title = ''; form.scope = 'all'; form.content = ''
+  showDialog.value = true
+}
+
+function handleEdit(item) {
+  form.id = item.id
+  form.title = item.title
+  form.scope = item.scope || 'all'
+  form.content = item.content
   showDialog.value = true
 }
 
@@ -179,11 +204,15 @@ async function handleSave() {
   if (!form.content.trim()) { ElMessage.warning('请输入公告内容'); return }
   submitting.value = true
   try {
-    // 携带当前登录管理员姓名（后端发布人ID取登录态）
-    const raw = sessionStorage.getItem('userInfo')
-    let publisherName = ''
-    try { publisherName = (raw && JSON.parse(raw).name) || '' } catch {}
-    await addNotice({ ...form, publisherName })
+    if (form.id) {
+      await updateNotice({ ...form })
+    } else {
+      // 携带当前登录管理员姓名（后端发布人ID取登录态）
+      const raw = sessionStorage.getItem('userInfo')
+      let publisherName = ''
+      try { publisherName = (raw && JSON.parse(raw).name) || '' } catch {}
+      await addNotice({ ...form, publisherName })
+    }
     ElMessage.success('保存成功')
     showDialog.value = false
     fetchRecords()
@@ -259,13 +288,13 @@ onMounted(() => { fetchRecords() })
 
 .table-area {
   background: #fff; border-radius: 14px; border: 1px solid #fef3c7;
-  min-height: 200px; overflow: hidden;
+  min-height: 200px; overflow-x: auto;
   box-shadow: 0 1px 4px rgba(249,115,22,0.04);
 }
-.data-table { width: 100%; border-collapse: collapse; }
+.data-table { width: 100%; border-collapse: collapse; min-width: 1080px; }
 .data-table th {
-  text-align: left; padding: 13px 16px; font-size: 11px; font-weight: 700;
-  color: #a8a29e; text-transform: uppercase; letter-spacing: 0.5px;
+  text-align: left; padding: 13px 16px; font-size: 13px; font-weight: 700;
+  color: #a8a29e; letter-spacing: 0.5px;
   border-bottom: 1px solid #fef3c7; background: #fffbeb;
 }
 .data-table td {
@@ -277,13 +306,20 @@ onMounted(() => { fetchRecords() })
 .col-sm { width: 72px; }
 .col-md { width: 150px; }
 .col-lg { width: 200px; }
-.link-title { font-weight: 600; color: #7c2d12; }
+.link-title {
+  display: block; max-width: 240px; font-weight: 600; color: #7c2d12;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .link-title:hover { color: #f97316; }
+.content-cell {
+  display: block; max-width: 260px; color: #a8a29e; font-size: 12px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .cat-badge {
   display: inline-block; padding: 2px 8px; border-radius: 5px;
   background: #fff7ed; color: #f97316; font-size: 12px; font-weight: 600;
 }
-.num-cell { color: #78716c; }
+.num-cell { color: #78716c; font-variant-numeric: tabular-nums; }
 .time-cell { font-size: 12px; color: #a8a29e; }
 .status-badge {
   display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 12px; font-weight: 600;

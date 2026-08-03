@@ -287,6 +287,14 @@ export function addNotice(data) {
 export function getNoticePage(params) {
   return request.post('/notice/page', params)
 }
+// 根据公告ID查询详情
+export function getNoticeById(id) {
+  return request.get('/notice/queryById', { params: { id } })
+}
+// 编辑公告
+export function updateNotice(data) {
+  return request.post('/notice/update', data)
+}
 // 发布 / 下线公告（status: 1发布 2下线）
 export function updateNoticeStatus(id, status) {
   return request.post('/notice/updateStatus', null, { params: { id, status } })

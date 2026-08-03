@@ -43,10 +43,11 @@ async function loadHistory() {
     if (messages.value.length + list.length >= (res?.total || 0)) noMore.value = true
     const newMsgs = list.map(m => ({
       id: m.id,
+      rawTime: m.time,
       content: m.content,
       time: formatTime(m.time),
       senderRole: m.senderRole,
-      self: m.senderRole === 'DOCTOR',
+      self: String(m.senderRole || '').toUpperCase() === 'DOCTOR',
     }))
     if (pageNum === 1) {
       // 第一页：最新的在列表最底部
@@ -80,15 +81,26 @@ function connectWs() {
     try {
       const msg = JSON.parse(e.data)
       if (msg.type === 'error') { ElMessage.error(msg.message); return }
+      const time = formatTime(msg.time)
+      // 去重：离线补偿推送的消息可能已包含在历史记录中
+      const dup = messages.value.some(m =>
+        m.content === msg.content &&
+        String(m.senderRole || '').toUpperCase() === String(msg.senderRole || '').toUpperCase() &&
+        m.time === time)
+      if (dup) return
       const atBottom = isNearBottom()
-      messages.value.push({
+      const item = {
         id: 0,
         rawTime: msg.time,
         content: msg.content,
-        time: formatTime(msg.time),
+        time,
         senderRole: msg.senderRole,
-        self: msg.senderRole === 'DOCTOR',
-      })
+        self: String(msg.senderRole || '').toUpperCase() === 'DOCTOR',
+      }
+      // 按时间正序插入，保证离线补偿消息落在正确位置
+      const idx = messages.value.findIndex(m => (m.rawTime || '') > msg.time)
+      if (idx === -1) messages.value.push(item)
+      else messages.value.splice(idx, 0, item)
       if (atBottom) scrollBottom()
     } catch (err) { console.error('[DoctorChat] 消息解析失败:', err) }
   }

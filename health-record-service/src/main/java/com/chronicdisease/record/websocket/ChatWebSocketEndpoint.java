@@ -90,7 +90,7 @@ public class ChatWebSocketEndpoint {
                 return;
             }
 
-            // 构建消息：发送人信息由服务端填充，客户端不可信
+            // 构建消息：发送人信息由服务端填充,客户端不可信
             ChatMessage outgoing = new ChatMessage();
             outgoing.setFromUserId(String.valueOf(this.userId));
             outgoing.setToUserId(String.valueOf(toUserId));
@@ -203,11 +203,11 @@ public class ChatWebSocketEndpoint {
             }
             log.info("Redis 离线队列为空: userId={}", onlineUserId);
         } catch (Exception e) {
-            // Redis 不可用时降级，不影响消息推送
+            // Redis 不可用时降级,不影响消息推送
             log.warn("读取 Redis 离线队列失败，回退 DB 兜底: userId={}, err={}", onlineUserId, e.getMessage());
         }
 
-        // 兜底链路：DB 查发给当前用户、尚未读的消息
+        // 兜底链路：DB 查发给当前用户,尚未读的消息
         try {
             List<ChatMessage> dbMessages = consultationRecordService.queryOfflineUnreadMessages(onlineUserId, this.role);
             for (ChatMessage msg : dbMessages) {

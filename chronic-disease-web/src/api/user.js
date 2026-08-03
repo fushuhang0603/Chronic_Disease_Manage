@@ -266,3 +266,14 @@ export function getAllPatientBriefs(patientName) {
 export function getMyPatients(doctorId) {
   return request.get('/doctor/patient/myPatients', { params: { doctorId } })
 }
+
+// ====== 在线问诊：聊天记录 ======
+// 游标分页查询聊天记录（时间倒序，前端反转展示）
+export function getChatRecords(data) {
+  return request.post('/consultation/records', data)
+}
+
+// 标记会话消息已读
+export function markChatRead(otherUserId) {
+  return request.post('/consultation/read', null, { params: { otherUserId } })
+}

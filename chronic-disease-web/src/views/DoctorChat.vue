@@ -2,11 +2,14 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { getChatRecords, markChatRead } from '../api/user.js'
 
 const route = useRoute()
 const chatEl = ref(null)
 const inputText = ref('')
 const connected = ref(false)
+const historyLoading = ref(false)
+const noMore = ref(false)
 
 const patientId = route.query.userId
 const patientName = route.query.userName || '患者'
@@ -19,11 +22,47 @@ const doctorName = (() => {
 })()
 const messages = ref([])
 let ws = null
+let pageNum = 1 // 已加载到第几页
 
-onMounted(() => {
+onMounted(async () => {
   if (!patientId) { ElMessage.error('缺少患者信息'); return }
+  // 先拉历史消息，再连 WebSocket，避免漏消息
+  await loadHistory()
+  markChatRead(patientId).catch(() => {})
   connectWs()
 })
+
+// 分页加载历史消息：每次加载下一批更早的消息（时间倒序，最新的在底部）
+async function loadHistory() {
+  if (historyLoading.value || noMore.value) return
+  historyLoading.value = true
+  try {
+    const res = await getChatRecords({ otherUserId: patientId, pageNum, pageSize: 20 })
+    const list = res?.records || []
+    // 已加载条数达到总条数 → 没有更多了
+    if (messages.value.length + list.length >= (res?.total || 0)) noMore.value = true
+    const newMsgs = list.map(m => ({
+      id: m.id,
+      content: m.content,
+      time: formatTime(m.time),
+      senderRole: m.senderRole,
+      self: m.senderRole === 'DOCTOR',
+    }))
+    if (pageNum === 1) {
+      // 第一页：最新的在列表最底部
+      messages.value = [...newMsgs].reverse()
+      nextTick(() => scrollBottom())
+    } else {
+      // 后面的页：更早的消息插到顶部
+      messages.value = [...newMsgs].reverse().concat(messages.value)
+    }
+    pageNum++
+  } catch (e) {
+    console.error('[DoctorChat] 历史消息加载失败:', e)
+  } finally {
+    historyLoading.value = false
+  }
+}
 
 function connectWs() {
   const token = sessionStorage.getItem('token')
@@ -41,8 +80,16 @@ function connectWs() {
     try {
       const msg = JSON.parse(e.data)
       if (msg.type === 'error') { ElMessage.error(msg.message); return }
-      messages.value.push(msg)
-      scrollBottom()
+      const atBottom = isNearBottom()
+      messages.value.push({
+        id: 0,
+        rawTime: msg.time,
+        content: msg.content,
+        time: formatTime(msg.time),
+        senderRole: msg.senderRole,
+        self: msg.senderRole === 'DOCTOR',
+      })
+      if (atBottom) scrollBottom()
     } catch (err) { console.error('[DoctorChat] 消息解析失败:', err) }
   }
   ws.onclose = (e) => { console.log('[DoctorChat] WebSocket 已断开, code:', e.code); connected.value = false }
@@ -56,13 +103,46 @@ function sendMessage() {
     toUserId: String(patientId), content: text,
     patientName, doctorName, senderName: '', senderRole: 'DOCTOR',
   }))
-  messages.value.push({ fromUserId: '0', toUserId: String(patientId), content: text, time: now(), senderRole: 'DOCTOR', self: true })
+  const t = fullNow()
+  messages.value.push({ id: 0, content: text, time: formatTime(t), senderRole: 'DOCTOR', self: true })
   inputText.value = ''
   scrollBottom()
 }
 
-function scrollBottom() { nextTick(() => { if (chatEl.value) chatEl.value.scrollTop = chatEl.value.scrollHeight }) }
-function now() { return new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) }
+// 向上滚动接近顶部时加载更早的消息
+function handleScroll(e) {
+  if (e.target.scrollTop < 30) loadHistory()
+}
+
+function isNearBottom() {
+  const el = chatEl.value
+  if (!el) return true
+  return el.scrollHeight - el.scrollTop - el.clientHeight < 80
+}
+
+function scrollBottom() {
+  nextTick(() => {
+    if (chatEl.value) chatEl.value.scrollTop = chatEl.value.scrollHeight
+  })
+}
+
+function fullNow() {
+  const d = new Date()
+  const p = n => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
+}
+
+function formatTime(t) {
+  if (!t) return ''
+  const d = new Date(String(t).replace(/-/g, '/'))
+  if (isNaN(d.getTime())) return t
+  const now = new Date()
+  const sameDay = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate()
+  const p = n => String(n).padStart(2, '0')
+  const hm = `${p(d.getHours())}:${p(d.getMinutes())}`
+  return sameDay ? hm : `${d.getMonth() + 1}月${d.getDate()}日 ${hm}`
+}
+
 function handleKeydown(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }
 onUnmounted(() => { if (ws) ws.close() })
 </script>
@@ -78,7 +158,8 @@ onUnmounted(() => { if (ws) ws.close() })
       <span :class="['ch-status', { online: connected }]">{{ connected ? '已连接' : '连接中...' }}</span>
     </div>
 
-    <div ref="chatEl" class="chat-body">
+    <div ref="chatEl" class="chat-body" @scroll="handleScroll">
+      <div v-if="historyLoading" class="chat-loading">加载历史消息...</div>
       <div v-for="(m, i) in messages" :key="i" :class="['msg-row', m.self ? 'right' : 'left']">
         <div class="msg-bubble" :class="{ self: m.self }">
           <p class="msg-text">{{ m.content }}</p>
@@ -148,6 +229,10 @@ onUnmounted(() => { if (ws) ws.close() })
   color: #a8a29e; font-size: 14px;
 }
 .chat-empty p { margin: 0; }
+.chat-loading {
+  text-align: center; font-size: 12px; color: #a8a29e;
+  padding: 4px 0;
+}
 
 .msg-row { display: flex; align-items: flex-end; gap: 8px; }
 .msg-row.right { justify-content: flex-end; }

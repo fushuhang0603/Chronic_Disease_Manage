@@ -6,6 +6,7 @@ import com.chronicdisease.common.result.Result;
 import com.chronicdisease.remind.domain.dto.NoticeDTO;
 import com.chronicdisease.remind.domain.dto.NoticePageDTO;
 import com.chronicdisease.remind.domain.entity.Notice;
+import com.chronicdisease.remind.domain.vo.HomeNoticeVO;
 import com.chronicdisease.remind.service.INoticeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/notice")
@@ -63,6 +66,14 @@ public class NoticeController {
     @Operation(summary = "更新公告状态", description = "发布/下线公告")
     public Result updateStatus(@RequestParam("id") Long id, @RequestParam("status") Integer status){
         noticeService.updateNoticeStatus(id, status);
+        return Result.success();
+    }
+
+    @PostMapping("/delete")
+    @OperationLog(module = "公告管理", description = "删除公告")
+    @Operation(summary = "删除公告", description = "删除公告（仅下线状态可删除）")
+    public Result delete(@RequestParam("id") Long id){
+        noticeService.deleteNotice(id);
         return Result.success();
     }
 

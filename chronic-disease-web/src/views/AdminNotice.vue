@@ -55,7 +55,7 @@
                 <button v-if="item.status === 0" class="btn-row success" @click="handleToggleStatus(item)">发布</button>
                 <button v-if="item.status === 1" class="btn-row warn" @click="handleToggleStatus(item)">下线</button>
                 <button v-if="item.status === 2" class="btn-row success" @click="handleToggleStatus(item)">重新发布</button>
-                <button class="btn-row danger" @click="handleDelete(item)">删除</button>
+                <button v-if="item.status === 2" class="btn-row danger" @click="handleDelete(item)">删除</button>
               </div>
             </td>
           </tr>
@@ -224,7 +224,12 @@ async function handleToggleStatus(item) {
   const newStatus = item.status === 1 ? 2 : 1
   const label = newStatus === 1 ? '发布' : '下线'
   try {
-    await ElMessageBox.confirm(`确定要${label}「${item.title}」吗？`, '提示', { type: 'warning' })
+    await ElMessageBox.confirm(`确定要${label}「${item.title}」吗？`, '提示', {
+      type: 'warning',
+      customClass: 'notice-confirm',
+      confirmButtonText: '确定',
+      cancelButtonText: '取消'
+    })
     await updateNoticeStatus(item.id, newStatus)
     ElMessage.success(`已${label}`)
     fetchRecords()
@@ -237,7 +242,12 @@ async function handleToggleStatus(item) {
 
 async function handleDelete(item) {
   try {
-    await ElMessageBox.confirm(`确定要删除「${item.title}」吗？`, '确认删除', { type: 'error' })
+    await ElMessageBox.confirm(`确定要删除「${item.title}」吗？删除后不可恢复。`, '确认删除', {
+      type: 'error',
+      customClass: 'notice-confirm',
+      confirmButtonText: '删除',
+      cancelButtonText: '取消'
+    })
     await deleteNotice(item.id)
     ElMessage.success('已删除')
     fetchRecords()
@@ -380,5 +390,53 @@ onMounted(() => { fetchRecords() })
 ::deep(.el-pagination.is-background .el-pager li:not(.is-disabled).is-active) {
   background: linear-gradient(135deg, #f97316, #ea580c);
   border-radius: 8px;
+}
+</style>
+
+<!-- 确认弹窗全局样式（ElMessageBox 渲染在 body 下，需非 scoped 覆盖） -->
+<style>
+.el-message-box.notice-confirm {
+  border-radius: 14px;
+  border: 1px solid #fef3c7;
+  box-shadow: 0 8px 30px rgba(249, 115, 22, 0.12);
+  padding: 20px 22px;
+}
+.el-message-box.notice-confirm .el-message-box__header {
+  margin-bottom: 12px;
+  border-bottom: 1px solid #fef3c7;
+  padding-bottom: 12px;
+}
+.el-message-box.notice-confirm .el-message-box__title {
+  color: #7c2d12;
+  font-weight: 700;
+  font-size: 16px;
+}
+.el-message-box.notice-confirm .el-message-box__message {
+  color: #57534e;
+  line-height: 1.8;
+  font-size: 14px;
+}
+.el-message-box.notice-confirm .el-message-box__content {
+  padding-top: 4px;
+}
+.el-message-box.notice-confirm .el-button {
+  border-radius: 8px;
+  font-weight: 600;
+}
+.el-message-box.notice-confirm .el-message-box__btns {
+  padding-top: 16px;
+  border-top: 1px solid #fef3c7;
+}
+.el-message-box.notice-confirm .el-button--primary {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  border: none;
+}
+.el-message-box.notice-confirm .el-button--primary:hover,
+.el-message-box.notice-confirm .el-button--primary:focus {
+  background: linear-gradient(135deg, #ea580c, #c2410c);
+}
+.el-message-box.notice-confirm .el-message-box__status.el-icon-warning,
+.el-message-box.notice-confirm .el-message-box__status.el-icon-error {
+  color: #f97316;
 }
 </style>

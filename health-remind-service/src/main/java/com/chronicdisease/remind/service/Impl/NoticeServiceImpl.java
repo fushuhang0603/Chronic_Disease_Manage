@@ -96,4 +96,20 @@ public class NoticeServiceImpl extends ServiceImpl<NoticeMapper, Notice> impleme
         }
         noticeMapper.updateById(update);
     }
+
+    @Override
+    public void deleteNotice(Long id) {
+        Notice notice = noticeMapper.selectById(id);
+        if (notice == null || BusinessConstant.isDelete.equals(notice.getIsDeleted())) {
+            throw new BusinessException("公告不存在");
+        }
+        //仅下线状态的公告允许删除
+        if (!BusinessConstant.Notice_Status_Offline.equals(notice.getStatus())) {
+            throw new BusinessException("仅下线状态的公告可以删除");
+        }
+        Notice update = new Notice();
+        update.setId(id);
+        update.setIsDeleted(BusinessConstant.isDelete);
+        noticeMapper.updateById(update);
+    }
 }

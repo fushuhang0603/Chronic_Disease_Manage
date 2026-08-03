@@ -41,4 +41,11 @@ public class BusinessConstant {
     /** 初始浏览量 **/
     public static final Integer Article_View_Init = 0;
 
+    /** 公告草稿(未发布) **/
+    public static final Integer Notice_Status_Draft = 0;
+    /** 公告已发布 **/
+    public static final Integer Notice_Status_Published = 1;
+    /** 公告已下线 **/
+    public static final Integer Notice_Status_Offline = 2;
+
 }

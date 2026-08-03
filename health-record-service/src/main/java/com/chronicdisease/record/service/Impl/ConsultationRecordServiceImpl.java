@@ -1,7 +1,6 @@
 package com.chronicdisease.record.service.Impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.chronicdisease.common.constant.BusinessConstant;
@@ -9,17 +8,17 @@ import com.chronicdisease.common.exception.BusinessException;
 import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.common.util.UserInfoContext;
 import com.chronicdisease.record.domain.dto.ConsultationPageDTO;
+import com.chronicdisease.record.domain.entity.ChatMessage;
 import com.chronicdisease.record.domain.entity.ConsultationRecord;
 import com.chronicdisease.record.domain.vo.ChatRecordVO;
 import com.chronicdisease.record.mapper.ConsultationRecordMapper;
 import com.chronicdisease.record.service.IConsultationRecordService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -98,7 +97,7 @@ public class ConsultationRecordServiceImpl extends ServiceImpl<ConsultationRecor
                     return vo;
                 }
         ).collect(Collectors.toList());
-        PageResult<ChatRecordVO> pageResult = new PageResult<>(result, dbResult.getTotal());
+        PageResult<ChatRecordVO> pageResult = new PageResult<>(result,dbResult.getTotal());
         return pageResult;
     }
 
@@ -129,5 +128,42 @@ public class ConsultationRecordServiceImpl extends ServiceImpl<ConsultationRecor
         entity.setIsRead(1);
         consultationRecordMapper.update(entity, wrapper);
         log.info("会话已读标记完成, currentUserId={}, otherUserId={}", currentUserId, otherUserId);
+    }
+
+    @Override
+    public List<ChatMessage> queryOfflineUnreadMessages(Long userId, String role) {
+        boolean isPatient = "PATIENT".equalsIgnoreCase(role);
+
+        LambdaQueryWrapper<ConsultationRecord> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ConsultationRecord::getIsDeleted, BusinessConstant.isNotDelete)
+                .eq(ConsultationRecord::getIsRead, 0)
+                .ne(ConsultationRecord::getSenderId, userId)
+                .orderByAsc(ConsultationRecord::getCreateTime);
+        if (isPatient) {
+            wrapper.eq(ConsultationRecord::getPatientId, userId);
+        } else {
+            wrapper.eq(ConsultationRecord::getDoctorId, userId);
+        }
+        List<ConsultationRecord> records = consultationRecordMapper.selectList(wrapper);
+
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return records.stream().map(record -> {
+            ChatMessage msg = new ChatMessage();
+            msg.setFromUserId(String.valueOf(record.getSenderId()));
+            msg.setToUserId(String.valueOf(isPatient ? record.getDoctorId() : record.getPatientId()));
+            msg.setPatientId(String.valueOf(record.getPatientId()));
+            msg.setPatientName(record.getPatientName());
+            msg.setDoctorId(String.valueOf(record.getDoctorId()));
+            msg.setDoctorName(record.getDoctorName());
+            msg.setContent(record.getContent());
+            msg.setTime(record.getCreateTime() == null ? null : record.getCreateTime().format(fmt));
+            if ("PATIENT".equalsIgnoreCase(record.getSenderRole())) {
+                msg.setSenderName(record.getPatientName());
+            } else {
+                msg.setSenderName(record.getDoctorName());
+            }
+            msg.setSenderRole(record.getSenderRole());
+            return msg;
+        }).collect(Collectors.toList());
     }
 }

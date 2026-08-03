@@ -25,7 +25,9 @@ public class ChatWebSocketEndpoint {
 
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    /** 通过静态字段桥接 Spring Bean 注入，供 Jakarta 容器创建的实例使用 */
+    /**
+     * 通过静态字段桥接 Spring Bean 注入，供 Jakarta 容器创建的实例使用
+     * */
     private static IConsultationRecordService consultationRecordService;
 
     private Session session;

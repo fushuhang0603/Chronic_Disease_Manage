@@ -5,7 +5,7 @@
 <mapper namespace="com.chronicdisease.user.mapper.DoctorPatientMapper">
 
     <select id="getMyPatients" resultType="com.chronicdisease.user.domain.vo.UserInfoVO">
-        SELECT u.id, u.username, u.nickname, u.avatar, u.phone, u.role_type AS roleType
+        SELECT u.id, u.username, u.real_name AS realName, u.avatar, u.phone, u.role_type AS roleType
         FROM doctor_patient dp
         INNER JOIN user u ON dp.patient_id = u.id
         WHERE dp.doctor_id = #{doctorId} AND dp.is_deleted = 0 AND u.is_deleted = 0

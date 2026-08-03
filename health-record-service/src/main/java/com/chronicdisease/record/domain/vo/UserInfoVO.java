@@ -12,7 +12,7 @@ public class UserInfoVO {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
     private String username;
-    private String nickname;
+    private String realName;
     private String avatar;
     private String phone;
     private String roleType;

@@ -58,7 +58,7 @@ async function fetchDoctorUsers() {
     doctorUserOptions.value = (res || []).map(u => ({
       id: u.id,
       username: u.username,
-      nickname: u.nickname,
+      realName: u.realName,
       phone: u.phone,
       avatar: u.avatar,
     }))
@@ -100,7 +100,7 @@ async function handleEdit(row) {
     doctorUserOptions.value = [{
       id: profile.doctorId,
       username: row.doctorName || '',
-      nickname: profile.realName || '',
+      realName: profile.realName || '',
       phone: '',
       avatar: '',
     }]
@@ -284,8 +284,8 @@ onMounted(() => fetchData())
               :class="['doctor-card', { selected: addForm.doctorId === doc.id }]"
               @click="addForm.doctorId = doc.id"
             >
-              <div class="doc-avatar-sm">{{ (doc.nickname || doc.username || '医')[0] }}</div>
-              <span class="doc-name-sm">{{ doc.nickname || doc.username }}</span>
+              <div class="doc-avatar-sm">{{ (doc.realName || doc.username || '医')[0] }}</div>
+              <span class="doc-name-sm">{{ doc.realName || doc.username }}</span>
               <span class="doc-username-sm">{{ doc.username }}</span>
               <span class="doc-phone-sm" v-if="doc.phone">{{ doc.phone }}</span>
               <el-icon v-if="addForm.doctorId === doc.id" class="doc-check-sm" :size="16"><CircleCheckFilled /></el-icon>
@@ -296,8 +296,8 @@ onMounted(() => fetchData())
             </div>
           </div>
           <div v-if="dialogMode === 'edit'" class="doctor-card readonly">
-            <div class="doc-avatar-sm">{{ (doctorUserOptions[0]?.nickname || doctorUserOptions[0]?.username || '医')[0] }}</div>
-            <span class="doc-name-sm">{{ doctorUserOptions[0]?.nickname || doctorUserOptions[0]?.username }}</span>
+            <div class="doc-avatar-sm">{{ (doctorUserOptions[0]?.realName || doctorUserOptions[0]?.username || '医')[0] }}</div>
+            <span class="doc-name-sm">{{ doctorUserOptions[0]?.realName || doctorUserOptions[0]?.username }}</span>
             <span class="doc-username-sm">{{ doctorUserOptions[0]?.username }}</span>
           </div>
         </div>

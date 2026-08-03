@@ -11,5 +11,5 @@ import lombok.Data;
 public class UserBriefVO {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
-    private String nickname;
+    private String realName;
 }

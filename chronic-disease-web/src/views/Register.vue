@@ -6,12 +6,12 @@ import { register } from '../api/user.js'
 
 const router = useRouter()
 const formRef = ref(null)
-const form = reactive({ username: '', nickname: '', password: '', phone: '' })
+const form = reactive({ username: '', realName: '', password: '', phone: '' })
 const loading = ref(false)
 
 const rules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
+  realName: [{ required: true, message: '请输入真实姓名', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
   phone: [
     { required: true, message: '请输入手机号', trigger: 'blur' },
@@ -124,8 +124,8 @@ async function handleRegister() {
             </template>
           </el-input>
         </el-form-item>
-        <el-form-item label="昵称" prop="nickname">
-          <el-input v-model="form.nickname" placeholder="请输入昵称" size="large" clearable>
+        <el-form-item label="真实姓名" prop="realName">
+          <el-input v-model="form.realName" placeholder="请输入真实姓名" size="large" clearable>
             <template #prefix>
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
             </template>

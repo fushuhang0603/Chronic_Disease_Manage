@@ -44,7 +44,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                         .or()
                         .eq(User::getPhone, registerDTO.getPhone())
                         .or()
-                        .eq(User::getNickname, registerDTO.getNickname()))
+                        .eq(User::getRealName, registerDTO.getRealName()))
                 .eq(User::getIsDeleted, BusinessConstant.isNotDelete);
         List<User> existList = userMapper.selectList(queryWrapper);
         if (!existList.isEmpty()) {
@@ -59,9 +59,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                     .ifPresent(u -> { throw new BusinessException("手机号已被注册"); });
 
             existList.stream()
-                    .filter(u -> u.getNickname().equals(registerDTO.getNickname()))
+                    .filter(u -> u.getRealName().equals(registerDTO.getRealName()))
                     .findAny()
-                    .ifPresent(u -> { throw new BusinessException("已存在相同昵称用户"); });
+                    .ifPresent(u -> { throw new BusinessException("已存在相同姓名用户"); });
         }
         if (!PhoneUtil.isMobile(registerDTO.getPhone())) {
            throw new BusinessException("手机号格式不正确");
@@ -111,8 +111,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (StringUtils.isNotBlank(query.getUsername())) {
             wrapper.like(User::getUsername, query.getUsername());
         }
-        if (StringUtils.isNotBlank(query.getNickname())) {
-            wrapper.like(User::getNickname, query.getNickname());
+        if (StringUtils.isNotBlank(query.getRealName())) {
+            wrapper.like(User::getRealName, query.getRealName());
         }
         if (StringUtils.isNotBlank(query.getRoleType())) {
             wrapper.eq(User::getRoleType, query.getRoleType());
@@ -142,7 +142,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                         .or()
                         .eq(User::getPhone, userDTO.getPhone())
                         .or()
-                        .eq(User::getNickname, userDTO.getNickname()))
+                        .eq(User::getRealName, userDTO.getRealName()))
                 .eq(User::getIsDeleted, BusinessConstant.isNotDelete);
         List<User> existList = userMapper.selectList(queryWrapper);
         if (!existList.isEmpty()) {
@@ -155,9 +155,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                     .findAny()
                     .ifPresent(u -> { throw new BusinessException("手机号已被注册"); });
             existList.stream()
-                    .filter(u -> u.getNickname().equals(userDTO.getNickname()))
+                    .filter(u -> u.getRealName().equals(userDTO.getRealName()))
                     .findAny()
-                    .ifPresent(u -> { throw new BusinessException("已存在相同昵称用户"); });
+                    .ifPresent(u -> { throw new BusinessException("已存在相同姓名用户"); });
         }
         String password = BCrypt.hashpw(userDTO.getPassword(), BCrypt.gensalt());
         User user = BeanUtil.copyProperties(userDTO, User.class);
@@ -178,8 +178,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
         LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(User::getId, userDTO.getId());
-        if (StringUtils.isNotBlank(userDTO.getNickname())) {
-            wrapper.set(User::getNickname, userDTO.getNickname());
+        if (StringUtils.isNotBlank(userDTO.getRealName())) {
+            wrapper.set(User::getRealName, userDTO.getRealName());
         }
         if (StringUtils.isNotBlank(userDTO.getPhone())) {
             if (!PhoneUtil.isMobile(userDTO.getPhone())) {

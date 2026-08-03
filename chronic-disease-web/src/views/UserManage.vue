@@ -9,7 +9,7 @@ const total = ref(0)
 
 const query = reactive({
   username: '',
-  nickname: '',
+  realName: '',
   phone: '',
   roleType: '',
   status: null,
@@ -44,14 +44,14 @@ const addForm = reactive({
   id: null,
   username: '',
   password: '',
-  nickname: '',
+  realName: '',
   phone: '',
   roleType: 'patient',
   status: 1,
 })
 const addRules = reactive({
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
+  realName: [{ required: true, message: '请输入真实姓名', trigger: 'blur' }],
   phone: [{ required: true, message: '请输入手机号', trigger: 'blur' }],
   roleType: [{ required: true, message: '请选择角色', trigger: 'change' }],
   status: [{ required: true, message: '请选择状态', trigger: 'change' }],
@@ -62,7 +62,7 @@ function handleAdd() {
   addForm.id = null
   addForm.username = ''
   addForm.password = ''
-  addForm.nickname = ''
+  addForm.realName = ''
   addForm.phone = ''
   addForm.roleType = 'patient'
   addForm.status = 1
@@ -81,7 +81,7 @@ async function handleEdit(row) {
     addForm.id = user.id
     addForm.username = user.username
     addForm.password = ''
-    addForm.nickname = user.nickname
+    addForm.realName = user.realName
     addForm.phone = user.phone
     addForm.roleType = user.roleType
     addForm.status = user.status
@@ -121,7 +121,7 @@ async function fetchData() {
   try {
     const params = {
       username: query.username || undefined,
-      nickname: query.nickname || undefined,
+      realName: query.realName || undefined,
       phone: query.phone || undefined,
       roleType: query.roleType || undefined,
       status: query.status,
@@ -141,7 +141,7 @@ async function fetchData() {
 function handleSearch() { query.pageNum = 1; fetchData() }
 function handleReset() {
   query.username = ''
-  query.nickname = ''
+  query.realName = ''
   query.phone = ''
   query.roleType = ''
   query.status = null
@@ -156,7 +156,7 @@ async function handleStatus(row) {
   const newStatus = row.status === 1 ? 0 : 1
   try {
     await ElMessageBox.confirm(
-      `确定要${act}用户「${row.nickname || row.username}」吗？`,
+      `确定要${act}用户「${row.realName || row.username}」吗？`,
       '提示',
       { type: 'warning' }
     )
@@ -173,7 +173,7 @@ async function handleStatus(row) {
 async function handleDelete(row) {
   try {
     await ElMessageBox.confirm(
-      `确定要删除用户「${row.nickname || row.username}」吗？删除后不可恢复。`,
+      `确定要删除用户「${row.realName || row.username}」吗？删除后不可恢复。`,
       '删除确认',
       { type: 'warning', confirmButtonText: '确定删除', cancelButtonText: '取消' }
     )
@@ -202,8 +202,8 @@ onMounted(() => fetchData())
         <el-form-item label="用户名">
           <el-input v-model="query.username" placeholder="模糊搜索" clearable @keyup.enter="handleSearch" />
         </el-form-item>
-        <el-form-item label="昵称">
-          <el-input v-model="query.nickname" placeholder="模糊搜索" clearable @keyup.enter="handleSearch" />
+        <el-form-item label="真实姓名">
+          <el-input v-model="query.realName" placeholder="模糊搜索" clearable @keyup.enter="handleSearch" />
         </el-form-item>
         <el-form-item label="手机号">
           <el-input v-model="query.phone" placeholder="模糊搜索" clearable @keyup.enter="handleSearch" />
@@ -238,7 +238,7 @@ onMounted(() => fetchData())
 
       <el-table :data="tableData" v-loading="loading" stripe border class="um-table">
         <el-table-column prop="username" label="用户名" width="120" />
-        <el-table-column prop="nickname" label="昵称" width="120" />
+        <el-table-column prop="realName" label="真实姓名" width="120" />
         <el-table-column prop="phone" label="手机号" width="140" />
         <el-table-column prop="roleType" label="角色" width="110" align="center">
           <template #default="{ row }">
@@ -300,8 +300,8 @@ onMounted(() => fetchData())
           </el-form-item>
         </el-col>
         <el-col :span="12">
-          <el-form-item label="昵称" prop="nickname">
-            <el-input v-model="addForm.nickname" placeholder="请输入昵称" size="large">
+          <el-form-item label="真实姓名" prop="realName">
+            <el-input v-model="addForm.realName" placeholder="请输入真实姓名" size="large">
               <template #prefix><el-icon><UserFilled /></el-icon></template>
             </el-input>
           </el-form-item>

@@ -32,9 +32,9 @@ public class User implements Serializable {
     @Schema(description = "密码")
     private String password;
 
-    @TableField("nickname")
-    @Schema(description = "昵称")
-    private String nickname;
+    @TableField("real_name")
+    @Schema(description = "真实姓名")
+    private String realName;
 
     @TableField("avatar")
     @Schema(description = "头像地址")

@@ -90,7 +90,7 @@ public class DoctorPatientServiceImpl extends ServiceImpl<DoctorPatientMapper, D
         entity.setDoctorId(doctorId);
         entity.setDoctorName(profile.getRealName());
         entity.setPatientId(patientId);
-        entity.setPatientName(patient != null ? patient.getNickname() : "");
+        entity.setPatientName(patient != null ? patient.getRealName() : "");
         baseMapper.insert(entity);
     }
 

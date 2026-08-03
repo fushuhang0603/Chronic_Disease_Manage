@@ -9,8 +9,8 @@ public class UserQuery {
 
     @Schema(description = "用户名")
     private String username;
-    @Schema(description = "昵称")
-    private String nickname;
+    @Schema(description = "真实姓名")
+    private String realName;
     @Schema(description = "角色类型")
     private String roleType;
     @Schema(description = "状态")

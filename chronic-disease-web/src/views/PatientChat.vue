@@ -2,121 +2,94 @@
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { getMyDoctor } from '../api/user.js'
 
 const route = useRoute()
 const chatEl = ref(null)
 const inputText = ref('')
 const connected = ref(false)
 
-const doctorId = route.query.doctorId
-const doctorName = route.query.doctorName || '主治医生'
+const doctorId = ref(route.query.doctorId || null)
+const doctorName = ref(route.query.doctorName || '主治医生')
+const doctorTitle = ref('')
+const doctorHospital = ref('')
+const doctorDepartment = ref('')
 const messages = ref([])
 let ws = null
 
-onMounted(() => {
-  if (!doctorId) {
-    ElMessage.error('缺少医生信息')
-    return
-  }
+const patientName = (() => {
+  try {
+    const raw = sessionStorage.getItem('userInfo')
+    return raw ? (JSON.parse(raw).realName || JSON.parse(raw).username || '患者') : '患者'
+  } catch { return '患者' }
+})()
+
+onMounted(async () => {
+  try {
+    const doc = await getMyDoctor()
+    if (doc) {
+      doctorId.value = String(doc.doctorId)
+      doctorName.value = doc.realName
+      doctorTitle.value = doc.title || ''
+      doctorHospital.value = doc.hospital || ''
+      doctorDepartment.value = doc.department || ''
+    }
+  } catch {}
+  if (!doctorId.value) { ElMessage.error('缺少医生信息'); return }
   connectWs()
 })
 
 function connectWs() {
   const token = sessionStorage.getItem('token')
-  if (!token) {
-    console.error('[PatientChat] Token 不存在，无法连接 WebSocket')
-    return
-  }
+  if (!token) { console.error('[PatientChat] Token 不存在'); return }
   const httpUrl = import.meta.env.DEV
     ? `ws://localhost:9000/ws/chat?token=${encodeURIComponent(token)}`
     : `ws://${location.host}/ws/chat?token=${encodeURIComponent(token)}`
-
   console.log('[PatientChat] WebSocket 连接中:', httpUrl)
   ws = new WebSocket(httpUrl)
-  ws.onopen = () => {
-    console.log('[PatientChat] WebSocket 已连接')
-    connected.value = true
-  }
+  ws.onopen = () => { console.log('[PatientChat] WebSocket 已连接'); connected.value = true }
   ws.onmessage = (e) => {
     try {
       const msg = JSON.parse(e.data)
-      if (msg.type === 'error') {
-        ElMessage.error(msg.message)
-        return
-      }
+      if (msg.type === 'error') { ElMessage.error(msg.message); return }
       messages.value.push(msg)
       scrollBottom()
-    } catch (err) {
-      console.error('[PatientChat] 消息解析失败:', err)
-    }
+    } catch (err) { console.error('[PatientChat] 消息解析失败:', err) }
   }
-  ws.onclose = (e) => {
-    console.log('[PatientChat] WebSocket 已断开, code:', e.code)
-    connected.value = false
-  }
-  ws.onerror = (e) => {
-    console.error('[PatientChat] WebSocket 连接失败')
-    connected.value = false
-  }
+  ws.onclose = (e) => { console.log('[PatientChat] WebSocket 已断开, code:', e.code); connected.value = false }
+  ws.onerror = (e) => { console.error('[PatientChat] WebSocket 连接失败'); connected.value = false }
 }
 
 function sendMessage() {
   const text = inputText.value.trim()
   if (!text || !ws || ws.readyState !== WebSocket.OPEN) return
   ws.send(JSON.stringify({
-    toUserId: String(doctorId),
-    content: text,
-    patientName: '',
-    doctorName: doctorName,
-    senderName: '',
-    senderRole: 'PATIENT',
+    toUserId: String(doctorId.value), content: text,
+    patientName, doctorName: doctorName.value, senderName: '', senderRole: 'PATIENT',
   }))
-  messages.value.push({
-    fromUserId: '0',
-    toUserId: String(doctorId),
-    content: text,
-    time: now(),
-    senderRole: 'PATIENT',
-    self: true,
-  })
+  messages.value.push({ fromUserId: '0', toUserId: String(doctorId.value), content: text, time: now(), senderRole: 'PATIENT', self: true })
   inputText.value = ''
   scrollBottom()
 }
 
-function scrollBottom() {
-  nextTick(() => {
-    if (chatEl.value) chatEl.value.scrollTop = chatEl.value.scrollHeight
-  })
-}
-
-function now() {
-  const d = new Date()
-  return d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
-}
-
-function handleKeydown(e) {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault()
-    sendMessage()
-  }
-}
-
+function scrollBottom() { nextTick(() => { if (chatEl.value) chatEl.value.scrollTop = chatEl.value.scrollHeight }) }
+function now() { return new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) }
+function handleKeydown(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }
 onUnmounted(() => { if (ws) ws.close() })
 </script>
 
 <template>
   <div class="chat-root">
     <div class="chat-header">
-      <div class="ch-avatar">
-        <span>{{ (doctorName || '医')[0] }}</span>
-      </div>
+      <div class="ch-avatar"><span>{{ (doctorName || '医')[0] }}</span></div>
       <div class="ch-info">
-        <h4 class="ch-name">{{ doctorName }}</h4>
-        <div class="ch-subtitle">在线问诊</div>
+        <h4 class="ch-name">
+          {{ doctorName }}
+          <span v-if="doctorTitle" class="ch-title-badge">{{ doctorTitle }}</span>
+        </h4>
+        <div class="ch-subtitle">{{ doctorHospital }}{{ doctorDepartment ? ' · ' + doctorDepartment : '' }}</div>
       </div>
-      <span :class="['ch-status', { online: connected }]">
-        {{ connected ? '已连接' : '连接中...' }}
-      </span>
+      <span :class="['ch-status', { online: connected }]">{{ connected ? '已连接' : '连接中...' }}</span>
     </div>
 
     <div ref="chatEl" class="chat-body">
@@ -133,20 +106,8 @@ onUnmounted(() => { if (ws) ws.close() })
     </div>
 
     <div class="chat-input">
-      <textarea
-        v-model="inputText"
-        class="ci-textarea"
-        placeholder="输入消息..."
-        rows="2"
-        @keydown="handleKeydown"
-        :disabled="!connected"
-      ></textarea>
-      <el-button
-        type="primary"
-        class="ci-btn"
-        :disabled="!inputText.trim() || !connected"
-        @click="sendMessage"
-      >发送</el-button>
+      <textarea v-model="inputText" class="ci-textarea" placeholder="输入消息..." rows="2" @keydown="handleKeydown" :disabled="!connected"></textarea>
+      <el-button type="primary" class="ci-btn" :disabled="!inputText.trim() || !connected" @click="sendMessage">发送</el-button>
     </div>
   </div>
 </template>
@@ -181,15 +142,18 @@ onUnmounted(() => { if (ws) ws.close() })
 .ch-name {
   font-size: 16px; font-weight: 700; color: #431407; margin: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  display: flex; align-items: center; gap: 8px;
 }
-.ch-subtitle {
-  font-size: 12px; color: #9a3412; margin-top: 1px;
-  display: flex; align-items: center; gap: 4px;
+.ch-title-badge {
+  font-size: 11px; font-weight: 500; color: #c2410c;
+  background: #fff7ed; border: 1px solid #fed7aa;
+  padding: 1px 8px; border-radius: 10px;
+  flex-shrink: 0; white-space: nowrap;
 }
+.ch-subtitle { font-size: 12px; color: #9a3412; margin-top: 1px; }
 .ch-status {
   font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 12px;
-  background: #fef3c7; color: #92400e;
-  flex-shrink: 0;
+  background: #fef3c7; color: #92400e; flex-shrink: 0;
 }
 .ch-status.online { background: #dcfce7; color: #16a34a; }
 
@@ -245,12 +209,6 @@ onUnmounted(() => { if (ws) ws.close() })
   box-shadow: 0 3px 12px rgba(234,88,12,0.3);
   transition: all 0.2s;
 }
-.ci-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(234,88,12,0.4);
-}
-.ci-btn:disabled {
-  background: #e7e5e4; color: #a8a29e;
-  box-shadow: none; transform: none;
-}
+.ci-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(234,88,12,0.4); }
+.ci-btn:disabled { background: #e7e5e4; color: #a8a29e; box-shadow: none; transform: none; }
 </style>

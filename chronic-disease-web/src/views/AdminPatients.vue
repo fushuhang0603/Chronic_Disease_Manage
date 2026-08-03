@@ -23,7 +23,7 @@ const patients = computed(() => {
   if (!searchName.value) return allPatients.value
   const kw = searchName.value.toLowerCase()
   return allPatients.value.filter(p =>
-    (p.nickname || '').toLowerCase().includes(kw) ||
+    (p.realName || '').toLowerCase().includes(kw) ||
     (p.username || '').toLowerCase().includes(kw)
   )
 })
@@ -49,7 +49,7 @@ async function fetchPatients() {
 function goChat(p) {
   router.push({
     path: '/admin/patients/chat',
-    query: { userId: p.id, userName: p.nickname || p.username },
+    query: { userId: p.id, userName: p.realName || p.username },
   })
 }
 
@@ -73,9 +73,9 @@ function handleSearch() {
 
     <div v-loading="loading" class="ap-list">
       <div v-for="p in patients" :key="p.id" class="ap-card" @click="goChat(p)">
-        <div class="ap-avatar">{{ (p.nickname || p.username || '患')[0] }}</div>
+        <div class="ap-avatar">{{ (p.realName || p.username || '患')[0] }}</div>
         <div class="ap-info">
-          <span class="ap-name">{{ p.nickname || p.username }}</span>
+          <span class="ap-name">{{ p.realName || p.username }}</span>
           <span class="ap-tip">点击开始沟通</span>
         </div>
         <el-icon :size="16" color="#a8a29e"><ChatDotRound /></el-icon>

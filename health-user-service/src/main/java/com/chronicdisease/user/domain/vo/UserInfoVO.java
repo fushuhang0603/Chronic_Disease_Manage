@@ -18,8 +18,8 @@ public class UserInfoVO {
     private Long id;
     @Schema(description = "用户名")
     private String username;
-    @Schema(description = "昵称")
-    private String nickname;
+    @Schema(description = "真实姓名")
+    private String realName;
     @Schema(description = "头像")
     private String avatar;
     @Schema(description = "手机号")

@@ -418,7 +418,11 @@ onBeforeUnmount(() => {
             <tbody>
               <tr v-for="r in detailRecords" :key="r.id">
                 <td>{{ indName(r.indexCode) }}</td>
-                <td><span class="value-num">{{ r.indexValue }}</span></td>
+                <td class="value-col">
+                  <span :class="['value-num', { valhigh: r.isAbnormal === 1, vallow: r.isAbnormal === 2 }]">{{ r.indexValue }}</span>
+                  <span v-if="r.isAbnormal === 1" class="ab-tag high">偏高</span>
+                  <span v-if="r.isAbnormal === 2" class="ab-tag low">偏低</span>
+                </td>
                 <td>{{ r.unit || '-' }}</td>
                 <td>{{ fmtTime(r.recordTime) }}</td>
                 <td>{{ r.remark || '-' }}</td>
@@ -447,7 +451,11 @@ onBeforeUnmount(() => {
               <tr v-for="r in allRecords" :key="r.id">
                 <td><span class="patient-name">{{ r.patientName || '-' }}</span></td>
                 <td>{{ indName(r.indexCode) }}</td>
-                <td><span class="value-num">{{ r.indexValue }}</span></td>
+                <td class="value-col">
+                  <span :class="['value-num', { valhigh: r.isAbnormal === 1, vallow: r.isAbnormal === 2 }]">{{ r.indexValue }}</span>
+                  <span v-if="r.isAbnormal === 1" class="ab-tag high">偏高</span>
+                  <span v-if="r.isAbnormal === 2" class="ab-tag low">偏低</span>
+                </td>
                 <td>{{ r.unit || '-' }}</td>
                 <td>{{ fmtTime(r.recordTime) }}</td>
                 <td>{{ r.remark || '-' }}</td>
@@ -682,6 +690,12 @@ onBeforeUnmount(() => {
 .data-table td { padding: 10px 14px; font-size: 13px; color: #334155; border-bottom: 1px solid #f8fafc; }
 .data-table tbody tr:hover { background: #f8fafc; }
 .value-num { font-weight: 600; color: #1e293b; }
+.value-num.valhigh { color: #dc2626; }
+.value-num.vallow { color: #2563eb; }
+.value-col { white-space: nowrap; }
+.ab-tag { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; vertical-align: middle; }
+.ab-tag.high { background: #fef2f2; color: #dc2626; }
+.ab-tag.low { background: #eff6ff; color: #2563eb; }
 .patient-name { font-weight: 600; color: #1e40af; }
 
 .pagination-wrap { display: flex; justify-content: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f1f5f9; }

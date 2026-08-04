@@ -2,7 +2,9 @@ package com.chronicdisease.record.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.chronicdisease.common.result.PageResult;
+import com.chronicdisease.record.domain.dto.AdminConsultationPageDTO;
 import com.chronicdisease.record.domain.dto.ConsultationPageDTO;
+import com.chronicdisease.record.domain.dto.DayConsultationDTO;
 import com.chronicdisease.record.domain.entity.ChatMessage;
 import com.chronicdisease.record.domain.entity.ConsultationRecord;
 import com.chronicdisease.record.domain.vo.ChatRecordVO;
@@ -36,4 +38,8 @@ public interface IConsultationRecordService extends IService<ConsultationRecord>
      * @param role   当前上线用户角色（PATIENT / DOCTOR）
      */
     List<ChatMessage> queryOfflineUnreadMessages(Long userId, String role);
+
+    PageResult<ConsultationRecord> pageAdminPage(AdminConsultationPageDTO dto);
+
+    List<ConsultationRecord> getDayRecords(DayConsultationDTO dto);
 }

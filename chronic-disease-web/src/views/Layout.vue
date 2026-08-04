@@ -17,6 +17,7 @@ const menuItems = [
   { path: '/admin/article', label: '健康资讯', icon: 'Document', color: '#ef4444' },
   { path: '/admin/notice', label: '公告管理', icon: 'Bell', color: '#f59e0b' },
   { path: '/admin/patients', label: '医患沟通', icon: 'ChatDotRound', color: '#06b6d4' },
+  { path: '/admin/chats', label: '聊天记录', icon: 'ChatLineSquare', color: '#06b6d4' },
 ]
 
 const activeMenu = computed(() => route.path)

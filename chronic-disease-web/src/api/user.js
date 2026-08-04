@@ -278,6 +278,16 @@ export function markChatRead(otherUserId) {
   return request.post('/consultation/read', null, { params: { otherUserId } })
 }
 
+// 管理端分页查询全部聊天记录
+export function getAdminChatRecords(params) {
+  return request.post('/consultation/admin/records', params)
+}
+
+// 管理端查询某天某对医患的聊天明细
+export function getChatDayRecords(data) {
+  return request.post('/consultation/admin/Day/records', data)
+}
+
 // ====== 系统公告 ======
 // 新增公告（默认草稿状态）
 export function addNotice(data) {

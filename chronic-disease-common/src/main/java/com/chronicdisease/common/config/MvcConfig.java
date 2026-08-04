@@ -9,6 +9,7 @@ import com.chronicdisease.common.aop.LogAspect;
 import com.chronicdisease.common.handler.GlobalExceptionHandler;
 import com.chronicdisease.common.handler.MyMetaObjectHandler;
 import com.chronicdisease.common.handler.UserInfoInterceptor;
+import feign.Logger;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -44,5 +45,10 @@ public class MvcConfig implements WebMvcConfigurer {
     @Bean
     public LogAspect logAspect() {
         return new LogAspect();
+    }
+
+    @Bean
+    public Logger.Level feignLoggerLevel(){
+        return Logger.Level.FULL;
     }
 }

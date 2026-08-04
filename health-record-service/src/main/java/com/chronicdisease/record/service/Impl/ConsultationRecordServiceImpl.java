@@ -7,17 +7,23 @@ import com.chronicdisease.common.constant.BusinessConstant;
 import com.chronicdisease.common.exception.BusinessException;
 import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.common.util.UserInfoContext;
+import com.chronicdisease.record.domain.dto.AdminConsultationPageDTO;
 import com.chronicdisease.record.domain.dto.ConsultationPageDTO;
+import com.chronicdisease.record.domain.dto.DayConsultationDTO;
 import com.chronicdisease.record.domain.entity.ChatMessage;
 import com.chronicdisease.record.domain.entity.ConsultationRecord;
 import com.chronicdisease.record.domain.vo.ChatRecordVO;
 import com.chronicdisease.record.mapper.ConsultationRecordMapper;
 import com.chronicdisease.record.service.IConsultationRecordService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -165,5 +171,60 @@ public class ConsultationRecordServiceImpl extends ServiceImpl<ConsultationRecor
             msg.setSenderRole(record.getSenderRole());
             return msg;
         }).collect(Collectors.toList());
+    }
+
+    /**
+     * 管理端聊天记录分页查询
+     * @param dto
+     * @return
+     */
+    @Override
+    public PageResult<ConsultationRecord> pageAdminPage(AdminConsultationPageDTO dto) {
+        Integer pageSize = dto.getPageSize() == null ? 30 : dto.getPageSize();
+        Integer pageNum = dto.getPageNum() == null ? 1 : dto.getPageNum();
+        LambdaQueryWrapper<ConsultationRecord> wrapper = new LambdaQueryWrapper<>();
+        if (StringUtils.isNotBlank(dto.getDoctorName())){
+            wrapper.like(ConsultationRecord::getDoctorName, dto.getDoctorName());
+        }
+        if (StringUtils.isNotBlank(dto.getPatientName())){
+            wrapper.like(ConsultationRecord::getPatientName, dto.getPatientName());
+        }
+        if (dto.getStartTime() != null){
+            wrapper.ge(ConsultationRecord::getCreateTime, dto.getStartTime());
+        }
+        if (dto.getEndTime() != null){
+            wrapper.le(ConsultationRecord::getCreateTime, dto.getEndTime());
+        }
+        if (StringUtils.isNotBlank(dto.getContent())){
+            wrapper.like(ConsultationRecord::getContent, dto.getContent());
+        }
+        wrapper.eq(ConsultationRecord::getIsDeleted, BusinessConstant.isNotDelete);
+        Page<ConsultationRecord> page = new Page<>(pageNum,pageSize);
+        Page<ConsultationRecord> dbResult = consultationRecordMapper.selectPage(page, wrapper);
+        return new PageResult<>(dbResult.getRecords(), dbResult.getTotal());
+    }
+
+    @Override
+    public List<ConsultationRecord> getDayRecords(DayConsultationDTO dto) {
+        if (dto.getDoctorId() == null){
+            throw new BusinessException("医生ID不能为空");
+        }
+        if (dto.getPatientId() == null){
+            throw new BusinessException("患者ID不能为空");
+        }
+        if (dto.getConsultationTime() == null){
+            throw new BusinessException("具体日期不能为空");
+        }
+        LocalDate date = dto.getConsultationTime().toLocalDate();
+        LocalDateTime start = date.atStartOfDay();
+        LocalDateTime end = date.atTime(LocalTime.MAX);
+
+        LambdaQueryWrapper<ConsultationRecord> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ConsultationRecord::getPatientId, dto.getPatientId())
+                .eq(ConsultationRecord::getDoctorId, dto.getDoctorId())
+                .between(ConsultationRecord::getCreateTime, start, end)
+                .eq(ConsultationRecord::getIsDeleted, BusinessConstant.isNotDelete)
+                .orderByAsc(ConsultationRecord::getCreateTime);
+        return baseMapper.selectList(wrapper);
     }
 }

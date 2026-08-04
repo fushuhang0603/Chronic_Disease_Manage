@@ -22,6 +22,7 @@ import AdminData from '../views/AdminData.vue'
 import DoctorManage from '../views/DoctorManage.vue'
 import AdminPatients from '../views/AdminPatients.vue'
 import DoctorChat from '../views/DoctorChat.vue'
+import AdminChat from '../views/AdminChat.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -43,6 +44,7 @@ const routes = [
       { path: 'doctors', name: 'DoctorManage', component: DoctorManage },
       { path: 'patients', name: 'AdminPatients', component: AdminPatients },
       { path: 'patients/chat', name: 'DoctorChat', component: DoctorChat },
+      { path: 'chats', name: 'AdminChat', component: AdminChat },
     ],
   },
   {

@@ -471,7 +471,13 @@ onMounted(() => {
             <template #default="{ row }"><span class="index-tag">{{ getIndicatorName(row.indexCode) }}</span></template>
           </el-table-column>
           <el-table-column label="数值" width="130" align="center">
-            <template #default="{ row }"><span class="value-cell">{{ row.indexValue }}<span v-if="row.unit" class="value-unit">{{ row.unit }}</span></span></template>
+            <template #default="{ row }">
+              <span :class="['value-cell', { 'val-high': row.isAbnormal === 1, 'val-low': row.isAbnormal === 2 }]">
+                {{ row.indexValue }}<span v-if="row.unit" class="value-unit">{{ row.unit }}</span>
+                <span v-if="row.isAbnormal === 1" class="ab-tag high">偏高</span>
+                <span v-if="row.isAbnormal === 2" class="ab-tag low">偏低</span>
+              </span>
+            </template>
           </el-table-column>
           <el-table-column label="测量时间" width="170" align="center">
             <template #default="{ row }"><span>{{ row.recordTime || '—' }}</span></template>
@@ -815,7 +821,12 @@ onMounted(() => {
 .rec-tag { display: inline-block; padding: 2px 12px; border-radius: 6px; background: #fdf2f8; color: #be185d; font-size: 13px; font-weight: 500; }
 
 .value-cell { font-size: 16px; font-weight: 700; color: #431407; }
+.value-cell.val-high { color: #dc2626; }
+.value-cell.val-low { color: #2563eb; }
 .value-unit { font-size: 12px; font-weight: 400; color: #78716c; margin-left: 4px; }
+.ab-tag { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 4px; font-size: 11px; font-weight: 600; vertical-align: middle; }
+.ab-tag.high { background: #fef2f2; color: #dc2626; }
+.ab-tag.low { background: #eff6ff; color: #2563eb; }
 .pagination-wrap { display: flex; justify-content: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #fef3c7; }
 
 .value-input::-webkit-outer-spin-button,

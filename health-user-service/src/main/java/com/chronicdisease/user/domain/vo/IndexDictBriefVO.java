@@ -1,15 +1,13 @@
-package com.chronicdisease.common.vo;
+package com.chronicdisease.user.domain.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Data
-@Schema(description = "指标术语简要信息")
-public class IndexDictBriefVO implements Serializable {
-
+public class IndexDictBriefVO {
     private static final long serialVersionUID = 1L;
 
     @Schema(description = "术语编码")
@@ -29,4 +27,6 @@ public class IndexDictBriefVO implements Serializable {
 
     @Schema(description = "状态 1-启用,0-禁用")
     private Integer status;
+
 }
+

@@ -51,13 +51,6 @@ public class HealthIndexServiceImpl extends ServiceImpl<HealthIndexMapper, Healt
         if (dto.getRecordTime() == null) {
             throw new BusinessException("记录时间不能为空！");
         }
-        //判断指标异常情况
-        IndexDictBriefVO data = userServiceFeign.getDictByCode(dto.getIndexCode()).getData();
-        if (data != null){
-            BigDecimal minValue = data.getMinValue();
-            BigDecimal maxValue = data.getMaxValue();
-            // 判断指标值是否在正常范围内
-        }
         LocalDateTime recordTime = dto.getRecordTime();
         HealthIndexRecord record = new HealthIndexRecord();
         record.setUserId(userId);
@@ -66,6 +59,25 @@ public class HealthIndexServiceImpl extends ServiceImpl<HealthIndexMapper, Healt
         record.setIndexValue(dto.getIndexValue());
         record.setRecordTime(recordTime);
         record.setRemark(dto.getRemark());
+        //判断指标异常情况
+        IndexDictBriefVO data = userServiceFeign.getDictByCode(dto.getIndexCode()).getData();
+        if (data != null){
+            BigDecimal minValue = data.getMinValue();
+            BigDecimal maxValue = data.getMaxValue();
+            BigDecimal indexValue = dto.getIndexValue();
+            if (indexValue.compareTo(minValue) > 0 && indexValue.compareTo(maxValue) < 0){
+                //正常
+                record.setIsAbnormal(BusinessConstant.INDEX_ABNORMAL_NORMAL);
+            }
+            if (indexValue.compareTo(minValue) < 0){
+                //偏低
+                record.setIsAbnormal(BusinessConstant.INDEX_ABNORMAL_LOW);
+            }
+            if (indexValue.compareTo(maxValue) > 0){
+                //偏高
+                record.setIsAbnormal(BusinessConstant.INDEX_ABNORMAL_HIGH);
+            }
+        }
         healthIndexMapper.insert(record);
     }
 

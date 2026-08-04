@@ -48,4 +48,14 @@ public class BusinessConstant {
     /** 公告已下线 **/
     public static final Integer Notice_Status_Offline = 2;
 
+    /** 指标：正常 */
+    public static final Integer INDEX_ABNORMAL_NORMAL = 0;
+    /** 指标：偏高 */
+    public static final Integer INDEX_ABNORMAL_HIGH = 1;
+    /** 指标：偏低 */
+    public static final Integer INDEX_ABNORMAL_LOW = 2;
+
+
+
+
 }

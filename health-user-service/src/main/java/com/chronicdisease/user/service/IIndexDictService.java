@@ -2,10 +2,10 @@ package com.chronicdisease.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.chronicdisease.common.result.PageResult;
-import com.chronicdisease.common.vo.IndexDictBriefVO;
 import com.chronicdisease.user.domain.dto.IndexDictDTO;
 import com.chronicdisease.user.domain.entity.IndexDict;
 import com.chronicdisease.user.domain.query.IndexDictQuery;
+import com.chronicdisease.user.domain.vo.IndexDictBriefVO;
 
 public interface IIndexDictService extends IService<IndexDict> {
 

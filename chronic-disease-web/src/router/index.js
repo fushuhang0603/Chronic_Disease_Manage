@@ -34,6 +34,7 @@ const routes = [
     component: Layout,
     redirect: '/admin/users',
     children: [
+      { path: 'home', name: 'AdminHome', component: AdminHome },
       { path: 'users', name: 'UserManage', component: UserManage },
       { path: 'dicts', name: 'IndexDictManage', component: IndexDictManage },
       { path: 'archives', name: 'ArchiveManage', component: ArchiveManage },

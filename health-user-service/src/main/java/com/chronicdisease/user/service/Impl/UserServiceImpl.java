@@ -18,6 +18,8 @@ import com.chronicdisease.user.domain.vo.LoginVO;
 import com.chronicdisease.user.domain.vo.UserInfoVO;
 import com.chronicdisease.common.exception.BusinessException;
 import com.chronicdisease.user.mapper.UserMapper;
+import java.util.Map;
+import java.util.HashMap;
 import com.chronicdisease.user.service.IUserService;
 import com.chronicdisease.common.util.JwtTool;
 import org.apache.commons.lang3.StringUtils;
@@ -234,5 +236,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         LambdaUpdateWrapper<User> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(User::getId, id).set(User::getStatus, status);
         userMapper.update(wrapper);
+    }
+
+    @Override
+    public Map<String, Long> getUserCount() {
+        Map<String, Long> result = new HashMap<>();
+        result.put("patientCount", userMapper.selectCount(
+                new LambdaQueryWrapper<User>()
+                        .eq(User::getRole, "patient")
+                        .eq(User::getIsDeleted, BusinessConstant.isNotDelete)));
+        result.put("doctorCount", userMapper.selectCount(
+                new LambdaQueryWrapper<User>()
+                        .eq(User::getRole, "doctor")
+                        .eq(User::getIsDeleted, BusinessConstant.isNotDelete)));
+        return result;
     }
 }

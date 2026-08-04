@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "timestamp": 1785851409390,
+  "timestamp": 1785863993918,
   "projectRoot": "d:\\Code\\Chronic_Disease_Manage",
   "entries": [
     {
@@ -69,11 +69,6 @@
       "size": 1348
     },
     {
-      "path": "health-record-service\\target\\classes\\com\\chronicdisease\\record\\HealthRecordServiceApplication.class",
-      "mtime": 1785739623124.7678,
-      "size": 1060
-    },
-    {
       "path": "health-article-service\\target\\classes\\com\\chronicdisease\\article\\HealthArticleServiceApplication.class",
       "mtime": 1785739728889.5962,
       "size": 1034,
@@ -111,16 +106,6 @@
       }
     },
     {
-      "path": "health-record-service\\target\\classes\\com\\chronicdisease\\record\\config\\RedisConfig.class",
-      "mtime": 1785839395114.4817,
-      "size": 2879
-    },
-    {
-      "path": "chronic-disease-common\\target\\classes\\com\\chronicdisease\\common\\config\\MvcConfig.class",
-      "mtime": 1785839494792.705,
-      "size": 2670
-    },
-    {
       "path": "health-user-service\\target\\classes\\com\\chronicdisease\\user\\UserServiceApplication.class",
       "mtime": 1785851407468.5042,
       "size": 965,
@@ -129,6 +114,27 @@
           "com.chronicdisease.user.**.mapper"
         ],
         "sourceFile": "d:\\Code\\Chronic_Disease_Manage\\health-user-service\\target\\classes\\com\\chronicdisease\\user\\UserServiceApplication.class"
+      }
+    },
+    {
+      "path": "health-record-service\\target\\classes\\com\\chronicdisease\\record\\config\\RedisConfig.class",
+      "mtime": 1785855678215.402,
+      "size": 2879
+    },
+    {
+      "path": "chronic-disease-common\\target\\classes\\com\\chronicdisease\\common\\config\\MvcConfig.class",
+      "mtime": 1785855690889.197,
+      "size": 2907
+    },
+    {
+      "path": "health-record-service\\target\\classes\\com\\chronicdisease\\record\\HealthRecordServiceApplication.class",
+      "mtime": 1785863990878.3162,
+      "size": 1060,
+      "mapperScan": {
+        "basePackages": [
+          "com.chronicdisease.record.**.mapper"
+        ],
+        "sourceFile": "d:\\Code\\Chronic_Disease_Manage\\health-record-service\\target\\classes\\com\\chronicdisease\\record\\HealthRecordServiceApplication.class"
       }
     }
   ]

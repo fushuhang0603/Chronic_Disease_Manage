@@ -13,6 +13,8 @@ import com.chronicdisease.common.util.UserInfoContext;
 import com.chronicdisease.record.domain.dto.HealthIndexDTO;
 import com.chronicdisease.record.domain.dto.HealthIndexPageDTO;
 import com.chronicdisease.record.domain.entity.HealthIndexRecord;
+import com.chronicdisease.record.domain.vo.AdminDashboardVO;
+import com.chronicdisease.record.domain.vo.DashboardAbnormalItem;
 import com.chronicdisease.record.domain.vo.DailyAggregation;
 import com.chronicdisease.record.domain.vo.IndexDictBriefVO;
 import com.chronicdisease.record.domain.vo.PatientBriefVO;
@@ -341,5 +343,49 @@ public class HealthIndexServiceImpl extends ServiceImpl<HealthIndexMapper, Healt
         }
         wrapper.orderByAsc(HealthIndexRecord::getRecordTime);
         return healthIndexMapper.selectList(wrapper);
+    }
+
+    @Override
+    public AdminDashboardVO getDashboard() {
+        AdminDashboardVO vo = new AdminDashboardVO();
+
+        // 异常患者数
+        Long abnormalCount = healthIndexMapper.countAbnormalPatients();
+        vo.setAbnormalPatientCount(abnormalCount != null ? abnormalCount : 0L);
+
+        // 最新10条异常记录
+        List<HealthIndexRecord> records = healthIndexMapper.selectLatestAbnormal();
+        if (CollUtil.isEmpty(records)) {
+            vo.setLatestRecords(Collections.emptyList());
+            return vo;
+        }
+
+        // 批量获取患者姓名
+        Set<Long> userIds = records.stream()
+                .map(HealthIndexRecord::getUserId)
+                .collect(Collectors.toSet());
+        Map<Long, String> nameMap = new HashMap<>();
+        try {
+            List<PatientBriefVO> patients = userServiceFeign.getAllPatientBriefs(null).getData();
+            if (CollUtil.isNotEmpty(patients)) {
+                patients.forEach(p -> nameMap.put(p.getUserId(), p.getPatientName()));
+            }
+        } catch (Exception e) {
+            log.warn("获取患者姓名失败，使用ID展示", e);
+        }
+
+        List<DashboardAbnormalItem> items = records.stream().map(r -> {
+            DashboardAbnormalItem item = new DashboardAbnormalItem();
+            item.setPatientId(r.getUserId());
+            item.setPatientName(nameMap.getOrDefault(r.getUserId(), String.valueOf(r.getUserId())));
+            item.setIndexCode(r.getIndexCode());
+            item.setIndexValue(r.getIndexValue());
+            item.setIsAbnormal(r.getIsAbnormal());
+            item.setRecordTime(r.getRecordTime());
+            return item;
+        }).collect(Collectors.toList());
+
+        vo.setLatestRecords(items);
+        return vo;
     }
 }

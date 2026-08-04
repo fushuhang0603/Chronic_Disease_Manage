@@ -8,6 +8,7 @@ const route = useRoute()
 const isCollapse = ref(false)
 
 const menuItems = [
+  { path: '/admin/home', label: '首页', icon: 'HomeFilled', color: '#f97316' },
   { path: '/admin/users', label: '用户管理', icon: 'User', color: '#3b82f6' },
   { path: '/admin/doctors', label: '医生管理', icon: 'Avatar', color: '#10b981' },
   { path: '/admin/archives', label: '健康档案', icon: 'Folder', color: '#10b981' },

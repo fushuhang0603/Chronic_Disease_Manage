@@ -6,6 +6,7 @@ import com.chronicdisease.record.domain.dto.HealthIndexDTO;
 import com.chronicdisease.record.domain.dto.HealthIndexPageDTO;
 import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.record.domain.entity.HealthIndexRecord;
+import com.chronicdisease.record.domain.vo.AdminDashboardVO;
 import com.chronicdisease.record.domain.vo.TrendPointVO;
 import com.chronicdisease.record.service.IHealthIndexService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -85,5 +86,12 @@ public class HealthIndexController {
             @RequestParam(value = "granularity", defaultValue = "DAY") String granularity,
             @RequestParam(value = "indexCodes", required = false) List<String> indexCodes) {
         return Result.success(healthIndexService.getAdminTrend(patientName, days, granularity, indexCodes));
+    }
+
+    @OperationLog(module = "数据监测", description = "管理端仪表盘数据")
+    @GetMapping("/admin/dashboard")
+    @Operation(summary = "管理端首页仪表盘（异常患者数 + 最新异常记录）")
+    public Result<AdminDashboardVO> dashboard() {
+        return Result.success(healthIndexService.getDashboard());
     }
 }

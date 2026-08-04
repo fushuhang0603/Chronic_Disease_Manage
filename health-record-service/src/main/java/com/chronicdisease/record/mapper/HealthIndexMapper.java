@@ -35,4 +35,10 @@ public interface HealthIndexMapper extends BaseMapper<HealthIndexRecord> {
                                             @Param("startTime") LocalDateTime startTime,
                                             @Param("endTime") LocalDateTime endTime,
                                             @Param("indexCodes") List<String> indexCodes);
+
+    @Select("SELECT COUNT(DISTINCT patient_id) FROM health_index_record WHERE is_abnormal != 0 AND is_deleted = 0")
+    Long countAbnormalPatients();
+
+    @Select("SELECT * FROM health_index_record WHERE is_abnormal != 0 AND is_deleted = 0 ORDER BY create_time DESC LIMIT 10")
+    List<HealthIndexRecord> selectLatestAbnormal();
 }

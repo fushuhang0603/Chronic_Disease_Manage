@@ -24,6 +24,10 @@ export function getUserById(id) {
   return request.get('/user/queryById', { params: { id } })
 }
 
+export function getUserCount() {
+  return request.get('/user/count')
+}
+
 export function deleteUser(id) {
   return request.post('/user/delete', null, { params: { id } })
 }
@@ -99,6 +103,10 @@ export function getAdminIndexTrend(params) {
 
 export function deleteHealthIndex(id) {
   return request.post('/index/delete', null, { params: { id } })
+}
+
+export function getAdminDashboard() {
+  return request.get('/index/admin/dashboard')
 }
 
 // ====== 用药记录 ======

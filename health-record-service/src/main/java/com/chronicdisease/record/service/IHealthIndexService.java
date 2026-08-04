@@ -6,7 +6,7 @@ import com.chronicdisease.record.domain.dto.HealthIndexPageDTO;
 import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.record.domain.entity.HealthIndexRecord;
 import com.chronicdisease.record.domain.vo.TrendPointVO;
-
+import com.chronicdisease.record.domain.vo.AdminDashboardVO;
 import java.util.List;
 import java.util.Map;
 
@@ -36,4 +36,6 @@ public interface IHealthIndexService extends IService<HealthIndexRecord> {
      * @param indexCodes 指标编码列表
      */
     Map<String, List<TrendPointVO>> getAdminTrend(String patientName, Integer days, String granularity, List<String> indexCodes);
+
+    AdminDashboardVO getDashboard();
 }

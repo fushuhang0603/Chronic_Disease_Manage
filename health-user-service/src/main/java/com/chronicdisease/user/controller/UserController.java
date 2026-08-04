@@ -19,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/user")
 @Slf4j
@@ -88,5 +90,12 @@ public class UserController {
     public Result<Void> updateStatus(@RequestParam("id") Long id, @RequestParam("status") Integer status){
         userService.updateStatus(id, status);
         return Result.success();
+    }
+
+    @OperationLog(module = "用户管理", description = "获取用户角色数量统计")
+    @GetMapping("/count")
+    @Operation(summary = "获取患者和医生数量统计")
+    public Result<Map<String, Long>> count() {
+        return Result.success(userService.getUserCount());
     }
 }

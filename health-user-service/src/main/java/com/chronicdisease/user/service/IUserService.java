@@ -10,6 +10,8 @@ import com.chronicdisease.user.domain.query.UserQuery;
 import com.chronicdisease.user.domain.vo.LoginVO;
 import com.chronicdisease.user.domain.vo.UserInfoVO;
 
+import java.util.Map;
+
 public interface IUserService extends IService<User> {
 
     UserInfoVO register(RegisterDTO registerDTO);

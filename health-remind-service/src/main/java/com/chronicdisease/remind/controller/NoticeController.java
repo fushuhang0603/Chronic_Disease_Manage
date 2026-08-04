@@ -6,7 +6,6 @@ import com.chronicdisease.common.result.Result;
 import com.chronicdisease.remind.domain.dto.NoticeDTO;
 import com.chronicdisease.remind.domain.dto.NoticePageDTO;
 import com.chronicdisease.remind.domain.entity.Notice;
-import com.chronicdisease.remind.domain.vo.HomeNoticeVO;
 import com.chronicdisease.remind.service.INoticeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

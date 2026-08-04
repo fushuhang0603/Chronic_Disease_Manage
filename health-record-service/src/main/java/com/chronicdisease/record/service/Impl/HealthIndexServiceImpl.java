@@ -14,6 +14,7 @@ import com.chronicdisease.record.domain.dto.HealthIndexDTO;
 import com.chronicdisease.record.domain.dto.HealthIndexPageDTO;
 import com.chronicdisease.record.domain.entity.HealthIndexRecord;
 import com.chronicdisease.record.domain.vo.DailyAggregation;
+import com.chronicdisease.record.domain.vo.IndexDictBriefVO;
 import com.chronicdisease.record.domain.vo.PatientBriefVO;
 import com.chronicdisease.record.domain.vo.TrendPointVO;
 import com.chronicdisease.record.feign.UserServiceFeign;
@@ -49,6 +50,13 @@ public class HealthIndexServiceImpl extends ServiceImpl<HealthIndexMapper, Healt
         Long userId = UserInfoContext.getUserId();
         if (dto.getRecordTime() == null) {
             throw new BusinessException("记录时间不能为空！");
+        }
+        //判断指标异常情况
+        IndexDictBriefVO data = userServiceFeign.getDictByCode(dto.getIndexCode()).getData();
+        if (data != null){
+            BigDecimal minValue = data.getMinValue();
+            BigDecimal maxValue = data.getMaxValue();
+            // 判断指标值是否在正常范围内
         }
         LocalDateTime recordTime = dto.getRecordTime();
         HealthIndexRecord record = new HealthIndexRecord();

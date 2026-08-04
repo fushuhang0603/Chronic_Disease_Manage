@@ -3,6 +3,7 @@ package com.chronicdisease.user.controller;
 import com.chronicdisease.common.annotation.OperationLog;
 import com.chronicdisease.common.result.PageResult;
 import com.chronicdisease.common.result.Result;
+import com.chronicdisease.common.vo.IndexDictBriefVO;
 import com.chronicdisease.user.domain.dto.IndexDictDTO;
 import com.chronicdisease.user.domain.entity.IndexDict;
 import com.chronicdisease.user.domain.query.IndexDictQuery;
@@ -53,6 +54,13 @@ public class IndexDictController {
     public Result<IndexDict> queryById(@RequestParam("id") Long id) {
         IndexDict result = indexDictService.queryById(id);
         return Result.success(result);
+    }
+
+    @OperationLog(module = "指标字典", description = "根据编码查询指标字典")
+    @GetMapping("/getByCode")
+    @Operation(summary = "根据编码查询指标字典（含正常范围阈值）")
+    public Result<IndexDictBriefVO> getDictByCode(@RequestParam("indexCode") String indexCode) {
+        return Result.success(indexDictService.queryByCode(indexCode));
     }
 
     @OperationLog(module = "指标字典", description = "删除指标字典")

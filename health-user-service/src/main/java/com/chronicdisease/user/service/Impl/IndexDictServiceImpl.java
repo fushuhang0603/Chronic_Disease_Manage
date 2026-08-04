@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.chronicdisease.common.constant.BusinessConstant;
 import com.chronicdisease.common.exception.BusinessException;
 import com.chronicdisease.common.result.PageResult;
+import com.chronicdisease.common.vo.IndexDictBriefVO;
 import com.chronicdisease.user.domain.dto.IndexDictDTO;
 import com.chronicdisease.user.domain.entity.IndexDict;
 import com.chronicdisease.user.domain.query.IndexDictQuery;
@@ -91,6 +92,25 @@ public class IndexDictServiceImpl extends ServiceImpl<IndexDictMapper, IndexDict
     }
 
     @Override
+    public IndexDictBriefVO queryByCode(String indexCode) {
+        LambdaQueryWrapper<IndexDict> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(IndexDict::getIndexCode, indexCode)
+                .eq(IndexDict::getIsDeleted, BusinessConstant.isNotDelete);
+        IndexDict dict = baseMapper.selectOne(wrapper);
+        if (dict == null) {
+            return null;
+        }
+        IndexDictBriefVO vo = new IndexDictBriefVO();
+        vo.setIndexCode(dict.getIndexCode());
+        vo.setIndexName(dict.getIndexName());
+        vo.setTermType(dict.getTermType());
+        vo.setMinValue(dict.getMinValue());
+        vo.setMaxValue(dict.getMaxValue());
+        vo.setStatus(dict.getStatus());
+        return vo;
+    }
+
+    @Override
     public void deleteById(Long id) {
         LambdaQueryWrapper<IndexDict> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(IndexDict::getId, id).eq(IndexDict::getIsDeleted, BusinessConstant.isNotDelete);
@@ -120,6 +140,8 @@ public class IndexDictServiceImpl extends ServiceImpl<IndexDictMapper, IndexDict
         entity.setIndexCode(dto.getIndexCode());
         entity.setIndexName(dto.getIndexName());
         entity.setTermType(dto.getTermType());
+        entity.setMinValue(dto.getMinValue());
+        entity.setMaxValue(dto.getMaxValue());
         entity.setSort(dto.getSort());
         if (dto.getStatus() != null) {
             entity.setStatus(dto.getStatus());

@@ -47,6 +47,10 @@ public class HealthIndexRecord implements Serializable {
     @Schema(description = "备注：测量场景、身体状态")
     private String remark;
 
+    @TableField("is_abnormal")
+    @Schema(description = "指标是否异常 0-正常 1-偏高 2-偏低")
+    private Integer isAbnormal;
+
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     @Schema(description = "创建时间")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")

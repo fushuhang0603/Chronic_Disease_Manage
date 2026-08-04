@@ -36,6 +36,13 @@ function getTermTypeLabel(type) {
   return termTypeLabelMap[type] || type
 }
 
+function formatRange(min, max) {
+  if (min == null && max == null) return '-'
+  const left = min != null ? min : '-∞'
+  const right = max != null ? max : '+∞'
+  return `${left} ~ ${right}`
+}
+
 const statusOptions = [
   { label: '全部状态', value: null },
   { label: '启用', value: 1 },
@@ -78,6 +85,7 @@ async function handleEdit(row) {
     const dict = await getDictById(row.id)
     addForm.id = dict.id; addForm.indexCode = dict.indexCode; addForm.indexName = dict.indexName
     addForm.termType = dict.termType || 'indicator'
+    addForm.minValue = dict.minValue ?? null; addForm.maxValue = dict.maxValue ?? null
     addForm.sort = dict.sort; addForm.status = dict.status
   } catch (e) {
     ElMessage.error(e.message || '查询失败')
@@ -223,6 +231,14 @@ onMounted(() => fetchData())
             </span>
           </template>
         </el-table-column>
+        <el-table-column label="正常范围" width="150" align="center">
+          <template #default="{ row }">
+            <span v-if="row.termType === 'indicator'" class="range-text">
+              {{ formatRange(row.minValue, row.maxValue) }}
+            </span>
+            <span v-else class="range-empty">-</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="sort" label="排序" width="80" align="center" />
         <el-table-column prop="status" label="状态" width="90" align="center">
           <template #default="{ row }">
@@ -282,6 +298,13 @@ onMounted(() => fetchData())
             @click="addForm.termType = o.value"
             type="button"
           >{{ o.label }}</button>
+        </div>
+      </el-form-item>
+      <el-form-item v-if="addForm.termType === 'indicator'" label="正常范围">
+        <div class="range-inputs">
+          <el-input-number v-model="addForm.minValue" :controls="false" placeholder="最低值" style="width:100%" />
+          <span class="range-sep">~</span>
+          <el-input-number v-model="addForm.maxValue" :controls="false" placeholder="最高值" style="width:100%" />
         </div>
       </el-form-item>
       <el-row :gutter="16">
@@ -402,6 +425,12 @@ onMounted(() => fetchData())
 .type-tag.indicator { background: rgba(59,130,246,0.12); color: #1d4ed8; }
 .type-tag.disease   { background: rgba(239,68,68,0.12); color: #dc2626; }
 .type-tag.medicine  { background: rgba(16,185,129,0.12); color: #059669; }
+
+.range-text { color: #431407; font-weight: 500; }
+.range-empty { color: #cbd5e1; }
+
+.range-inputs { display: flex; align-items: center; gap: 8px; width: 100%; }
+.range-sep { color: #a8a29e; flex-shrink: 0; }
 
 .status-dot {
   display: inline-flex; align-items: center; gap: 5px;

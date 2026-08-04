@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 public class IndexDictDTO {
 
@@ -17,6 +19,10 @@ public class IndexDictDTO {
 
     @NotBlank(message = "术语类型不能为空")
     private String termType;
+
+    private BigDecimal minValue;
+
+    private BigDecimal maxValue;
 
     @NotNull(message = "排序不能为空")
     private Integer sort;

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -29,6 +30,14 @@ public class IndexDict implements Serializable {
     @TableField("term_type")
     @Schema(description = "术语类型: indicator/disease/medicine")
     private String termType;
+
+    @TableField("min_value")
+    @Schema(description = "指标正常范围-最低值")
+    private BigDecimal minValue;
+
+    @TableField("max_value")
+    @Schema(description = "指标正常范围-最高值")
+    private BigDecimal maxValue;
 
     @TableField("sort")
     @Schema(description = "排序")

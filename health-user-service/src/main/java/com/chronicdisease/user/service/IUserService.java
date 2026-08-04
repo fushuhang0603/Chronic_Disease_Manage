@@ -29,4 +29,6 @@ public interface IUserService extends IService<User> {
     void deleteById(Long id);
 
     void updateStatus(Long id, Integer status);
+
+    Map<String, Long> getUserCount();
 }

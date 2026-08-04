@@ -243,11 +243,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         Map<String, Long> result = new HashMap<>();
         result.put("patientCount", userMapper.selectCount(
                 new LambdaQueryWrapper<User>()
-                        .eq(User::getRole, "patient")
+                        .eq(User::getRoleType, "patient")
                         .eq(User::getIsDeleted, BusinessConstant.isNotDelete)));
         result.put("doctorCount", userMapper.selectCount(
                 new LambdaQueryWrapper<User>()
-                        .eq(User::getRole, "doctor")
+                        .eq(User::getRoleType, "doctor")
                         .eq(User::getIsDeleted, BusinessConstant.isNotDelete)));
         return result;
     }

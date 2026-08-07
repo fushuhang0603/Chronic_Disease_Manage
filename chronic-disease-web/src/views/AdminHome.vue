@@ -1,170 +1,138 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { User, Search, Warning } from '@element-plus/icons-vue'
 import { getAdminDashboard, getUserCount } from '../api/user.js'
 
-const statCards = ref([
-  { label: '患者总数', val: 0, unit: '人', icon: User, color: '#f97316' },
-  { label: '医生总数', val: 0, unit: '人', icon: User, color: '#06b6d4' },
-  { label: '异常指标', val: 0, unit: '人', icon: Warning, color: '#ef4444' },
+const stats = reactive([
+  { label: '患者总数', val: 0, icon: '👥', color: '#6366f1' },
+  { label: '医生总数', val: 0, icon: '🩺', color: '#06b6d4' },
+  { label: '异常指标', val: 0, icon: '⚠️', color: '#f43f5e' },
 ])
 
 const abnormalRecords = ref([])
 const loading = ref(false)
 
-const abnormalLabel = { 1: '偏高', 2: '偏低' }
-const abnormalColor = { 1: '#dc2626', 2: '#2563eb' }
+const abnormalTag = { 1: '偏高', 2: '偏低' }
+const abnormalCls = { 1: 'tag-high', 2: 'tag-low' }
 
-function fmtTime(val) {
-  if (!val) return ''
-  return val.replace('T', ' ').substring(0, 16)
+function fmtTime(v) {
+  if (!v) return ''
+  return v.replace('T', ' ').substring(5, 16)
 }
 
 async function loadCounts() {
   try {
     const res = await getUserCount()
-    statCards.value[0].val = res.patientCount || 0
-    statCards.value[1].val = res.doctorCount || 0
-  } catch { /* 兼容老版本 */ }
+    stats[0].val = res.patientCount || 0
+    stats[1].val = res.doctorCount || 0
+  } catch { /* ok */ }
 }
 
 async function loadDashboard() {
   loading.value = true
   try {
     const res = await getAdminDashboard()
-    statCards.value[2].val = res.abnormalPatientCount || 0
+    stats[2].val = res.abnormalPatientCount || 0
     abnormalRecords.value = res.latestRecords || []
   } catch (e) {
     ElMessage.error(e.message || '加载失败')
-  } finally {
-    loading.value = false
-  }
+  } finally { loading.value = false }
 }
 
-onMounted(() => {
-  loadCounts()
-  loadDashboard()
-})
+onMounted(() => { loadCounts(); loadDashboard() })
 </script>
 
 <template>
-  <div class="ah-root">
-    <!-- 统计卡片 -->
-    <div class="stat-row">
-      <div v-for="c in statCards" :key="c.label" class="stat-card" :style="{ '--accent': c.color }">
-        <div class="stat-icon">
-          <el-icon :size="24"><component :is="c.icon" /></el-icon>
-        </div>
-        <div class="stat-body">
-          <div class="stat-label">{{ c.label }}</div>
-          <div class="stat-value">
-            <span class="val-num">{{ c.val }}</span>
-            <span class="val-unit">{{ c.unit }}</span>
-          </div>
+  <div class="home-root">
+    <!-- 顶部统计 -->
+    <div class="top-stats">
+      <div v-for="s in stats" :key="s.label" class="stat-item" :style="{ '--ac': s.color }">
+        <span class="stat-emoji">{{ s.icon }}</span>
+        <div>
+          <div class="stat-num">{{ s.val }}</div>
+          <div class="stat-lbl">{{ s.label }}</div>
         </div>
       </div>
     </div>
 
-    <!-- 最新异常指标 -->
-    <div class="um-card">
-      <div class="card-title-row">
-        <span class="card-icon" style="background:linear-gradient(135deg,#ef4444,#dc2626)">
-          <el-icon :size="18"><Warning /></el-icon>
-        </span>
-        <span class="card-label">最新异常指标</span>
-        <span class="card-tip" v-if="abnormalRecords.length > 0">最近 10 条</span>
+    <!-- 异常指标表格 -->
+    <div class="panel">
+      <div class="panel-hd">
+        <span class="hd-dot" style="background:#f43f5e"></span>
+        <span class="hd-title">最新异常指标</span>
+        <span class="hd-tip" v-if="abnormalRecords.length">共 {{ abnormalRecords.length }} 条</span>
       </div>
 
-      <el-table :data="abnormalRecords" v-loading="loading" stripe border class="um-table">
-        <el-table-column prop="patientName" label="患者" width="120" align="center" />
-        <el-table-column prop="indexCode" label="指标编码" width="120" align="center" />
-        <el-table-column label="数值" width="100" align="center">
+      <el-table :data="abnormalRecords" v-loading="loading" size="small" class="dash-table">
+        <el-table-column prop="patientName" label="患者" width="100" />
+        <el-table-column prop="indexCode" label="指标" width="110" />
+        <el-table-column label="数值" width="80" align="center">
           <template #default="{ row }">
-            <span :style="{ color: abnormalColor[row.isAbnormal] || '#431407', fontWeight: 700 }">
-              {{ row.indexValue }}
-            </span>
+            <span :class="['val', abnormalCls[row.isAbnormal]]">{{ row.indexValue }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="状态" width="80" align="center">
+        <el-table-column label="状态" width="70" align="center">
           <template #default="{ row }">
-            <span :class="['ab-tag', row.isAbnormal === 1 ? 'high' : 'low']">
-              {{ abnormalLabel[row.isAbnormal] }}
-            </span>
+            <span :class="['tag', abnormalCls[row.isAbnormal]]">{{ abnormalTag[row.isAbnormal] }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="记录时间" width="160" align="center">
+        <el-table-column label="时间" width="130" align="center">
           <template #default="{ row }">{{ fmtTime(row.recordTime) }}</template>
         </el-table-column>
       </el-table>
 
-      <div v-if="abnormalRecords.length === 0 && !loading" class="empty-state">
-        <el-icon :size="40" color="#d6d3d1"><Search /></el-icon>
-        <p>暂无异常指标记录</p>
-      </div>
+      <div v-if="!abnormalRecords.length && !loading" class="empty">暂无异常指标记录</div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.ah-root { display: flex; flex-direction: column; gap: 24px; }
+.home-root { display: flex; flex-direction: column; gap: 16px; }
 
-.stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-.stat-card {
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 4px 24px rgba(249,115,22,0.06);
-  padding: 24px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  border-left: 4px solid var(--accent);
-  transition: box-shadow 0.3s, transform 0.2s;
+/* 顶部统计卡片 */
+.top-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
 }
-.stat-card:hover { box-shadow: 0 6px 30px rgba(249,115,22,0.12); transform: translateY(-2px); }
-.stat-icon {
-  width: 52px; height: 52px; border-radius: 14px;
-  background: color-mix(in srgb, var(--accent) 12%, #fff);
-  color: var(--accent);
-  display: flex; align-items: center; justify-content: center;
+.stat-item {
+  background: #fff; border-radius: 14px; padding: 16px 20px;
+  display: flex; align-items: center; gap: 14px;
+  border-top: 3px solid var(--ac);
+  box-shadow: 0 1px 8px rgba(0,0,0,.04);
 }
-.stat-body { flex: 1; }
-.stat-label { font-size: 13px; color: #78716c; margin-bottom: 4px; font-weight: 500; }
-.stat-value { display: flex; align-items: baseline; gap: 4px; }
-.val-num { font-size: 32px; font-weight: 800; color: #431407; }
-.val-unit { font-size: 14px; color: #a8a29e; }
+.stat-emoji { font-size: 28px; line-height: 1; }
+.stat-num { font-size: 24px; font-weight: 800; color: #1e293b; }
+.stat-lbl { font-size: 12px; color: #94a3b8; margin-top: 2px; }
 
-.um-card {
-  background: #fff;
-  border-radius: 20px;
-  box-shadow: 0 4px 24px rgba(249,115,22,0.06);
-  padding: 24px 28px;
+/* 内容面板 */
+.panel {
+  background: #fff; border-radius: 14px;
+  box-shadow: 0 1px 8px rgba(0,0,0,.04);
+  padding: 16px 20px;
 }
+.panel-hd {
+  display: flex; align-items: center; gap: 8px;
+  padding-bottom: 12px; border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 8px;
+}
+.hd-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.hd-title { font-size: 14px; font-weight: 600; color: #334155; }
+.hd-tip { font-size: 12px; color: #94a3b8; margin-left: auto; }
 
-.card-title-row {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
-}
-.card-icon {
-  width: 34px; height: 34px; border-radius: 10px;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.card-icon .el-icon { color: #fff; }
-.card-label { font-size: 16px; font-weight: 700; color: #7c2d12; }
-.card-tip { font-size: 13px; color: #a8a29e; margin-left: auto; }
+/* 表格 */
+.dash-table { font-size: 13px; }
+.dash-table :deep(th) { background: #f8fafc; color: #64748b; font-weight: 600; padding: 8px 0; }
+.dash-table :deep(td) { padding: 7px 0; }
 
-.um-table { margin-bottom: 0; }
-.um-table :deep(th) { background: #fffbeb; color: #78716c; font-weight: 600; font-size: 13px; }
-.um-table :deep(td) { font-size: 13px; color: #431407; }
+.val { font-weight: 700; }
+.val.tag-high { color: #e11d48; }
+.val.tag-low  { color: #2563eb; }
 
-.ab-tag {
-  display: inline-block; padding: 2px 10px; border-radius: 20px;
-  font-size: 12px; font-weight: 600;
+.tag {
+  display: inline-block; padding: 0 8px; border-radius: 10px;
+  font-size: 11px; font-weight: 600;
 }
-.ab-tag.high { background: #fef2f2; color: #dc2626; }
-.ab-tag.low { background: #eff6ff; color: #2563eb; }
+.tag.tag-high { background: #ffe4e6; color: #be123c; }
+.tag.tag-low  { background: #dbeafe; color: #1d4ed8; }
 
-.empty-state {
-  display: flex; flex-direction: column; align-items: center;
-  padding: 40px 0; gap: 8px; color: #a8a29e; font-size: 14px;
-}
+.empty { text-align: center; padding: 32px 0; color: #94a3b8; font-size: 13px; }
 </style>

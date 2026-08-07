@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "timestamp": 1785863993918,
+  "timestamp": 1785867256174,
   "projectRoot": "d:\\Code\\Chronic_Disease_Manage",
   "entries": [
     {
@@ -106,17 +106,6 @@
       }
     },
     {
-      "path": "health-user-service\\target\\classes\\com\\chronicdisease\\user\\UserServiceApplication.class",
-      "mtime": 1785851407468.5042,
-      "size": 965,
-      "mapperScan": {
-        "basePackages": [
-          "com.chronicdisease.user.**.mapper"
-        ],
-        "sourceFile": "d:\\Code\\Chronic_Disease_Manage\\health-user-service\\target\\classes\\com\\chronicdisease\\user\\UserServiceApplication.class"
-      }
-    },
-    {
       "path": "health-record-service\\target\\classes\\com\\chronicdisease\\record\\config\\RedisConfig.class",
       "mtime": 1785855678215.402,
       "size": 2879
@@ -135,6 +124,17 @@
           "com.chronicdisease.record.**.mapper"
         ],
         "sourceFile": "d:\\Code\\Chronic_Disease_Manage\\health-record-service\\target\\classes\\com\\chronicdisease\\record\\HealthRecordServiceApplication.class"
+      }
+    },
+    {
+      "path": "health-user-service\\target\\classes\\com\\chronicdisease\\user\\UserServiceApplication.class",
+      "mtime": 1785867253883.9084,
+      "size": 965,
+      "mapperScan": {
+        "basePackages": [
+          "com.chronicdisease.user.**.mapper"
+        ],
+        "sourceFile": "d:\\Code\\Chronic_Disease_Manage\\health-user-service\\target\\classes\\com\\chronicdisease\\user\\UserServiceApplication.class"
       }
     }
   ]

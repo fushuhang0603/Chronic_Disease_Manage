@@ -23,6 +23,7 @@ import DoctorManage from '../views/DoctorManage.vue'
 import AdminPatients from '../views/AdminPatients.vue'
 import DoctorChat from '../views/DoctorChat.vue'
 import AdminChat from '../views/AdminChat.vue'
+import AdminHome from '../views/AdminHome.vue'
 
 const routes = [
   { path: '/', redirect: '/login' },
@@ -32,7 +33,7 @@ const routes = [
   {
     path: '/admin',
     component: Layout,
-    redirect: '/admin/users',
+    redirect: '/admin/home',
     children: [
       { path: 'home', name: 'AdminHome', component: AdminHome },
       { path: 'users', name: 'UserManage', component: UserManage },

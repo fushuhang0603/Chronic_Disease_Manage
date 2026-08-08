@@ -215,6 +215,10 @@ export function getAdminRank(date, limit = 20) {
 export function getUserHealthRecords(params) {
   return request.get('/index/admin/records', { params })
 }
+// 管理端获取全部异常指标记录
+export function getAbnormalRecords(params) {
+  return request.get('/index/admin/abnormal', { params })
+}
 // 管理端获取患者用药记录
 export function getMedicineRecords(params) {
   return request.get('/medicine/admin/records', { params })

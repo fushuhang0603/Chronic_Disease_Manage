@@ -8,6 +8,7 @@ import com.chronicdisease.common.util.UserInfoContext;
 import com.chronicdisease.user.domain.entity.DoctorPatient;
 import com.chronicdisease.user.domain.entity.DoctorProfile;
 import com.chronicdisease.user.domain.entity.User;
+import com.chronicdisease.user.domain.vo.DoctorBriefVO;
 import com.chronicdisease.user.domain.vo.UserInfoVO;
 import com.chronicdisease.user.mapper.DoctorPatientMapper;
 import com.chronicdisease.user.mapper.DoctorProfileMapper;
@@ -107,5 +108,22 @@ public class DoctorPatientServiceImpl extends ServiceImpl<DoctorPatientMapper, D
     @Override
     public List<UserInfoVO> getMyPatients(Long doctorId) {
         return doctorPatientMapper.getMyPatients(doctorId);
+    }
+
+    @Override
+    public DoctorBriefVO getByPatientId(Long patientId) {
+        LambdaQueryWrapper<DoctorPatient> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(DoctorPatient::getPatientId, patientId)
+               .eq(DoctorPatient::getIsDeleted, 0)
+               .last("LIMIT 1");
+        DoctorPatient binding = baseMapper.selectOne(wrapper);
+        if (binding == null) {
+            return null;
+        }
+        DoctorBriefVO vo = new DoctorBriefVO();
+        vo.setDoctorId(binding.getDoctorId());
+        vo.setDoctorName(binding.getDoctorName());
+        vo.setPatientName(binding.getPatientName());
+        return vo;
     }
 }

@@ -94,4 +94,13 @@ public class HealthIndexController {
     public Result<AdminDashboardVO> dashboard() {
         return Result.success(healthIndexService.getDashboard());
     }
+
+    @GetMapping("/admin/abnormal")
+    @Operation(summary = "管理端分页查询全部异常指标记录")
+    public Result<PageResult<HealthIndexRecord>> abnormalRecords(
+            @RequestParam(value = "patientName", required = false) String patientName,
+            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize) {
+        return Result.success(healthIndexService.getAbnormalRecords(patientName, pageNum, pageSize));
+    }
 }

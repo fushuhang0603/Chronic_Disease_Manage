@@ -1,14 +1,17 @@
 <script setup>
 import { ref, computed, onMounted, nextTick, watch, onBeforeUnmount } from 'vue'
+import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
-import { getUserHealthRecords, getMedicineRecords, getRecheckRecords, getDictPage, getAdminIndexTrend } from '../api/user.js'
+import { getUserHealthRecords, getMedicineRecords, getRecheckRecords, getDictPage, getAdminIndexTrend, getAbnormalRecords } from '../api/user.js'
 
 const activeTab = ref(localStorage.getItem('adminActiveTab') || 'trend')
 const patientSearch = ref('')
 const selectedPatient = ref(null)
 const patientSearching = ref(false)
+const highlightRecordId = ref(null)
+const route = useRoute()
 
 // ====== 字典 ======
 const indicators = ref([])
@@ -221,6 +224,30 @@ const allPageSize = ref(10)
 const allIndexCode = ref('')
 const detailRecords = ref([])
 
+// ====== 异常预警 Tab ======
+const abnormalLoading = ref(false)
+const abnormalRecords = ref([])
+const abnormalTotal = ref(0)
+const abnormalPage = ref(1)
+const abnormalPageSize = ref(12)
+const abnormalSearch = ref('')
+
+async function loadAbnormalData() {
+  abnormalLoading.value = true
+  try {
+    const params = { pageNum: abnormalPage.value, pageSize: abnormalPageSize.value }
+    if (abnormalSearch.value.trim()) params.patientName = abnormalSearch.value.trim()
+    const res = await getAbnormalRecords(params)
+    abnormalRecords.value = res.records || []
+    abnormalTotal.value = res.total || 0
+  } catch (e) {
+    ElMessage.error(e.message || '加载异常记录失败')
+  } finally { abnormalLoading.value = false }
+}
+
+function searchAbnormal() { abnormalPage.value = 1; loadAbnormalData() }
+function resetAbnormalSearch() { abnormalSearch.value = ''; abnormalPage.value = 1; loadAbnormalData() }
+
 function callTabApi(params) {
   const apiMap = {
     index: getUserHealthRecords,
@@ -271,6 +298,9 @@ function onTabChange(tab) {
   detailRecords.value = []
   if (tab === 'trend') {
     loadPatientCards()
+  } else if (tab === 'abnormal') {
+    abnormalPage.value = 1
+    loadAbnormalData()
   } else {
     allPage.value = 1
     loadTabAllRecords()
@@ -287,8 +317,34 @@ onMounted(() => {
   loadIndicators()
   loadDrugDict()
   loadRecheckItemDict()
+
+  // 从 URL 参数自动定位（医生点击预警通知跳转过来）
+  const qPatientId = route.query.patientId
+  const qPatientName = route.query.patientName
+  const qRecordId = route.query.recordId
+  if (qPatientName && qRecordId) {
+    activeTab.value = 'index'
+    patientSearch.value = qPatientName
+    highlightRecordId.value = Number(qRecordId)
+    selectedPatient.value = { patientName: qPatientName }
+    // 异步加载该患者数据
+    patientSearching.value = true
+    callTabApi({ patientName: qPatientName, pageNum: 1, pageSize: 1000 }).then(data => {
+      if (data.records && data.records.length > 0) {
+        detailRecords.value = data.records
+        nextTick(() => {
+          const el = document.getElementById('highlight-row')
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        })
+      }
+    }).catch(() => {}).finally(() => { patientSearching.value = false })
+    return
+  }
+
   if (activeTab.value === 'trend') {
     loadPatientCards()
+  } else if (activeTab.value === 'abnormal') {
+    loadAbnormalData()
   } else {
     loadTabAllRecords()
   }
@@ -307,6 +363,7 @@ onBeforeUnmount(() => {
       <el-tab-pane label="健康指标" name="index" />
       <el-tab-pane label="用药记录" name="medicine" />
       <el-tab-pane label="复查记录" name="recheck" />
+      <el-tab-pane label="异常预警" name="abnormal" />
     </el-tabs>
 
     <!-- ========== 趋势图表 Tab ========== -->
@@ -416,7 +473,7 @@ onBeforeUnmount(() => {
           <table class="data-table" v-if="detailRecords.length > 0">
             <thead><tr><th>指标名称</th><th>数值</th><th>单位</th><th>记录时间</th><th>备注</th></tr></thead>
             <tbody>
-              <tr v-for="r in detailRecords" :key="r.id">
+              <tr v-for="r in detailRecords" :key="r.id" :id="r.id === highlightRecordId ? 'highlight-row' : undefined" :class="{ 'highlight-row': r.id === highlightRecordId }">
                 <td>{{ indName(r.indexCode) }}</td>
                 <td class="value-col">
                   <span :class="['value-num', { valhigh: r.isAbnormal === 1, vallow: r.isAbnormal === 2 }]">{{ r.indexValue }}</span>
@@ -585,6 +642,45 @@ onBeforeUnmount(() => {
         </div>
       </template>
     </template>
+
+    <!-- ========== 异常预警 Tab ========== -->
+    <template v-if="activeTab === 'abnormal'">
+      <div class="toolbar-card">
+        <div class="filter-row">
+          <el-input v-model="abnormalSearch" placeholder="输入患者姓名搜索" :prefix-icon="Search" clearable size="default" style="width: 240px" @keyup.enter="searchAbnormal" />
+          <el-button type="primary" :icon="Search" size="default" @click="searchAbnormal" :loading="abnormalLoading">搜索</el-button>
+          <el-button size="default" @click="resetAbnormalSearch">重置</el-button>
+        </div>
+      </div>
+      <div v-loading="abnormalLoading" class="table-card">
+        <div class="card-title">全部异常指标记录</div>
+        <table class="data-table" v-if="abnormalRecords.length > 0">
+          <thead><tr><th>患者姓名</th><th>指标名称</th><th>数值</th><th>单位</th><th>状态</th><th>记录时间</th><th>备注</th></tr></thead>
+          <tbody>
+            <tr
+              v-for="r in abnormalRecords"
+              :key="r.id"
+              :class="['ab-row', r.isAbnormal === 1 ? 'ab-high' : 'ab-low']"
+            >
+              <td><span class="patient-name">{{ r.patientName || '-' }}</span></td>
+              <td>{{ indName(r.indexCode) }}</td>
+              <td class="value-col">
+                <span :class="['value-num', r.isAbnormal === 1 ? 'valhigh' : 'vallow']">{{ r.indexValue }}</span>
+                <span :class="['ab-tag', r.isAbnormal === 1 ? 'high' : 'low']">{{ r.isAbnormal === 1 ? '偏高' : '偏低' }}</span>
+              </td>
+              <td>{{ r.unit || '-' }}</td>
+              <td><span :class="['ab-tag', r.isAbnormal === 1 ? 'high' : 'low']">{{ r.isAbnormal === 1 ? '偏高' : '偏低' }}</span></td>
+              <td>{{ fmtTime(r.recordTime) }}</td>
+              <td>{{ r.remark || '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div v-else class="empty-msg">暂无异常指标记录</div>
+        <div class="pagination-wrap">
+          <el-pagination background layout="total, sizes, prev, pager, next" :page-sizes="[10, 20, 50]" :total="abnormalTotal" :page-size="abnormalPageSize" :current-page="abnormalPage" @current-change="p => { abnormalPage = p; loadAbnormalData() }" @size-change="s => { abnormalPageSize = s; abnormalPage = 1; loadAbnormalData() }" />
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -704,4 +800,31 @@ onBeforeUnmount(() => {
   border-radius: 8px;
 }
 .empty-msg { display: flex; align-items: center; justify-content: center; padding: 60px 20px; color: #94a3b8; font-size: 14px; }
+
+/* 预警通知跳转过来的高亮行 */
+.data-table .highlight-row td {
+  background: #fef9e7 !important;
+  box-shadow: inset 0 0 0 2px #f59e0b;
+  transition: background 0.5s ease;
+}
+
+/* ===== 异常预警表格 ===== */
+.abnormal-table tbody tr.ab-row {
+  cursor: pointer;
+  border-left: 4px solid transparent;
+}
+.abnormal-table tbody tr.ab-row td:first-child {
+  padding-left: 10px;
+}
+.abnormal-table tbody tr.ab-high {
+  background: #fef2f2;
+  border-left: 4px solid #dc2626 !important;
+}
+.abnormal-table tbody tr.ab-low {
+  background: #eff6ff;
+  border-left: 4px solid #2563eb !important;
+}
+.abnormal-table tbody tr.ab-row:hover {
+  filter: brightness(0.97);
+}
 </style>

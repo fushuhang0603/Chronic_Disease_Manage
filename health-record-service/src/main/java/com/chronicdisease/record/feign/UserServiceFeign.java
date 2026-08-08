@@ -1,6 +1,7 @@
 package com.chronicdisease.record.feign;
 
 import com.chronicdisease.common.result.Result;
+import com.chronicdisease.record.domain.vo.DoctorBriefVO;
 import com.chronicdisease.record.domain.vo.IndexDictBriefVO;
 import com.chronicdisease.record.domain.vo.PatientBriefVO;
 import com.chronicdisease.record.domain.vo.UserBriefVO;
@@ -32,5 +33,9 @@ public interface UserServiceFeign {
     @GetMapping("/dict/getByCode")
     @Operation(summary = "根据编码查询指标术语（含正常范围阈值）")
     Result<IndexDictBriefVO> getDictByCode(@RequestParam("indexCode") String indexCode);
+
+    @GetMapping("/doctor/patient/getByPatientId")
+    @Operation(summary = "根据患者ID查询绑定的医生")
+    Result<DoctorBriefVO> getDoctorByPatientId(@RequestParam("patientId") Long patientId);
 
 }

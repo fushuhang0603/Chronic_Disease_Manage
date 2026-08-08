@@ -32,6 +32,8 @@ public class ChatWebSocketEndpoint {
 
     // 离线消息 Redis 队列 key 前缀：chat:offline:{userId}
     private static final String OFFLINE_KEY_PREFIX = "chat:offline:";
+    // 指标异常离线预警 Redis key 前缀：index:abnormal:offline:{doctorId}
+    private static final String ABNORMAL_OFFLINE_KEY_PREFIX = "index:abnormal:offline:";
     // 离线队列保留时间
     private static final long OFFLINE_EXPIRE_DAYS = 7;
 
@@ -76,6 +78,11 @@ public class ChatWebSocketEndpoint {
 
         // 上线补偿：异步去 Redis 查离线期间的消息并推送给用户（不阻塞 WebSocket 容器线程）
         chatExecutor.execute(() -> pushOfflineMessages(this.userId));
+
+        // 医生上线：拉取离线期间的指标异常预警
+        if ("DOCTOR".equalsIgnoreCase(this.role)) {
+            chatExecutor.execute(() -> pushOfflineAbnormalMessages(this.userId));
+        }
     }
 
     @OnMessage
@@ -159,6 +166,11 @@ public class ChatWebSocketEndpoint {
         return ONLINE_USER_SESSION.size();
     }
 
+    /** 获取指定用户的在线 Session（供 MQ 消费者等外部组件使用） */
+    public static Session getOnlineSession(Long userId) {
+        return ONLINE_USER_SESSION.get(userId);
+    }
+
     /**
      *接收端用户离线时,缓存离线消息
      * @param toUserId
@@ -231,6 +243,32 @@ public class ChatWebSocketEndpoint {
             }
         } catch (IOException e) {
             log.warn("发送消息失败: sessionId={}, err={}", target.getId(), e.getMessage());
+        }
+    }
+
+    /**
+     * 医生上线时，拉取离线期间的指标异常预警消息并推送
+     */
+    private void pushOfflineAbnormalMessages(Long doctorId) {
+        Session s = ONLINE_USER_SESSION.get(doctorId);
+        if (s == null || !s.isOpen()) {
+            return;
+        }
+        try {
+            String key = ABNORMAL_OFFLINE_KEY_PREFIX + doctorId;
+            if (Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
+                List<String> messages = redisTemplate.opsForList().range(key, 0, -1);
+                if (messages != null && !messages.isEmpty()) {
+                    for (String json : messages) {
+                        sendText(s, json);
+                    }
+                    redisTemplate.delete(key);
+                    log.info("离线指标异常预警补偿推送完成: doctorId={}, 条数={}", doctorId, messages.size());
+                    return;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("拉取离线指标异常预警失败: doctorId={}, err={}", doctorId, e.getMessage());
         }
     }
 }

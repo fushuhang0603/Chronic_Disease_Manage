@@ -13,14 +13,17 @@ import com.chronicdisease.common.util.UserInfoContext;
 import com.chronicdisease.record.domain.dto.HealthIndexDTO;
 import com.chronicdisease.record.domain.dto.HealthIndexPageDTO;
 import com.chronicdisease.record.domain.entity.HealthIndexRecord;
+import com.chronicdisease.record.domain.message.IndexAbnormalMessage;
 import com.chronicdisease.record.domain.vo.AdminDashboardVO;
 import com.chronicdisease.record.domain.vo.DashboardAbnormalItem;
 import com.chronicdisease.record.domain.vo.DailyAggregation;
 import com.chronicdisease.record.domain.vo.IndexDictBriefVO;
 import com.chronicdisease.record.domain.vo.PatientBriefVO;
 import com.chronicdisease.record.domain.vo.TrendPointVO;
+import com.chronicdisease.record.domain.vo.UserBriefVO;
 import com.chronicdisease.record.feign.UserServiceFeign;
 import com.chronicdisease.record.mapper.HealthIndexMapper;
+import com.chronicdisease.record.mq.IndexAbnormalProducer;
 import com.chronicdisease.record.service.IHealthIndexService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -45,6 +48,8 @@ public class HealthIndexServiceImpl extends ServiceImpl<HealthIndexMapper, Healt
     private HealthIndexMapper healthIndexMapper;
     @Autowired
     private UserServiceFeign userServiceFeign;
+    @Autowired
+    private IndexAbnormalProducer indexAbnormalProducer;
 
 
     @Override
@@ -81,6 +86,30 @@ public class HealthIndexServiceImpl extends ServiceImpl<HealthIndexMapper, Healt
             }
         }
         healthIndexMapper.insert(record);
+
+        // 指标异常时发送 MQ 通知
+        if (record.getIsAbnormal() != null && record.getIsAbnormal() != BusinessConstant.INDEX_ABNORMAL_NORMAL) {
+            String abnormalLabel = record.getIsAbnormal().equals(BusinessConstant.INDEX_ABNORMAL_HIGH) ? "偏高" : "偏低";
+            String patientName = null;
+            try {
+                UserBriefVO user = userServiceFeign.queryById(userId).getData();
+                patientName = user != null ? user.getRealName() : null;
+            } catch (Exception e) {
+                log.warn("获取患者姓名失败, userId={}", userId, e);
+            }
+            IndexAbnormalMessage message = IndexAbnormalMessage.builder()
+                    .patientId(userId)
+                    .patientName(patientName)
+                    .indexCode(record.getIndexCode())
+                    .indexName(data != null ? data.getIndexName() : record.getIndexCode())
+                    .indexValue(record.getIndexValue())
+                    .unit(record.getUnit())
+                    .abnormalLabel(abnormalLabel)
+                    .recordTime(record.getRecordTime())
+                    .recordId(record.getId())
+                    .build();
+            indexAbnormalProducer.send(message);
+        }
     }
 
     @Override
@@ -156,6 +185,41 @@ public class HealthIndexServiceImpl extends ServiceImpl<HealthIndexMapper, Healt
         return new PageResult<>(records, result.getTotal());
     }
 
+    @Override
+    public PageResult<HealthIndexRecord> getAbnormalRecords(String patientName, Integer pageNum, Integer pageSize) {
+        Map<Long, String> nameMap = new HashMap<>();
+        try {
+            List<PatientBriefVO> briefs = userServiceFeign.getAllPatientBriefs(patientName).getData();
+            if (CollUtil.isNotEmpty(briefs)) {
+                nameMap = briefs.stream()
+                        .collect(Collectors.toMap(PatientBriefVO::getUserId, PatientBriefVO::getPatientName, (a, b) -> a));
+            }
+        } catch (Exception e) {
+            log.warn("获取患者信息失败, patientName={}", patientName, e);
+        }
+
+        LambdaQueryWrapper<HealthIndexRecord> wrapper = new LambdaQueryWrapper<>();
+        wrapper.ne(HealthIndexRecord::getIsAbnormal, BusinessConstant.INDEX_ABNORMAL_NORMAL);
+        wrapper.eq(HealthIndexRecord::getIsDeleted, BusinessConstant.isNotDelete);
+        if (StringUtils.isNotBlank(patientName)) {
+            if (CollUtil.isEmpty(nameMap)) {
+                return new PageResult<>();
+            }
+            wrapper.in(HealthIndexRecord::getUserId, nameMap.keySet());
+        }
+        wrapper.orderByDesc(HealthIndexRecord::getCreateTime);
+
+        Page<HealthIndexRecord> page = new Page<>(pageNum, pageSize);
+        Page<HealthIndexRecord> result = healthIndexMapper.selectPage(page, wrapper);
+
+        List<HealthIndexRecord> records = result.getRecords();
+        if (CollUtil.isNotEmpty(records)) {
+            Map<Long, String> finalNameMap = nameMap;
+            records.forEach(r -> r.setPatientName(finalNameMap.getOrDefault(r.getUserId(), "-")));
+        }
+
+        return new PageResult<>(records, result.getTotal());
+    }
 
 
     @Override

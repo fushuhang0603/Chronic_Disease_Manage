@@ -1,13 +1,14 @@
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getChatRecords, markChatRead } from '../api/user.js'
+import { useSharedWs } from '../composables/useSharedWs.js'
 
 const route = useRoute()
+const router = useRouter()
 const chatEl = ref(null)
 const inputText = ref('')
-const connected = ref(false)
 const historyLoading = ref(false)
 const noMore = ref(false)
 
@@ -21,15 +22,48 @@ const doctorName = (() => {
   } catch { return '医生' }
 })()
 const messages = ref([])
-let ws = null
 let pageNum = 1 // 已加载到第几页
+let offMessage = null // 消息监听注销函数
+
+// ---- 共享 WebSocket：Layout 已建立连接，这里复用 ----
+const { connect, send, onMessage, connected } = useSharedWs()
 
 onMounted(async () => {
   if (!patientId) { ElMessage.error('缺少患者信息'); return }
-  // 先拉历史消息，再连 WebSocket，避免漏消息
+  // 先拉历史消息，再确保 WebSocket 已连接（Layout 可能已连，幂等操作）
   await loadHistory()
   markChatRead(patientId).catch(() => {})
-  connectWs()
+  const token = sessionStorage.getItem('token')
+  if (token) connect(token)
+
+  // 注册聊天消息监听
+  offMessage = onMessage((msg) => {
+    // 忽略通知类消息（Layout 处理）
+    if (msg.type === 'index_abnormal') return
+    // 错误消息
+    if (msg.type === 'error') { ElMessage.error(msg.message); return }
+
+    const time = formatTime(msg.time)
+    // 去重
+    const dup = messages.value.some(m =>
+      m.content === msg.content &&
+      String(m.senderRole || '').toUpperCase() === String(msg.senderRole || '').toUpperCase() &&
+      m.time === time)
+    if (dup) return
+    const atBottom = isNearBottom()
+    const item = {
+      id: 0,
+      rawTime: msg.time,
+      content: msg.content,
+      time,
+      senderRole: msg.senderRole,
+      self: String(msg.senderRole || '').toUpperCase() === 'DOCTOR',
+    }
+    const idx = messages.value.findIndex(m => (m.rawTime || '') > msg.time)
+    if (idx === -1) messages.value.push(item)
+    else messages.value.splice(idx, 0, item)
+    if (atBottom) scrollBottom()
+  })
 })
 
 // 分页加载历史消息：每次加载下一批更早的消息（时间倒序，最新的在底部）
@@ -65,56 +99,14 @@ async function loadHistory() {
   }
 }
 
-function connectWs() {
-  const token = sessionStorage.getItem('token')
-  if (!token) {
-    console.error('[DoctorChat] Token 不存在，无法连接 WebSocket')
-    return
-  }
-  const httpUrl = import.meta.env.DEV
-    ? `ws://localhost:9000/ws/chat?token=${encodeURIComponent(token)}`
-    : `ws://${location.host}/ws/chat?token=${encodeURIComponent(token)}`
-  console.log('[DoctorChat] WebSocket 连接中:', httpUrl)
-  ws = new WebSocket(httpUrl)
-  ws.onopen = () => { console.log('[DoctorChat] WebSocket 已连接'); connected.value = true }
-  ws.onmessage = (e) => {
-    try {
-      const msg = JSON.parse(e.data)
-      if (msg.type === 'error') { ElMessage.error(msg.message); return }
-      const time = formatTime(msg.time)
-      // 去重：离线补偿推送的消息可能已包含在历史记录中
-      const dup = messages.value.some(m =>
-        m.content === msg.content &&
-        String(m.senderRole || '').toUpperCase() === String(msg.senderRole || '').toUpperCase() &&
-        m.time === time)
-      if (dup) return
-      const atBottom = isNearBottom()
-      const item = {
-        id: 0,
-        rawTime: msg.time,
-        content: msg.content,
-        time,
-        senderRole: msg.senderRole,
-        self: String(msg.senderRole || '').toUpperCase() === 'DOCTOR',
-      }
-      // 按时间正序插入，保证离线补偿消息落在正确位置
-      const idx = messages.value.findIndex(m => (m.rawTime || '') > msg.time)
-      if (idx === -1) messages.value.push(item)
-      else messages.value.splice(idx, 0, item)
-      if (atBottom) scrollBottom()
-    } catch (err) { console.error('[DoctorChat] 消息解析失败:', err) }
-  }
-  ws.onclose = (e) => { console.log('[DoctorChat] WebSocket 已断开, code:', e.code); connected.value = false }
-  ws.onerror = (e) => { console.error('[DoctorChat] WebSocket 连接失败'); connected.value = false }
-}
-
 function sendMessage() {
   const text = inputText.value.trim()
-  if (!text || !ws || ws.readyState !== WebSocket.OPEN) return
-  ws.send(JSON.stringify({
+  if (!text || !connected.value) return
+  const sent = send({
     toUserId: String(patientId), content: text,
     patientName, doctorName, senderName: '', senderRole: 'DOCTOR',
-  }))
+  })
+  if (!sent) return
   const t = fullNow()
   messages.value.push({ id: 0, content: text, time: formatTime(t), senderRole: 'DOCTOR', self: true })
   inputText.value = ''
@@ -156,7 +148,7 @@ function formatTime(t) {
 }
 
 function handleKeydown(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() } }
-onUnmounted(() => { if (ws) ws.close() })
+onUnmounted(() => { if (offMessage) offMessage() })
 </script>
 
 <template>

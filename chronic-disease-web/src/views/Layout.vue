@@ -1,11 +1,62 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ElMessageBox } from 'element-plus'
+import { ElMessageBox, ElNotification } from 'element-plus'
+import { useSharedWs } from '../composables/useSharedWs.js'
 
 const router = useRouter()
 const route = useRoute()
 const isCollapse = ref(false)
+
+// ---- 共享 WebSocket：登录时建立，整个 admin 布局共用 ----
+const { connect, disconnect, onMessage } = useSharedWs()
+
+onMounted(() => {
+  const token = sessionStorage.getItem('token')
+  if (!token) return
+  connect(token)
+
+  // 监听指标异常预警
+  onMessage((msg) => {
+    if (msg.type !== 'index_abnormal') return
+    const patientName = msg.patientName || `患者${msg.patientId}`
+    const indexName = msg.indexName || msg.indexCode
+    const abColor = msg.abnormalLabel === '偏高' ? '#dc2626' : '#2563eb'
+    const abBg = msg.abnormalLabel === '偏高' ? '#fef2f2' : '#eff6ff'
+    ElNotification({
+      title: '',
+      message: `<div style="font-family:system-ui,'Segoe UI',Roboto,sans-serif;line-height:1.5">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <span style="font-size:16px;font-weight:700;color:#1e293b">${indexName}</span>
+          <span style="padding:2px 8px;border-radius:12px;font-size:12px;font-weight:600;color:${abColor};background:${abBg}">${msg.abnormalLabel}</span>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:12px">
+          <span style="font-size:32px;font-weight:700;color:${abColor}">${msg.indexValue}</span>
+          <span style="font-size:14px;color:#64748b">${msg.unit || ''}</span>
+        </div>
+        <div style="padding:10px 12px;background:#f8fafc;border-radius:10px;margin-bottom:10px">
+          <div style="display:flex;gap:16px;font-size:12px;color:#64748b">
+            <span>患者：<b style="color:#334155">${patientName}</b></span>
+            <span>时间：${msg.recordTime ? String(msg.recordTime).substring(5, 16) : '-'}</span>
+          </div>
+        </div>
+        <div style="font-size:12px;color:#3b82f6;font-weight:500">点击查看详情 →</div>
+      </div>`,
+      type: 'warning',
+      duration: 10000,
+      dangerouslyUseHTMLString: true,
+      offset: 60,
+      onClick: () => {
+        router.push({
+          path: '/admin/data',
+          query: { patientId: msg.patientId, patientName, recordId: msg.recordId }
+        })
+      },
+    })
+  })
+})
+
+onUnmounted(() => disconnect())
 
 const menuItems = [
   { path: '/admin/home', label: '首页', icon: 'HomeFilled', color: '#f97316' },

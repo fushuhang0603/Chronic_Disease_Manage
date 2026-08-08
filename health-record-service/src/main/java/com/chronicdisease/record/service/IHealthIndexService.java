@@ -38,4 +38,9 @@ public interface IHealthIndexService extends IService<HealthIndexRecord> {
     Map<String, List<TrendPointVO>> getAdminTrend(String patientName, Integer days, String granularity, List<String> indexCodes);
 
     AdminDashboardVO getDashboard();
+
+    /**
+     * 管理端：分页查询所有异常指标记录
+     */
+    PageResult<HealthIndexRecord> getAbnormalRecords(String patientName, Integer pageNum, Integer pageSize);
 }

@@ -3,6 +3,7 @@ package com.chronicdisease.user.controller;
 import com.chronicdisease.common.annotation.OperationLog;
 import com.chronicdisease.common.result.Result;
 import com.chronicdisease.user.domain.entity.DoctorProfile;
+import com.chronicdisease.user.domain.vo.DoctorBriefVO;
 import com.chronicdisease.user.domain.vo.UserInfoVO;
 import com.chronicdisease.user.service.IDoctorPatientService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -51,6 +52,13 @@ public class DoctorPatientController {
     @Operation(summary = "医生端：获取我的所有绑定患者ID列表")
     public Result<List<UserInfoVO>> myPatients(@RequestParam("doctorId") Long doctorId) {
         List<UserInfoVO> result = doctorPatientService.getMyPatients(doctorId);
+        return Result.success(result);
+    }
+
+    @GetMapping("/getByPatientId")
+    @Operation(summary = "根据患者ID查询绑定的医生（供内部Feign调用）")
+    public Result<DoctorBriefVO> getByPatientId(@RequestParam("patientId") Long patientId) {
+        DoctorBriefVO result = doctorPatientService.getByPatientId(patientId);
         return Result.success(result);
     }
 }

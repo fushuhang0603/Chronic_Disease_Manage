@@ -1,7 +1,5 @@
 package com.chronicdisease.common.constant;
 
-import io.swagger.v3.oas.models.security.SecurityScheme;
-
 public class BusinessConstant {
 
     public static final Integer isDelete = 1;

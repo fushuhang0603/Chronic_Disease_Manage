@@ -12,6 +12,7 @@ const navItems = [
   { path: '/patient/data', label: '健康监测', icon: 'DataAnalysis' },
   { path: '/patient/remind', label: '用药提醒', icon: 'AlarmClock' },
   { path: '/patient/article', label: '健康资讯', icon: 'Document' },
+  { path: '/patient/assistant', label: '智能医助', icon: 'ChatDotRound' },
 ]
 
 const activeNav = computed(() => route.path)

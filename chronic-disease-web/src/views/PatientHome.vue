@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { getTopArticles, updateFavoriteStatus, getMyDoctor, getHomeNotices } from '../api/user'
 import { ArrowRight } from '@element-plus/icons-vue'
@@ -134,6 +134,7 @@ async function handleFavorite(item) {
 
 function goPage(path) { router.push(path) }
 function goArticle() { router.push('/patient/article') }
+function goAssistant() { router.push('/patient/assistant') }
 
 onMounted(() => { loadArticles(); loadMyDoctor(); loadNotices() })
 </script>
@@ -176,6 +177,36 @@ onMounted(() => { loadArticles(); loadMyDoctor(); loadNotices() })
             <span class="hs-num">{{ indicators.length }}</span>
             <span class="hs-label">项关键指标</span>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 智能医助入口 ====== -->
+    <div class="ai-entry-card" @click="goAssistant">
+      <div class="ai-entry-glow"></div>
+      <div class="ai-entry-orb orb-1"></div>
+      <div class="ai-entry-orb orb-2"></div>
+      <div class="ai-entry-content">
+        <div class="ai-entry-icon-wrap">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4"/>
+            <path d="M5 21c0-3.9 3.1-7 7-7s7 3.1 7 7"/>
+            <path d="M12 3v2"/>
+            <circle cx="18" cy="5" r="2" fill="currentColor" stroke="none" opacity="0.3"/>
+            <circle cx="6" cy="18" r="1.5" fill="currentColor" stroke="none" opacity="0.2"/>
+            <circle cx="20" cy="15" r="1" fill="currentColor" stroke="none" opacity="0.25"/>
+          </svg>
+        </div>
+        <div class="ai-entry-text">
+          <h3 class="ai-entry-title">
+            智能医助
+            <span class="ai-entry-badge">AI</span>
+          </h3>
+          <p class="ai-entry-desc">你的专属健康顾问，随时在线解答</p>
+        </div>
+        <div class="ai-entry-btn">
+          <span>开始对话</span>
+          <el-icon :size="16"><ArrowRight /></el-icon>
         </div>
       </div>
     </div>
@@ -638,5 +669,95 @@ onMounted(() => { loadArticles(); loadMyDoctor(); loadNotices() })
   .hero-banner { padding: 20px; flex-direction: column; align-items: flex-start; }
   .hero-right { flex-direction: row; width: 100%; justify-content: space-between; }
   .hero-greeting { font-size: 18px; }
+}
+/* ====== 智能医助入口卡片 ====== */
+.ai-entry-card {
+  position: relative;
+  padding: 28px 32px;
+  border-radius: 24px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 40%, #e0f2fe 100%);
+  overflow: hidden;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.08);
+}
+.ai-entry-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(59, 130, 246, 0.18);
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 40%, #bae6fd 100%);
+}
+/* 光晕 */
+.ai-entry-glow {
+  position: absolute;
+  top: -60px; right: -40px;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(96, 165, 250, 0.25) 0%, transparent 70%);
+  pointer-events: none;
+  transition: all 0.35s;
+}
+.ai-entry-card:hover .ai-entry-glow {
+  width: 260px; height: 260px;
+  top: -80px; right: -60px;
+}
+/* 装饰圆点 */
+.ai-entry-orb {
+  position: absolute; border-radius: 50%; pointer-events: none;
+}
+.orb-1 {
+  width: 48px; height: 48px;
+  bottom: -12px; left: 20%;
+  background: rgba(147, 197, 253, 0.35);
+}
+.orb-2 {
+  width: 24px; height: 24px;
+  top: 14px; right: 30%;
+  background: rgba(96, 165, 250, 0.3);
+}
+.ai-entry-content {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: 20px;
+}
+/* 图标 */
+.ai-entry-icon-wrap {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; flex-shrink: 0;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+  animation: ai-float 3s ease-in-out infinite;
+}
+@keyframes ai-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+/* 文字 */
+.ai-entry-text { flex: 1; min-width: 0; }
+.ai-entry-title {
+  font-size: 18px; font-weight: 700; color: #1e3a5f; margin: 0;
+  display: flex; align-items: center; gap: 8px;
+}
+.ai-entry-badge {
+  font-size: 10px; font-weight: 800; padding: 1px 7px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff; letter-spacing: 0.5px;
+}
+.ai-entry-desc {
+  font-size: 13px; color: #64748b; margin: 4px 0 0;
+}
+/* 按钮 */
+.ai-entry-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 22px; border-radius: 30px;
+  background: #fff; color: #2563eb;
+  font-size: 14px; font-weight: 600;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+  transition: all 0.25s; flex-shrink: 0;
+  white-space: nowrap;
+}
+.ai-entry-card:hover .ai-entry-btn {
+  background: #2563eb; color: #fff;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
 }
 </style>

@@ -13,6 +13,10 @@ export default defineConfig({
         ws: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
+      '/agent': {
+        target: 'http://localhost:9005',
+        changeOrigin: true,
+      },
     },
   },
 })

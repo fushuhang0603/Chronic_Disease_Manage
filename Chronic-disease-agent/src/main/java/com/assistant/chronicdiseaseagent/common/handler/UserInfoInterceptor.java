@@ -1,7 +1,7 @@
-package com.chronicdisease.common.handler;
+package com.assistant.chronicdiseaseagent.common.handler;
 
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
-import com.chronicdisease.common.util.UserInfoContext;
+import com.alibaba.cloud.commons.lang.StringUtils;
+import com.assistant.chronicdiseaseagent.common.util.UserInfoContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.lang.Nullable;

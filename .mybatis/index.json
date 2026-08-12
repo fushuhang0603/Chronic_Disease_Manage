@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "timestamp": 1786263525231,
+  "timestamp": 1786512555426,
   "projectRoot": "d:\\Code\\Chronic_Disease_Manage",
   "entries": [
     {
@@ -75,16 +75,6 @@
       }
     },
     {
-      "path": "health-record-service\\target\\classes\\com\\chronicdisease\\record\\config\\RabbitMqConfig.class",
-      "mtime": 1786203900469.2817,
-      "size": 2364
-    },
-    {
-      "path": "health-record-service\\target\\classes\\com\\chronicdisease\\record\\config\\RedisConfig.class",
-      "mtime": 1786262571559.545,
-      "size": 2891
-    },
-    {
       "path": "health-record-service\\target\\classes\\com\\chronicdisease\\record\\HealthRecordServiceApplication.class",
       "mtime": 1786263388298.026,
       "size": 1060,
@@ -96,23 +86,48 @@
       }
     },
     {
-      "path": "health-record-service\\target\\classes\\com\\chronicdisease\\record\\config\\WebSocketConfig.class",
-      "mtime": 1786263439793.204,
-      "size": 738
-    },
-    {
       "path": "chronic-disease-gateway\\target\\classes\\com\\chronicdisease\\gateway\\GatewayApplication.class",
       "mtime": 1786263482413.2058,
       "size": 805
     },
     {
+      "path": "health-record-service\\target\\classes\\com\\chronicdisease\\record\\config\\AsyncConfig.class",
+      "mtime": 1786263504553.8513,
+      "size": 1348
+    },
+    {
+      "path": "health-record-service\\target\\classes\\com\\chronicdisease\\record\\config\\RabbitMqConfig.class",
+      "mtime": 1786423625638.8457,
+      "size": 2364
+    },
+    {
+      "path": "health-article-service\\target\\classes\\com\\chronicdisease\\article\\config\\RedisConfig.class",
+      "mtime": 1786457559025.4077,
+      "size": 2923
+    },
+    {
+      "path": "health-record-service\\target\\classes\\com\\chronicdisease\\record\\config\\WebSocketConfig.class",
+      "mtime": 1786457562027.6765,
+      "size": 738
+    },
+    {
       "path": "chronic-disease-common\\target\\classes\\com\\chronicdisease\\common\\config\\MvcConfig.class",
-      "mtime": 1786263492213.419,
+      "mtime": 1786458164247.1714,
       "size": 2907
     },
     {
+      "path": "Chronic-disease-agent\\target\\classes\\com\\assistant\\chronicdiseaseagent\\ChronicDiseaseAgentApplication.class",
+      "mtime": 1786468850061.2383,
+      "size": 948
+    },
+    {
+      "path": "Chronic-disease-agent\\target\\classes\\com\\assistant\\chronicdiseaseagent\\config\\AiConfig.class",
+      "mtime": 1786470708696.442,
+      "size": 1110
+    },
+    {
       "path": "health-user-service\\target\\classes\\com\\chronicdisease\\user\\UserServiceApplication.class",
-      "mtime": 1786263494934.609,
+      "mtime": 1786471936783.9617,
       "size": 965,
       "mapperScan": {
         "basePackages": [
@@ -122,18 +137,8 @@
       }
     },
     {
-      "path": "health-record-service\\target\\classes\\com\\chronicdisease\\record\\config\\AsyncConfig.class",
-      "mtime": 1786263504553.8513,
-      "size": 1348
-    },
-    {
-      "path": "health-article-service\\target\\classes\\com\\chronicdisease\\article\\config\\RedisConfig.class",
-      "mtime": 1786263513135.9746,
-      "size": 2911
-    },
-    {
       "path": "health-remind-service\\target\\classes\\com\\chronicdisease\\remind\\HealthRemindServiceApplication.class",
-      "mtime": 1786263523032.9822,
+      "mtime": 1786471944994.145,
       "size": 1127,
       "mapperScan": {
         "basePackages": [
@@ -141,6 +146,11 @@
         ],
         "sourceFile": "d:\\Code\\Chronic_Disease_Manage\\health-remind-service\\target\\classes\\com\\chronicdisease\\remind\\HealthRemindServiceApplication.class"
       }
+    },
+    {
+      "path": "health-record-service\\target\\classes\\com\\chronicdisease\\record\\config\\RedisConfig.class",
+      "mtime": 1786512460508.7036,
+      "size": 2891
     }
   ]
 }

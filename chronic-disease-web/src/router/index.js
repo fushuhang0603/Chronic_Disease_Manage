@@ -15,6 +15,7 @@ import PatientNotice from '../views/PatientNotice.vue'
 import PatientArticle from '../views/PatientArticle.vue'
 import PatientDoctors from '../views/PatientDoctors.vue'
 import PatientChat from '../views/PatientChat.vue'
+import PatientAssistant from '../views/PatientAssistant.vue'
 import AdminRemind from '../views/AdminRemind.vue'
 import AdminNotice from '../views/AdminNotice.vue'
 import AdminArticle from '../views/AdminArticle.vue'
@@ -62,6 +63,7 @@ const routes = [
       { path: 'article', name: 'PatientArticle', component: PatientArticle },
       { path: 'doctors', name: 'PatientDoctors', component: PatientDoctors },
       { path: 'chat', name: 'PatientChat', component: PatientChat },
+      { path: 'assistant', name: 'PatientAssistant', component: PatientAssistant },
     ],
   },
 ]

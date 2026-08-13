@@ -30,3 +30,7 @@ spring:
           uri: lb://health-article-service
           predicates:
             - Path=/article/**
+        - id: chronic-disease-agent
+          uri: lb://chronic-disease-agent
+          predicates:
+            - Path=/agent/**

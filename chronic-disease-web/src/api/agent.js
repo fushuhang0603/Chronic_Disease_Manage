@@ -2,7 +2,7 @@
  * 智能医助 API — 调用 chronic-disease-agent 的对话接口（SSE 流式）
  */
 
-const AGENT_BASE = '/agent'
+const AGENT_BASE = '/api/agent'
 
 /**
  * 患者端智能医助对话（SSE 流式）
@@ -14,7 +14,12 @@ export function patientChatStream(userInput, callbacks) {
   const controller = new AbortController()
   const url = `${AGENT_BASE}/patient/chat?userInput=${encodeURIComponent(userInput)}`
 
-  fetch(url, { signal: controller.signal })
+  fetch(url, {
+    signal: controller.signal,
+    headers: {
+      Authorization: sessionStorage.getItem('token') || '',
+    },
+  })
     .then(async (response) => {
       if (!response.ok) {
         callbacks.onError?.(new Error(`请求失败: ${response.status}`))

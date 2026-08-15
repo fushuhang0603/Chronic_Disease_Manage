@@ -1,25 +1,30 @@
 package com.assistant.chronicdiseaseagent.tool;
 
+import com.assistant.chronicdiseaseagent.common.Entity.HealthIndexPageDTO;
+import com.assistant.chronicdiseaseagent.common.Entity.HealthIndexRecord;
 import com.assistant.chronicdiseaseagent.common.Entity.IndexDict;
 import com.assistant.chronicdiseaseagent.common.Entity.IndexDictQuery;
-import com.assistant.chronicdiseaseagent.common.Entity.TrendPointVO;
 import com.assistant.chronicdiseaseagent.common.client.HealthRecordClient;
 import com.assistant.chronicdiseaseagent.common.client.UserServiceClient;
 import com.assistant.chronicdiseaseagent.common.result.PageResult;
 import com.assistant.chronicdiseaseagent.common.result.Result;
+import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * 健康指标趋势查询工具 — 让患者通过 AI 对话查询自己某项健康指标近期的变化趋势
- * 流程：① 查指标字典模糊匹配名称 → ② 查聚合趋势接口 → ③ 压缩为文本摘要返回
+ * 健康指标记录查询工具 — 让患者通过 AI 对话查询自己在指定时间范围内录入的指标记录
+ * 流程：解析时间范围 → 查分页记录接口 → 拼装为文本摘要返回
  */
 @Component
 public class HealthMetricTool {
@@ -30,43 +35,123 @@ public class HealthMetricTool {
     @Autowired
     private HealthRecordClient healthRecordClient;
 
-    @Tool(description = "查询患者本人某项健康指标近期的变化趋势。传入指标名称（如：血糖、血压、空腹血糖、糖化血红蛋白、尿酸、心率、体重、BMI、血脂等），返回该指标最近几天的日均值、最高、最低及测量次数，用于判断指标是否稳定或异常")
-    public String queryMetricTrend(
-            @ToolParam(description = "患者想查询的健康指标名称，例如：血糖、空腹血糖、血压、尿酸、心率、体重", required = true) String indexName,
-            @ToolParam(description = "查询最近多少天的数据，默认7天", required = false) Integer days) {
+    @Tool(description = "查询患者本人在指定时间范围内录入的健康指标原始记录（非趋势聚合）。传入开始时间和结束时间（如 2026-07-01 和 2026-07-31），返回该时间段内每一条记录的测量时间、指标名称、数值、单位及是否异常")
+    public String queryMetricRecords(
+            @ToolParam(description = "开始时间，格式 yyyy-MM-dd 或 yyyy-MM-dd HH:mm:ss", required = true) String startTime,
+            @ToolParam(description = "结束时间，格式 yyyy-MM-dd 或 yyyy-MM-dd HH:mm:ss", required = true) String endTime,
+            ToolContext toolContext) {
 
-        if (indexName == null || indexName.trim().isEmpty()) {
-            return "请明确告知要查询的指标名称，例如：血糖、血压、尿酸等。";
+        LocalDateTime start = parseTime(startTime, true);
+        LocalDateTime end = parseTime(endTime, false);
+        if (start == null || end == null) {
+            return "时间格式不正确，请使用 yyyy-MM-dd 或 yyyy-MM-dd HH:mm:ss。";
         }
-        if (days == null || days <= 0) {
-            days = 7;
-        }
-
-        // 查询指标字典（仅指标类），用于名称映射
-        List<IndexDict> indicators = loadIndicators();
-        if (indicators.isEmpty()) {
-            return "暂未获取到指标字典数据，请稍后重试。";
+        if (start.isAfter(end)) {
+            return "开始时间不能晚于结束时间。";
         }
 
-        //模糊匹配指标名称 → 得到 indexCode + 正常范围
-        List<IndexDict> matched = matchIndicators(indexName, indicators);
-        if (matched.isEmpty()) {
-            return "未找到与“" + indexName + "”匹配的指标。当前支持的指标包括："
-                    + indicators.stream().map(IndexDict::getIndexName).collect(Collectors.joining("、"))
-                    + "，请换一个更准确的名称再试。";
+        Long userId = extractUserId(toolContext);
+        if (userId == null) {
+            return "未获取到您的身份信息，请重新登录后再试。";
         }
 
-        //查聚合趋势（按天粒度）
-        List<String> indexCodes = matched.stream().map(IndexDict::getIndexCode).collect(Collectors.toList());
-        Result<Map<String, List<TrendPointVO>>> trendResult =
-                healthRecordClient.trend(days, "DAY", indexCodes);
+        HealthIndexPageDTO dto = new HealthIndexPageDTO();
+        dto.setPageNum(1);
+        dto.setPageSize(100);
+        dto.setStartTime(start);
+        dto.setEndTime(end);
 
-        if (trendResult == null || trendResult.getData() == null) {
-            return "趋势数据查询失败，请稍后重试。";
+        Result<PageResult<HealthIndexRecord>> result = healthRecordClient.pageRecords(userId, dto);
+        if (result == null || result.getData() == null) {
+            return "指标记录查询失败，请稍后重试。";
         }
 
-        //压缩为文本摘要
-        return buildSummary(matched, trendResult.getData(), days);
+        List<HealthIndexRecord> records = result.getData().getRecords();
+        Long total = result.getData().getTotal();
+        if (records == null || records.isEmpty()) {
+            return "该时间段内暂无指标记录。";
+        }
+
+        Map<String, String> nameMap = loadIndicatorNameMap();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("查询到 ").append(total == null ? records.size() : total).append(" 条指标记录：\n");
+        for (HealthIndexRecord r : records) {
+            String name = nameMap.getOrDefault(r.getIndexCode(), r.getIndexCode());
+            sb.append("- ").append(r.getRecordTime())
+                    .append("：").append(name)
+                    .append(" ").append(fmt(r.getIndexValue()));
+            if (r.getUnit() != null && !r.getUnit().isEmpty()) {
+                sb.append(" ").append(r.getUnit());
+            }
+            sb.append("（").append(abnormalLabel(r.getIsAbnormal())).append("）");
+            if (r.getRemark() != null && !r.getRemark().isEmpty()) {
+                sb.append("，备注：").append(r.getRemark());
+            }
+            sb.append("\n");
+        }
+        if (total != null && records.size() < total) {
+            sb.append("（仅展示前 ").append(records.size()).append(" 条，共 ").append(total).append(" 条）\n");
+        }
+        sb.append("\n请在回复中逐条完整罗列以上所有记录，不要省略或只做总结。");
+        return sb.toString();
+    }
+
+    /** 解析开始/结束时间：支持 yyyy-MM-dd HH:mm:ss 与 yyyy-MM-dd 两种格式 */
+    private LocalDateTime parseTime(String value, boolean isStart) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        String v = value.trim();
+        try {
+            return LocalDateTime.parse(v, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        } catch (Exception ignored) {
+        }
+        try {
+            LocalDate date = LocalDate.parse(v, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            return isStart ? date.atStartOfDay() : date.atTime(23, 59, 59);
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    /** 指标编码 → 指标名称 映射（用于记录展示时把 code 换成中文名） */
+    private Map<String, String> loadIndicatorNameMap() {
+        return loadIndicators().stream()
+                .filter(d -> d.getIndexCode() != null && d.getIndexName() != null)
+                .collect(Collectors.toMap(IndexDict::getIndexCode, IndexDict::getIndexName, (a, b) -> a));
+    }
+
+    /** 异常状态转中文：0-正常 1-偏高 2-偏低 */
+    private String abnormalLabel(Integer isAbnormal) {
+        if (isAbnormal == null) {
+            return "未知";
+        }
+        switch (isAbnormal) {
+            case 0:
+                return "正常";
+            case 1:
+                return "偏高";
+            case 2:
+                return "偏低";
+            default:
+                return "未知";
+        }
+    }
+
+    /** 从 ToolContext 中提取 userId（由 ChatController 在请求线程注入） */
+    private Long extractUserId(ToolContext toolContext) {
+        if (toolContext == null || toolContext.getContext() == null) {
+            return null;
+        }
+        Object userId = toolContext.getContext().get("userId");
+        if (userId instanceof Long) {
+            return (Long) userId;
+        }
+        if (userId instanceof Number) {
+            return ((Number) userId).longValue();
+        }
+        return null;
     }
 
     /** 查询全部启用的指标类字典项 */
@@ -80,92 +165,6 @@ public class HealthMetricTool {
             return new ArrayList<>();
         }
         return result.getData().getRecords();
-    }
-
-    /** 模糊匹配：精确匹配优先，其次为包含关系，返回得分最高的一组 */
-    private List<IndexDict> matchIndicators(String input, List<IndexDict> indicators) {
-        String key = input.trim().toLowerCase();
-        List<IndexDict> matched = new ArrayList<>();
-        int bestScore = 0;
-        for (IndexDict d : indicators) {
-            int score = matchScore(key, d);
-            if (score > bestScore) {
-                matched.clear();
-                matched.add(d);
-                bestScore = score;
-            } else if (score > 0 && score == bestScore) {
-                matched.add(d);
-            }
-        }
-        return matched;
-    }
-
-    private int matchScore(String key, IndexDict d) {
-        String name = d.getIndexName() == null ? "" : d.getIndexName().trim().toLowerCase();
-        String code = d.getIndexCode() == null ? "" : d.getIndexCode().trim().toLowerCase();
-        if (name.equals(key) || code.equals(key)) {
-            return 2;
-        }
-        if (name.contains(key) || key.contains(name) || code.contains(key)) {
-            return 1;
-        }
-        return 0;
-    }
-
-    private String buildSummary(List<IndexDict> matched, Map<String, List<TrendPointVO>> data, int days) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("以下是患者近 ").append(days).append(" 天的指标趋势（按日均值汇总）：\n");
-
-        for (IndexDict dict : matched) {
-            String code = dict.getIndexCode();
-            List<TrendPointVO> points = data.get(code);
-
-            sb.append("\n【").append(dict.getIndexName()).append("】");
-            if (dict.getMinValue() != null || dict.getMaxValue() != null) {
-                sb.append("（正常范围 ");
-                sb.append(dict.getMinValue() != null ? dict.getMinValue().stripTrailingZeros().toPlainString() : "-");
-                sb.append(" ~ ");
-                sb.append(dict.getMaxValue() != null ? dict.getMaxValue().stripTrailingZeros().toPlainString() : "-");
-                sb.append("）");
-            }
-            sb.append("\n");
-
-            if (points == null || points.isEmpty()) {
-                sb.append("  该指标近 ").append(days).append(" 天暂无记录。\n");
-                continue;
-            }
-
-            String unit = resolveUnit(points);
-            for (TrendPointVO p : points) {
-                sb.append("- ").append(p.getTimeLabel()).append("：均值 ")
-                        .append(fmt(p.getAvgValue()));
-                if (p.getMinValue() != null || p.getMaxValue() != null) {
-                    sb.append("（最低 ").append(fmt(p.getMinValue()))
-                            .append(" / 最高 ").append(fmt(p.getMaxValue())).append("）");
-                }
-                sb.append("，测量 ").append(p.getRecordCount()).append(" 次");
-                if (unit != null && !unit.isEmpty()) {
-                    sb.append("，单位 ").append(unit);
-                }
-                sb.append("\n");
-            }
-        }
-
-        sb.append("\n请结合指标的正常范围和变化趋势，向患者简要解读：数值是否在正常范围内、是否波动较大、是否需要关注或复诊。");
-        return sb.toString();
-    }
-
-    private String resolveUnit(List<TrendPointVO> points) {
-        for (TrendPointVO p : points) {
-            if (p.getDetails() != null) {
-                for (TrendPointVO.DetailItem item : p.getDetails()) {
-                    if (item.getUnit() != null && !item.getUnit().isEmpty()) {
-                        return item.getUnit();
-                    }
-                }
-            }
-        }
-        return null;
     }
 
     private String fmt(java.math.BigDecimal v) {

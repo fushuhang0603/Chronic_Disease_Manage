@@ -1,6 +1,7 @@
 package com.assistant.chronicdiseaseagent.Controller;
 
 import com.assistant.chronicdiseaseagent.advisor.MedicalSafetyAdvisor;
+import com.assistant.chronicdiseaseagent.common.util.UserInfoContext;
 import com.assistant.chronicdiseaseagent.prompt.AgentRole;
 import com.assistant.chronicdiseaseagent.prompt.AgentScene;
 import com.assistant.chronicdiseaseagent.prompt.SystemPromptFactory;
@@ -12,6 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/agent")
@@ -50,9 +54,15 @@ public class ChatController {
 
     /** 统一对话执行 */
     private Flux<String> doChat(String systemPrompt, String userInput) {
+        Long userId = UserInfoContext.getUserId();
+        Map<String, Object> toolContext = new HashMap<>();
+        if (userId != null) {
+            toolContext.put("userId", userId);
+        }
         return chatClient.prompt()
                 .system(systemPrompt)
                 .user(userInput)
+                .toolContext(toolContext)
                 .advisors(new SimpleLoggerAdvisor(), new MedicalSafetyAdvisor())
                 .stream()
                 .content()
